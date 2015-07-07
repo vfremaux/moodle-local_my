@@ -1,0 +1,64 @@
+.local-my-area-availables{
+    text-align:left;
+}
+
+.right-button {
+    text-align:right;
+}
+
+.local-my-overcount {
+    text-align:right;
+}
+
+#my-dashboard-left{
+    border-right:20px transparent solid;
+}
+
+table#my-dashboard{
+    border-collapse:separate;
+    border-spacing:0px;
+}
+
+table#mycourseareas{
+    border-collapse:separate;
+    border-spacing:15px;
+}
+
+#my-me{
+    margin:10px 0px;
+    font-size:0.85em;
+}
+
+#my-me th,
+#my-me td{
+    border:3px solid white;
+    padding:2px;
+}
+
+.my-label{
+    color:#23A7C1;
+    font-size:0.9em;
+    background-color:#eee;
+}
+
+@media all and (max-width: 1200px) {
+    #my-dashboard-left,
+    #my-dashboard-right {
+        display:inline !important;
+    }
+}
+
+.course_list .collapsibleregioncaption {
+    white-space:normal !important;
+}
+
+.courseinfo .courselink {
+    background-image: url([[pix:moodle|i/course]]);
+    background-position: left center;
+    background-repeat: no-repeat;
+    display: block;
+    padding-left: 21px;
+    font-size:1.1em;
+    letter-spacing:0.2px;
+    padding-top:3px;
+}
