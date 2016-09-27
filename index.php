@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * My Moodle -- a user's personal dashboard
  *
@@ -26,16 +28,19 @@
  * This script implements the user's view of the dashboard, and allows editing
  * of the dashboard.
  *
- * @package    moodlecore
- * @subpackage my
- * @author   Valery Fremaux <valery.fremaux@gmail.com>
+ * @package    local_my
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// This is a customscript include
 // require_once(dirname(__FILE__) . '/../config.php');
 
 // overrides the customisation if not enabled and return back to standard behaviour....
-if (empty($CFG->localmyenable)) {
+$config = get_config('local_my');
+
+if (empty($config->enable)) {
     return;
 }
 
@@ -45,16 +50,18 @@ require_once($CFG->dirroot.'/local/my/lib.php');
 // TODO Add sesskey check to edit
 $edit   = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off
 
+// Security.
+
 require_login();
 
-if (!isset($CFG->localmymaxoverviewedlistsize)) {
-    set_config('localmymaxoverviewedlistsize', MAX_COURSE_OVERVIEWED_LIST);
+if (!isset($config->maxoverviewedlistsize)) {
+    set_config('maxoverviewedlistsize', MAX_COURSE_OVERVIEWED_LIST, 'local_my');
 }
 
 $strmymoodle = get_string('myhome');
 
 if (isguestuser()) {  // Force them to see system default, no editing allowed
-    $userid = NULL; 
+    $userid = null;
     $USER->editing = $edit = 0;  // Just in case
     $context = context_system::instance();
     $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
@@ -86,6 +93,10 @@ $PAGE->blocks->add_region('content');
 $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title($header);
 $PAGE->set_heading($header);
+
+$PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
+$PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
+$PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
@@ -144,103 +155,110 @@ if ($PAGE->user_allowed_editing()) {
 }
 
 // HACK WARNING!  This loads up all this page's blocks in the system context
-    if ($currentpage->userid == 0) {
-        $CFG->blockmanagerclass = 'my_syspage_block_manager';
-    }
+if ($currentpage->userid == 0) {
+    $CFG->blockmanagerclass = 'my_syspage_block_manager';
+}
 
-/// get and clean modules names
+// Get and clean modules names.
 
-    $my_modules = array();
-    $my_left_modules = array();
-    if ($CFG->localmymodules) {
-        $modules = preg_split("/[\\n,]/", $CFG->localmymodules);
-        for ($i = 0 ; $i < count($modules) ; $i++) {
-            $module = trim($modules[$i]);
-            if (preg_match('/-L$/', $module)) {
-                $my_left_modules[$i] = preg_replace('/-L$/', '', $module);
-            } else {
-                // in case it has been explicitely right-located (default);
-                $my_modules[$i] = preg_replace('/-R$/', '', $module);
-            }
+$my_modules = array();
+$my_left_modules = array();
+if ($config->modules) {
+    $modules = preg_split("/[\\n,]|\\s+/", $config->modules);
+    for ($i = 0 ; $i < count($modules) ; $i++) {
+        $module = trim($modules[$i]);
+        $modules[$i] = $module; // store it back into full modules list
+        if (preg_match('/-L$/', $module)) {
+            $my_left_modules[$i] = preg_replace('/-L$/', '', $module);
+        } else {
+            // in case it has been explicitely right-located (default);
+            $my_modules[$i] = preg_replace('/-R$/', '', $module);
         }
     }
+}
 
-    echo $OUTPUT->header();
+echo $OUTPUT->header();
 
 //  echo $OUTPUT->blocks_for_region('content');
-    echo '<div id="my-content">';
+echo '<div id="my-content">';
 
-    if (in_array('my_caption', $my_modules)) {
-        local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+if (in_array('my_caption', $my_modules)) {
+    local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+}
+
+$fooarray = null;
+$courseareacourses = $excludedcourses = array();
+if ((in_array('course_areas', $modules) || in_array('course_areas_and_availables', $modules)) && $config->courseareas > 0) {
+    $excludedcourses = $courseareacourses = local_prefetch_course_areas($fooarray);
+}
+
+echo '<table id="mydashboard" width="100%" cellpadding="10"><tr valign="top">';
+
+if (in_array('left_edition_column', $my_modules)) {
+    $colwidth = 50;
+    echo "<td id=\"my-dashboard-left\" width=\"{$colwidth}%\">";
+    if (function_exists('local_print_static_text')) {
+        // In case the local_staticguitexts is coming with.
+        local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
     }
 
-    $fooarray = null;
-    $excludedcourses = local_prefetch_course_areas($fooarray);
+    if (!empty($my_left_modules)) {
+        foreach ($my_left_modules as $m) {
+            $m = trim($m);
+            if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
+            if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
+            if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
+    
+            // special case : print statics can be freely indexed
+            if (preg_match('/static(\d+)$/', $m, $matches)) {
+                $fname = 'local_my_print_static';
+                echo $fname($matches[1]);
+                continue;
+            }
 
-    echo '<table id="mydashboard" width="100%" cellpadding="10"><tr valign="top">';
-
-    if (in_array('left_edition_column', $my_modules)) {
-        $colwidth = 50;
-        echo "<td id=\"my-dashboard-left\" width=\"{$colwidth}%\">";
-        local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
-
-        if (!empty($my_left_modules)) {
-            foreach ($my_left_modules as $m) {
-                $m = trim($m);
-                if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
-                if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
-                if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
-        
-                // special case : print statics can be freely indexed
-                if (preg_match('/static(\d+)$/', $m, $matches)) {
-                    $fname = 'local_my_print_static';
-                    echo $fname($matches[1]);
-                    continue;
-                }
-
-                $fname = 'local_my_print_'.$m;
-                if (!function_exists($fname)) {
-                    echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
-                } else {
-                    echo $fname($excludedcourses);
-                }
+            $fname = 'local_my_print_'.$m;
+            if (!function_exists($fname)) {
+                echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
+            } else {
+                echo $fname($excludedcourses, $courseareacourses);
             }
         }
-
-        echo '</td>';
-    } else {
-        $colwidth = 100;
-    }
-    
-    echo "<td id=\"my-dashboard-right\" width=\"{$colwidth}%\">";
-
-    // The main overview in the middle of the page
-
-    foreach ($my_modules as $m) {
-        $m = trim($m);
-        if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
-        if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
-        if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
-
-        // special case : print statics can be freely indexed
-        if (preg_match('/static(\d+)$/', $m, $matches)) {
-            $fname = 'local_my_print_static';
-            echo $fname($matches[1]);
-            continue;
-        }
-
-        $fname = 'local_my_print_'.$m;
-        if (!function_exists($fname)) {
-            echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
-        } else {
-            echo $fname($excludedcourses);
-        }
     }
 
-    echo '</td></tr></table>';
-    echo '</div>';
     echo '</td>';
+} else {
+    $colwidth = 100;
+}
 
-    echo $OUTPUT->footer();
+echo "<td id=\"my-dashboard-right\" width=\"{$colwidth}%\">";
+
+// The main overview in the middle of the page
+
+foreach ($my_modules as $m) {
+    $m = trim($m);
+    if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
+    if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
+    if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
+
+    // special case : print statics can be freely indexed
+    if (preg_match('/static(\d+)$/', $m, $matches)) {
+        $fname = 'local_my_print_static';
+        echo $fname($matches[1]);
+        continue;
+    }
+
+    $fname = 'local_my_print_'.$m;
+    if (!function_exists($fname)) {
+        echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
+    } else {
+        echo $fname($excludedcourses, $courseareacourses);
+    }
+}
+
+echo '</td></tr></table>';
+echo '</div>';
+echo '</td>';
+
+echo $OUTPUT->footer();
 
 die;

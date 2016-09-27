@@ -16,12 +16,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-    'local/my:overridemy' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+$definitions = array(
+    'heatmap' => array(
+        'mode' => cache_store::MODE_SESSION
+    )
 );

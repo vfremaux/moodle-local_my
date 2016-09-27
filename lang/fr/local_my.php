@@ -5,9 +5,15 @@ $string['my:overridemy'] = 'Peut surpasser la page My';
 $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';
+$string['cachedef_heatmap'] = 'Données de carte d\'activité';
 $string['choosecategory'] = 'Choisir une de mes catégories pour la création du cours';
 $string['choosecoursetoenrollin'] = 'Choisir un cours';
 $string['coursecreation'] = 'Création de cours';
+$string['coursesearch'] = 'Rechercher des cours';
+$string['courseareasettings'] = 'Réglages des zones de cours';
+$string['completion'] = 'Achèvement: {$a}%';
+$string['categorysettings'] = 'Réglages relatifs aux catégories';
+$string['heatmapsettings'] = 'Réglages du HeatMap';
 $string['standardcreation'] = 'Créer un nouveau cours';
 $string['enrollablecourses'] = 'Cours en inscription libre';
 $string['localmycoursearea'] = 'Aire de cours ';
@@ -23,14 +29,18 @@ $string['localmyheatmaprange'] = 'Profondeur HeatMap';
 $string['localmyheatmaprangedesc'] = 'Plage (en mois) d\'affichage du module heatmap';
 $string['localmymaxoverviewedlistsize'] = 'Taille maximum de liste avec vues d\'ensemble';
 $string['localmymaxoverviewedlistsizedesc'] = 'Définit la taille max de la liste de cours qui sera affichée avec la vue d\'ensemble des activités. Au delà de cette taille, une liste simple est affichée. Laisser à 0 pour complètement désactiver les vues d\'ensemble';
+$string['localmymaxavailablelistsize'] = 'Taille maximum de liste des cours disponibles';
+$string['localmymaxavailablelistsizedesc'] = 'Définit la taille max de la liste des cours disponibles en autoinscrption. Laisser à 0 pour complètement désactiver la limite';
+$string['localmymaxuncategorizedlistsize'] = 'Taille max de liste sans catégorisatoin';
+$string['localmymaxuncategorizedlistsizedesc'] = 'Au dessus de ce nombre de cours, les listes sont affichées avec mention de la catégorie (et par catégorie)';
 $string['localmymodules'] = 'Modules actifs ';
-$string['localmymodulesdesc'] = 'Les modules de la page my permettent de constituer le tableau de bord. Dooez la liste ordonnée des modules à ajouter à la page (un par ligne). Un suffixe "-L" place le module dans la colonne de gauche si celle-ci est activée dans les réglages.';
 $string['localmyprintcategories'] = 'Afficher les catégories';
 $string['localmyprintcategoriesdesc'] = 'Si activé, les cours sont listés avec le premier niveau de catégories';
 $string['localmyuselefteditioncolumn'] = 'Utiliser la colonne éditoriale de gauche';
 $string['localmyuselefteditioncolumndesc'] = 'Si activé, une colonne éditoriale est ajoutée à gauche de la liste de cours pour communiquer avec les utilisateurs';
 $string['localskipmymetas'] = 'Ignorer les metacours';
 $string['localskipmymetasdesc'] = 'Si activé, les métacours n\'apparaissent pas dans les listes';
+$string['managemycourses'] = 'Gérer mes cours';
 $string['myauthoringcourses'] = 'Mes éditions';
 $string['mycalendar'] = 'Mon calendrier';
 $string['mycategories'] = 'Mes catégories';
@@ -44,7 +54,10 @@ $string['noavailablecourses'] = 'Aucun cours en accès libre.';
 $string['nocourseareas'] = 'Pas de zones de cours spécifiques';
 $string['nocourses'] = 'Pas de cours.';
 $string['pluginname'] = 'Mon moodle amélioré';
+$string['recentcourses'] = 'Cours récents ';
+$string['restorecourse'] = 'Restaurer un cours';
 $string['seealllist'] = '... plus de cours';
+$string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres utilisateurs puissent créer les leurs.';
 
 $string['myactivity'] = 'Mon activité';
 
@@ -68,3 +81,16 @@ $string['september'] = 'Septembre';
 $string['october'] = 'Octobre';
 $string['november'] = 'Novembre';
 $string['december'] = 'Décembre';
+
+$string['localmymodulesdesc'] = '
+<br><p>Les modules de la page my permettent de constituer le tableau de bord. Donnez la liste ordonnée des modules 
+à ajouter à la page (un par ligne). Un suffixe "-L" place le module dans la colonne de gauche 
+si celle-ci est activée par la présence du module "left_edition_column".</p>
+<p>D\'autres modules peuvent être utilisés:</p>
+<li>latestnews_full</li>
+<li>latestnews_headers</li>
+<li>my_network</li>
+<li>fullme</li>
+<li>my_calendar</li>
+<li>my_templates (avec le plugin course_templates)</li>
+';
