@@ -39,7 +39,7 @@ if (!$heatmapcachedtable) {
     $start = time() - (DAYSECS * $range * 30);
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
