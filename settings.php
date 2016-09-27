@@ -18,17 +18,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/coursecatlib.php');
 
-// settings default init
-if (is_dir($CFG->dirroot.'/local/adminsettings')) {
-    // Integration driven code 
-    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
-    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
-} else {
-    // Standard Moodle code
-    $capability = 'moodle/site:config';
-    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
-}
-
 $config = get_config('local_my');
 
 if ($hassiteconfig) { 
@@ -45,7 +34,7 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_setting_configselect('local_my/skipmymetas', get_string('localskipmymetas', 'local_my'), get_string('localskipmymetasdesc', 'local_my'), 0, $yesnooptions, PARAM_BOOL));
 
-    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nauthored_courses\nmy_courses\ncourse_areas\navailable_courses\nlatestnews_simple";
+    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nmy_courses\nauthored_courses\ncourse_areas\navailable_courses\nlatestnews_simple";
     if (!isset($config->modules)) {
         set_config('localmymodules', $defaultmodules);
     }

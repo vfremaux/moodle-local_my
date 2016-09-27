@@ -94,10 +94,6 @@ $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title($header);
 $PAGE->set_heading($header);
 
-$PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
-$PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
-$PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
-
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
         set_user_preference('user_home_page_preference', HOMEPAGE_MY);

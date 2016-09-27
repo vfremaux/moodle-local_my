@@ -36,7 +36,7 @@ function local_has_myoverride_somewhere() {
     global $USER, $CFG;
 
     // TODO : explore caps for a moodle/local:overridemy positive answer.
-    if ($hassome = local_has_capability_somewhere('local/my:overridemy', false, false, true, CONTEXT_COURSE.','.CONTEXT_COURSECAT.','.CONTEXT_SYSTEM)) {
+    if ($hassome = local_has_capability_somewhere('local/my:overridemy', false, false, true)) {
         return true;
     }
 
@@ -426,11 +426,9 @@ function local_my_is_meta(&$c, $userid = 0) {
 }
 
 function local_my_print_courses($title = 'mycourses', $courses, $options = array()) {
-    global $OUTPUT, $CFG, $DB, $PAGE;
+    global $OUTPUT, $CFG, $DB;
 
     $config = get_config('local_my');
-    $renderer = $PAGE->get_renderer('local_my');
-
     $str = '';
 
     // Be sure we have something in lastaccess.
@@ -458,12 +456,26 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         }
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
-            $str .= local_print_course_overview($courses, $options);
+            $str .= local_print_course_overview($courses);
         } elseif (!empty($options['withcats'])) {
             $str .= local_print_courses_by_cats($courses, $options, $config->printcategories);
         } else {
-            foreach ($courses as $c) {
-                $str .= $renderer->course_table_row($c, $options);
+            foreach ($courses as $course) {
+                $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
+
+                if (!isset($course->summary)) {
+                    $course->summary = $DB->get_field('course', 'summary', array('id' => $course->id));
+                    $course->summaryformat = $DB->get_field('course', 'summaryformat', array('id' => $course->id));
+                }
+
+                $str .= '<tr valign="top">';
+                $str .= '<td class="courserow">';
+                $str .= '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
+                if (!empty($options['withdescription'])) {
+                    $str .= '<p class="coursedescription">'.format_text($course->summary, $course->summaryformat).'</p>';
+                }
+                $str .= '</td>';
+                $str .= '</tr>';
             }
         }
         $str .= '</table>';
@@ -483,10 +495,8 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
  * @param boolean $return if true returns the string
  * @return the rendered view if return is true
  */
-function local_print_course_overview($courses, $options = array()) {
+function local_print_course_overview($courses) {
     global $CFG, $PAGE, $OUTPUT;
-
-    $renderer = $PAGE->get_renderer('local_my');
 
     // Be sure we have something in lastaccess.
     foreach ($courses as $cid => $c) {
@@ -502,16 +512,16 @@ function local_print_course_overview($courses, $options = array()) {
 
     $str = '';
 
+    /*
+    $renderer = $PAGE->get_renderer('block_course_overview');
+    $str = $renderer->course_overview($courses, $overviews);
+    */
+
     $str .= '<div class="courselist">';
     foreach ($courses as $cid => $c) {
-        $str .= '<div>';
-        if (empty($options['nocompletion'])) {
-            $str .= $renderer->course_completion_gauge($c, 'div', $options['gaugewidth'], $options['gaugeheight']);
-        }
-        $str .= $renderer->course_simple_div($c);
-        $str .= '</div>';
+        $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
+        $str .= '<div class="courseinfo"><a class="courselink" href="'.$courseurl.'">'.format_string($c->fullname).'</a></div>';
     }
-
     $str .= '</div>';
 
     return $str;
@@ -711,30 +721,4 @@ function local_my_is_meta_for_user($courseid, $userid) {
         return true;
     }
     return false;
-}
-
-function local_my_get_logstore_info() {
-
-    $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
-    $reader = reset($readers);
-
-    if (empty($reader)) {
-        return false; // No log reader found.
-    }
-
-    $logstoreinfo = new StdClass;
-    if ($reader instanceof \logstore_standard\log\store) {
-        $logstoreinfo->table = 'logstore_standard_log';
-        $logstoreinfo->courseparam = 'courseid';
-        $logstoreinfo->timeparam = 'timecreated';
-    } elseif($reader instanceof \logstore_legacy\log\store) {
-        $logstoreinfo->table = 'log';
-        $logstoreinfo->courseparam = 'course';
-        $logstoreinfo->timeparam = 'time';
-    } else {
-        return;
-    }
-    return $logstoreinfo;
-
 }
