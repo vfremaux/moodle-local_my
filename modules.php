@@ -791,7 +791,7 @@ function local_my_print_latestnews_headers() {
         }
 
         $renderer = $PAGE->get_renderer('local_my');
-        $renderer->print_forum_link($newforum);
+        $str .= $renderer->print_forum_link($newsforum, $forumname);
 
         if (isloggedin()) {
             if (!isset($SESSION)) {
@@ -852,7 +852,7 @@ function local_my_print_latestnews_simple() {
         }
 
         $renderer = $PAGE->get_renderer('local_my');
-        $renderer->print_forum_link($newforum);
+        $str .= $renderer->print_forum_link($newsforum, $forumname);
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
