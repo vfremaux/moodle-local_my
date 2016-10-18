@@ -778,7 +778,7 @@ function local_my_print_latestnews_full() {
  * Prints the news forum as simple compact list of discussion headers.
  */
 function local_my_print_latestnews_headers() {
-    global $SITE, $CFG, $OUTPUT, $USER, $SESSION;
+    global $PAGE, $CFG, $OUTPUT, $USER, $SESSION;
 
     $str = '';
 
@@ -790,13 +790,8 @@ function local_my_print_latestnews_headers() {
             print_error('cannotfindorcreateforum', 'forum');
         }
 
-        // Fetch news forum context for proper filtering to happen.
-        $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
-        $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
-
-        $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
-        $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+        $renderer = $PAGE->get_renderer('local_my');
+        $renderer->print_forum_link($newforum);
 
         if (isloggedin()) {
             if (!isset($SESSION)) {
@@ -844,7 +839,7 @@ function local_my_print_latestnews_headers() {
  * Same as "full", but removes all subscription or any discussion commandes.
  */
 function local_my_print_latestnews_simple() {
-    global $SITE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
+    global $PAGE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
 
     $str = '';
 
@@ -856,13 +851,8 @@ function local_my_print_latestnews_simple() {
             print_error('cannotfindorcreateforum', 'forum');
         }
 
-        // Fetch news forum context for proper filtering to happen.
-        $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
-        $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
-
-        $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
-        $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        $str .= html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+        $renderer = $PAGE->get_renderer('local_my');
+        $renderer->print_forum_link($newforum);
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
