@@ -37,7 +37,7 @@ require_login();
 
 $titlestr = get_string('newcourse', 'local_my');
 
-// Start setting up the page
+// Start setting up the page.
 $params = array();
 $PAGE->set_context($context);
 $PAGE->set_url('/local/my/create_course.php', $params);

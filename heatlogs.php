@@ -39,7 +39,7 @@ if (!$heatmapcachedtable) {
     $start = time() - (DAYSECS * $range * 30);
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -49,10 +49,12 @@ if (!$heatmapcachedtable) {
     if ($reader instanceof \logstore_standard\log\store) {
         $table = 'logstore_standard_log';
         $timefield = 'timecreated';
-    } elseif($reader instanceof \logstore_legacy\log\store) {
+        $additional = ' AND origin != \'cli\' ';
+    } else if($reader instanceof \logstore_legacy\log\store) {
         $table = 'log';
         $timefield = 'time';
-    } else{
+        $additional = '';
+    } else {
         return;
     }
 
@@ -65,6 +67,7 @@ if (!$heatmapcachedtable) {
         WHERE
             $timefield >= ? AND
             userid = ?
+            $additional
         GROUP BY
             DATE_FORMAT(FROM_UNIXTIME($timefield), \"%Y-%m-%d\")
     ";
