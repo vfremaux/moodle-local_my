@@ -1,22 +1,107 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package    local_my
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die();
+}
 
 require_once($CFG->dirroot.'/local/my/modules.php');
 require_once($CFG->dirroot.'/local/lib.php');
 
 /**
- * checks if a user has a myoverride capability somewhere, so he might be My Moodle 
+ * This is a relocalized function in order to get local_my more compact.
+ * checks if a user has a some named capability effective somewhere in a course.
+ * @param string $capability;
+ * @param bool $excludesystem
+ * @param bool $excludesite
+ * @param bool $doanything
+ * @param string $contextlevels restrict to some contextlevel may speedup the query.
+ */
+function local_my_has_capability_somewhere($capability, $excludesystem = true, $excludesite = true,
+                                           $doanything = false, $contextlevels = '') {
+    global $USER, $DB;
+
+    $contextclause = '';
+
+    if ($contextlevels) {
+        list($sql, $params) = $DB->get_in_or_equal(explode(',', $contextlevels), SQL_PARAMS_NAMED);
+        $contextclause = "
+           AND ctx.contextlevel $sql
+        ";
+    }
+    $params['capability'] = $capability;
+    $params['userid'] = $USER->id;
+
+    // This is a a quick rough query that may not handle all role override possibility.
+
+    $sql = "
+        SELECT
+            COUNT(DISTINCT ra.id)
+        FROM
+            {role_capabilities} rc,
+            {role_assignments} ra,
+            {context} ctx
+        WHERE
+            rc.roleid = ra.roleid AND
+            ra.contextid = ctx.id AND
+            rc.capability = :capability
+            $contextclause
+            AND ra.userid = :userid AND
+            rc.permission = 1
+    ";
+    $hassome = $DB->count_records_sql($sql, $params);
+    if ($excludesite && !empty($hassome) && array_key_exists(SITEID, $hassome)) {
+        unset($hassome[SITEID]);
+    }
+
+    if (!empty($hassome)) {
+        return true;
+    }
+
+    $systemcontext = context_system::instance();
+    if (!$excludesystem && has_capability($capability, $systemcontext, $USER->id, $doanything)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * checks if a user has a myoverride capability somewhere, so he might be My Moodle
  * exampted.
  */
 function local_has_myoverride_somewhere() {
     global $USER, $CFG;
 
     // TODO : explore caps for a moodle/local:overridemy positive answer.
-    if ($hassome = local_has_capability_somewhere('local/my:overridemy', false, false, true)) {
+    if ($hassome = local_my_has_capability_somewhere('local/my:overridemy', false, false, true,
+                                                  CONTEXT_COURSE.','.CONTEXT_COURSECAT.','.CONTEXT_SYSTEM)) {
         return true;
     }
 
-    // ADDED : on special configuration check positive response of an override driver
-    // that could come from having some profile field marked 
+    /*
+     * ADDED : on special configuration check positive response of an override driver
+     * that could come from having some profile field marked
+     */
     if (@$CFG->specialprofilefieldmyoverridedrivers) {
 
         $drivers = "'".str_replace(',', "','", $CFG->specialprofilefieldmyoverridedrivers)."'";
@@ -83,7 +168,8 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
                 $coursehascert = true;
                 if ($certs = $DB->get_records('certificate', array('course' => $c->id))) {
                     foreach ($certs as $cert) {
-                        if (!$DB->record_exists('certificate_issues', array('userid' => $USER->id, 'certificateid' => $cert->id))) {
+                        $params = array('userid' => $USER->id, 'certificateid' => $cert->id);
+                        if (!$DB->record_exists('certificate_issues', $params)) {
                             $coursehascert = false;
                             break;
                         }
@@ -93,7 +179,10 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
                 }
             }
 
-            if (local_my_is_meta($c) && (!$certinstalled || ((($coursehascert && $certified) || (!$coursehascert && !$certified))))) {
+            if (local_my_is_meta($c) &&
+                    (!$certinstalled ||
+                            ((($coursehascert && $certified) ||
+                                    (!$coursehascert && !$certified))))) {
                 $metacourses[$c->id] = $c;
             }
         }
@@ -104,7 +193,7 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
 /**
  * Print a simple list of coures with first level category caption
  */
-function local_print_courses_by_cats($courselist, $options = array(), $return = false) {
+function local_print_courses_by_cats($courselist, $options = array()) {
     global $CFG, $DB;
 
     $str = '';
@@ -122,15 +211,17 @@ function local_print_courses_by_cats($courselist, $options = array(), $return = 
         if ($catid) {
             $catcontext = context_coursecat::instance($catid);
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
-                $catstyle = ($cat->category->visible) ? '' : 'shadow' ;
+                $catstyle = ($cat->category->visible) ? '' : 'shadow';
                 if ($options['withcats'] == 1) {
-                    $str .= '<tr valign="top"><td class="'.$catstyle.'"><b>'.format_string($cat->category->name).'</b></td></tr>';
-                } elseif ($options['withcats'] > 1) {
+                    $str .= '<tr valign="top">';
+                    $str .= '<td class="'.$catstyle.'"><b>'.format_string($cat->category->name).'</b></td>';
+                    $str .= '</tr>';
+                } else if ($options['withcats'] > 1) {
                     $cats = array();
                     $cats[] = format_string($cat->category->name);
                     if ($cat->category->parent) {
                         $parent = $cat->category;
-                        for ($i = 1; $i < $options['withcats'] ; $i++) {
+                        for ($i = 1; $i < $options['withcats']; $i++) {
                             $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
                             $cats[] = format_string($parent->name);
                         }
@@ -142,19 +233,18 @@ function local_print_courses_by_cats($courselist, $options = array(), $return = 
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                         $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-                        $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow' ;
+                        $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
                         $str .= '<tr valign="top">';
                         $str .= '<td class="course">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
                         $str .= '</td>';
-                        $str .='</tr>';
+                        $str .= '</tr>';
                     }
                 }
             }
         }
     }
-    if ($return) return $str;
-    echo $str;
+    return $str;
 }
 
 /**
@@ -162,9 +252,9 @@ function local_print_courses_by_cats($courselist, $options = array(), $return = 
  *
  */
 function local_get_my_authoring_courses() {
-    global $USER, $CFG, $DB;
+    global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false)) {
+    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
             $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id));
         }
@@ -178,12 +268,12 @@ function local_get_my_authoring_courses() {
  *
  */
 function local_get_my_templates() {
-    global $USER, $CFG, $DB;
+    global $USER, $DB;
 
     $config = get_config('local_coursetemplates');
 
     $templatecourses = array();
-    if ($templates = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false)) {
+    if ($templates = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
         foreach ($templates as $t) {
             $category = $DB->get_field('course', 'category', array('id' => $t->id));
             if ($category == $config->templatecategory) {
@@ -200,48 +290,125 @@ function local_get_my_templates() {
  *
  */
 function local_get_enrollable_courses($withanonymous = true) {
-    global $CFG, $DB, $USER;
+    global $DB, $USER;
 
     if ($withanonymous) {
-        $enroltypeclause = " AND (enrol = 'self' OR enrol = 'guest') ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'guest' OR enrol = 'profilefield') AND ";
     } else {
-        $enroltypeclause = " enrol = 'self' ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'profilefield') AND ";
     }
 
+    // Select all active enrols self or guest where i'm not enrolled in.
     $sql = "
         SELECT
-            c.id, c.visible, c.fullname, c.shortname, c.category, c.summary,
-            SUM(IF(ue.id IS NOT NULL, 1, 0)) as uecount
+            e.id,
+            e.enrol,
+            e.courseid as cid,
+            e.customchar1,
+            e.customchar2,
+            e.customint5 as cohortbinding
         FROM
-            {course} c
-        JOIN
-            {course_categories} cc
-        ON
-            c.category = cc.id
-        JOIN
             {enrol} e
-        ON 
-            e.courseid = c.id
-            $enroltypeclause AND
-            status = 0
         LEFT JOIN
             {user_enrolments} ue
         ON
-            ue.userid = $USER->id AND
+            ue.userid = ? AND
             ue.enrolid = e.id
         WHERE
-            c.category = cc.id AND
-            c.id != ".SITEID."
-        GROUP BY 
-            c.id, c.fullname, c.shortname, c.category
-        HAVING 
-            uecount = 0
-        ORDER BY
-            cc.sortorder, c.sortorder
+            e.status = 0 AND
+            $enroltypeclause
+            ue.id IS NULL
     ";
+    $possibles = $DB->get_records_sql($sql, array($USER->id));
 
-    $courses = $DB->get_records_sql($sql);
+    $sql = "
+        SELECT DISTINCT
+            e.courseid as id,
+            e.courseid as cid
+        FROM
+            {enrol} e,
+            {user_enrolments} ue
+        WHERE
+            ue.userid = ? AND
+            ue.enrolid = e.id AND
+            e.status = 0 AND
+            ue.status = 0 AND
+            e.enrol != 'guest'
+    ";
+    $actives = $DB->get_records_sql($sql, array($USER->id));
+
+    // Collect unique list of possible courses.
+    $courses = array();
+    if (!empty($possibles)) {
+        $courseids = array();
+
+        foreach ($possibles as $e) {
+
+            $pass = 0;
+            $nopass = 0;
+
+            // Check cohort restriction.
+            if ($e->enrol == 'self') {
+                if ($e->cohortbinding) {
+                    $params = array('cohortid' => $e->cohortbinding, 'userid' => $USER->id);
+                    if (!$DB->record_exists('cohort_members', $params)) {
+                        $nopass++;
+                    } else {
+                        $pass++;
+                    }
+                } else {
+                    $pass++;
+                }
+            }
+
+            if ($e->enrol == 'profilefield') {
+                $enrol = enrol_get_plugin('profilefield');
+                // If profile not matching and a profile enrol is required, discard.
+                if ($enrol->check_user_profile_conditions($e)) {
+                    $pass++;
+                } else {
+                    $nopass++;
+                }
+            }
+
+            if (!$pass && $nopass) {
+                // If none is passing, but one at leas retriction method fired, then discard.
+                continue;
+            }
+
+            if (!in_array($e->cid, $courseids)) {
+                $fields = 'id,shortname,fullname,visible,summary,sortorder,category';
+                $courses[$e->cid] = $DB->get_record('course', array('id' => $e->cid), $fields);
+                $params = array('id' => $courses[$e->cid]->category);
+                $courses[$e->cid]->ccsortorder = $DB->get_field('course_categories', 'sortorder', $params);
+                $courseids[] = $e->cid;
+            }
+        }
+    }
+
+    // Filter out already enrolled.
+    if (!empty($actives) && !empty($courses)) {
+        foreach ($actives as $a) {
+            if (array_key_exists($a->id, $courses)) {
+                unset($courses[$a->id]);
+            }
+        }
+    }
+
+    if (!empty($courses)) {
+        uasort($courses, 'local_sort_by_ccc');
+    }
+
     return $courses;
+}
+
+function local_sort_by_ccc($a, $b) {
+    if ($a->ccsortorder * 10000 + $a->sortorder > $b->ccsortorder * 10000 + $b->sortorder) {
+        return 1;
+    } else if ($a->ccsortorder * 10000 + $a->sortorder < $b->ccsortorder * 10000 + $b->sortorder) {
+        return -1;
+    }
+    return 0;
 }
 
 /**
@@ -250,7 +417,7 @@ function local_get_enrollable_courses($withanonymous = true) {
  * @param int $userid if NULL, no check of user actual enrollement, if 0, use current USER id to check.
  */
 function local_my_is_meta(&$c, $userid = 0) {
-    global $CFG, $DB, $USER;
+    global $DB, $USER;
 
     $now = time();
     $datesql = "
@@ -274,14 +441,23 @@ function local_my_is_meta(&$c, $userid = 0) {
         ($now >= timestart AND
         $now <= timeend)
     ";
-    
-    if ($metaenrols = $DB->get_records_select('enrol', " enrol = 'meta' AND courseid = {$c->id} AND ($datesql) ")) {
+
+    $select = "
+        enrol = 'meta' AND
+        courseid = ? AND
+        ($datesql)
+    ";
+    if ($metaenrols = $DB->get_records_select('enrol', $select, array($c->id))) {
         if (is_null($userid)) {
             return true;
         } else {
-            $uid = ($userid === 0) ? $USER->id : $userid ;
+            $uid = ($userid === 0) ? $USER->id : $userid;
             foreach ($metaenrols as $me) {
-                if ($DB->record_exists_select('user_enrolments', " userid = $uid AND enrolid = {$me->id} AND ($uedatesql) ")) {
+                $select = "
+                    userid = ? AND
+                    enrolid = ? AND
+                    ($uedatesql) ";
+                if ($DB->record_exists_select('user_enrolments', $select, array($uid, $me->id))) {
                     return true;
                 }
             }
@@ -290,8 +466,11 @@ function local_my_is_meta(&$c, $userid = 0) {
     return false;
 }
 
-function local_my_print_courses($title = 'mycourses', $courses, $options = array(), $return = true) {
-    global $OUTPUT, $CFG;
+function local_my_print_courses($title = 'mycourses', $courses, $options = array()) {
+    global $OUTPUT, $DB, $PAGE;
+
+    $config = get_config('local_my');
+    $renderer = $PAGE->get_renderer('local_my');
 
     $str = '';
 
@@ -307,7 +486,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
             $str .= '</div>';
             $str .= '</div>';
-            $str .= $OUTPUT->box(get_string('nocourses','local_my'), 'content');
+            $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
         }
     } else {
         if (empty($options['noheading'])) {
@@ -320,34 +499,23 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         }
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
-            $str .= local_print_course_overview($courses);
-        } elseif (!empty($options['withcats'])) {
-            $str .= local_print_courses_by_cats($courses, $options, true);
+            $str .= local_print_course_overview($courses, $options);
+        } else if (!empty($options['withcats'])) {
+            $str .= local_print_courses_by_cats($courses, $options, $config->printcategories);
         } else {
-            foreach ($courses as $course) {
-                $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-
-                $str .= '<tr valign="top">';
-                $str .= '<td class="courserow">';
-                $str .= '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
-                if (!empty($options['withdescription'])) {
-                    $str .= '<p class="coursedescription">'.format_text($course->summary, $course->summaryformat).'</p>';
-                }
-                $str .= '</td>';
-                $str .= '</tr>';
+            foreach ($courses as $c) {
+                $str .= $renderer->course_table_row($c, $options);
             }
         }
         $str .= '</table>';
 
         if (empty($options['noheading'])) {
             $str .= '</div>';
+            $str .= '</div>';
         }
     }
 
-    if ($return) {
-        return $str;
-    }
-    echo $str;
+    return $str;
 }
 
 /**
@@ -356,8 +524,10 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
  * @param boolean $return if true returns the string
  * @return the rendered view if return is true
  */
-function local_print_course_overview($courses, $return = false) {
-    global $CFG, $PAGE, $OUTPUT;
+function local_print_course_overview($courses, $options = array()) {
+    global $PAGE, $OUTPUT;
+
+    $renderer = $PAGE->get_renderer('local_my');
 
     // Be sure we have something in lastaccess.
     foreach ($courses as $cid => $c) {
@@ -367,18 +537,37 @@ function local_print_course_overview($courses, $return = false) {
     $overviews = array();
     if ($modules = get_plugin_list_with_function('mod', 'print_overview')) {
         foreach ($modules as $fname) {
-            $fname($courses,$overviews);
+            $fname($courses, $overviews);
         }
     }
 
-    $renderer = $PAGE->get_renderer('block_course_overview');
+    $str = '';
 
-    $str = $renderer->course_overview($courses, $overviews);
-
-    if ($return) {
-        return $str;
+    $str .= '<div class="courselist">';
+    foreach ($courses as $cid => $c) {
+        $str .= '<div>';
+        if (empty($options['nocompletion'])) {
+            $str .= $renderer->course_completion_gauge($c, 'div', $options['gaugewidth'], $options['gaugeheight']);
+        }
+        $str .= $renderer->course_simple_div($c);
+        $str .= '</div>';
     }
-    echo $str;
+
+    $str .= '</div>';
+
+    return $str;
+}
+
+/**
+ * returns a context in which the user can do restore.
+ */
+function local_get_one_of_my_power_contexts() {
+
+    if ($courseswithbackup = get_user_capability_course('moodle/restore:restorecourse')) {
+        $oneof = array_shift($courseswithbackup);
+        return context_course::instance($oneof->id);
+    }
+    return null;
 }
 
 /**
@@ -401,10 +590,11 @@ function local_get_cat_branch_ids_rec($categoryid) {
 /**
  * Prefetch courses that will be printed by course areas
  */
-function local_prefetch_course_areas(&$excludecourses) {
-    global $USER, $CFG, $OUTPUT, $DB;
+function local_prefetch_course_areas(&$excludedcourses) {
+    global $DB;
 
-    $allcourses = enrol_get_my_courses('id,shortname');
+    $allcourses = enrol_get_my_courses('id, shortname');
+    $config = get_config('local_my');
 
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $c) {
@@ -412,26 +602,26 @@ function local_prefetch_course_areas(&$excludecourses) {
         }
     }
 
-    if (empty($CFG->localmycourseareas)) {
+    if (empty($config->courseareas)) {
         // Performance quick trap.
         return array();
     }
 
     $prefetchareacourses = array();
 
-    for ($i = 0; $i < $CFG->localmycourseareas ; $i++) {
+    for ($i = 0; $i < $config->courseareas; $i++) {
 
-        $coursearea = 'localmycoursearea'.$i;
-        $mastercategory = $DB->get_record('course_categories', array('id' => $CFG->$coursearea));
+        $coursearea = 'coursearea'.$i;
+        if (!empty($config->$coursearea)) {
+            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
 
-        $key = 'localmycoursearea'.$i;
-        $categoryid = $CFG->$key;
-
-        // filter courses of this area
-        $retainedcategories = local_get_cat_branch_ids_rec($categoryid);
-        foreach ($allcourses as $c) {
-            if (in_array($c->category, $retainedcategories)) {
-                $prefetchareacourses[$c->id] = $c;
+            // Filter courses of this area.
+            $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
+            foreach ($allcourses as $c) {
+                if (in_array($c->category, $retainedcategories)) {
+                    $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
+                    $prefetchareacourses[$c->id] = $c;
+                }
             }
         }
     }
@@ -440,13 +630,14 @@ function local_prefetch_course_areas(&$excludecourses) {
 }
 
 function local_my_hide_home() {
-    global $CFG;
-    
-    if ($CFG->localmyenable) {
+
+    $config = get_config('local_my');
+
+    if ($config->enable) {
         return false;
     }
 
-    if ($CFG->localmyforce) {
+    if ($config->force) {
         if (local_has_myoverride_somewhere()) {
             return false;
         }
@@ -455,7 +646,7 @@ function local_my_hide_home() {
 }
 
 /**
- * This function clones the accesslib.php function get_user_capability_course, and gets the list 
+ * This function clones the accesslib.php function get_user_capability_course, and gets the list
  * of courses that this user has a particular capability in. the difference resides in that we look
  * only for direct assignations here and not on propagated authorisations.
  * It is still not very efficient.
@@ -469,21 +660,22 @@ function local_my_hide_home() {
  *   table with sql modifiers (DESC) if needed
  * @return array|bool Array of courses, if none found false is returned.
  */
-function local_get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '', $orderby = '') {
+function local_get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '',
+                                          $orderby = '') {
     global $DB;
 
-    // Convert fields list and ordering
+    // Convert fields list and ordering.
     $fieldlist = '';
     if ($fieldsexceptid) {
         $fields = explode(',', $fieldsexceptid);
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             $fieldlist .= ',c.'.$field;
         }
     }
     if ($orderby) {
         $fields = explode(',', $orderby);
         $orderby = '';
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             if ($orderby) {
                 $orderby .= ',';
             }
@@ -492,10 +684,11 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
         $orderby = 'ORDER BY '.$orderby;
     }
 
-    // Obtain a list of everything relevant about all courses including context but
-    // only where user has roles directly inside.
-    // Note the result can be used directly as a context (we are going to), the course
-    // fields are just appended.
+    /* Obtain a list of everything relevant about all courses including context but
+     * only where user has roles directly inside.
+     * Note the result can be used directly as a context (we are going to), the course
+     * fields are just appended.
+     */
 
     $contextpreload = context_helper::get_preload_record_columns_sql('x');
 
@@ -523,16 +716,68 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
 
     $rs = $DB->get_recordset_sql($sql, array($userid));
 
-    // Check capability for each course in turn
+    // Check capability for each course in turn.
     foreach ($rs as $course) {
         context_helper::preload_from_record($course);
         $context = context_course::instance($course->id);
         if (has_capability($capability, $context, $userid, $doanything)) {
-            // We've got the capability. Make the record look like a course record
-            // and store it
+            /*
+             * We've got the capability. Make the record look like a course record
+             * and store it
+             */
             $courses[] = $course;
         }
     }
     $rs->close();
     return empty($courses) ? false : $courses;
+}
+
+function local_my_is_meta_for_user($courseid, $userid) {
+    global $DB;
+
+    $sql = "
+        SELECT
+            SUM(CASE WHEN e.enrol = 'meta' THEN 1 ELSE 0 END) as metas,
+            SUM(CASE WHEN e.enrol <> 'meta' THEN 1 ELSE 0 END) as nonmetas
+        FROM
+            {enrol} e,
+            {user_enrolments} ue
+        WHERE
+            e.id = ue.enrolid AND
+            ue.userid = ? AND
+            e.status = 0 AND
+            e.courseid = ? AND
+            ue.status = 0
+    ";
+    $metainfo = $DB->get_record_sql($sql, array($userid, $courseid));
+    if ($metainfo->metas > 0 && !$metainfo->nonmetas) {
+        return true;
+    }
+    return false;
+}
+
+function local_my_get_logstore_info() {
+
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $reader = reset($readers);
+
+    if (empty($reader)) {
+        return false; // No log reader found.
+    }
+
+    $logstoreinfo = new StdClass;
+    if ($reader instanceof \logstore_standard\log\store) {
+        $logstoreinfo->table = 'logstore_standard_log';
+        $logstoreinfo->courseparam = 'courseid';
+        $logstoreinfo->timeparam = 'timecreated';
+    } else if ($reader instanceof \logstore_legacy\log\store) {
+        $logstoreinfo->table = 'log';
+        $logstoreinfo->courseparam = 'course';
+        $logstoreinfo->timeparam = 'time';
+    } else {
+        return;
+    }
+    return $logstoreinfo;
+
 }

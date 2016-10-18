@@ -17,13 +17,13 @@
 /**
  * My Moodle -- a user's personal dashboard
  *
- * this screen allows choosing the category for creating a course from within
- * the categories i am owner of.
- *
- * @package    local
- * @subpackage my
+ * @package    local_my
+ * @category   local
  * @reauthor   Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * this screen allows choosing the category for creating a course from within
+ * the categories i am owner of.
  */
 require('../../config.php');
 require_once($CFG->dirroot . '/my/lib.php');
@@ -31,11 +31,13 @@ require_once($CFG->dirroot.'/lib/coursecatlib.php');
 
 $context = context_system::instance();
 
+// Security.
+
 require_login();
 
 $titlestr = get_string('newcourse', 'local_my');
 
-// Start setting up the page
+// Start setting up the page.
 $params = array();
 $PAGE->set_context($context);
 $PAGE->set_url('/local/my/create_course.php', $params);
