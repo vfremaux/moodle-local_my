@@ -25,8 +25,8 @@ table#mycourseareas{
 }
 
 #my-me{
-    margin:10px 0px;
     font-size:0.85em;
+    margin:10px 0px;
 }
 
 #my-me th,
@@ -36,9 +36,9 @@ table#mycourseareas{
 }
 
 .my-label{
+    background-color:#eee;
     color:#23A7C1;
     font-size:0.9em;
-    background-color:#eee;
 }
 
 @media all and (max-width: 1200px) {
@@ -57,9 +57,9 @@ table#mycourseareas{
     background-position: left center;
     background-repeat: no-repeat;
     display: block;
-    padding-left: 21px;
     font-size:1.1em;
     letter-spacing:0.2px;
+    padding-left: 21px;
     padding-top:3px;
 }
 
@@ -76,33 +76,33 @@ div.course-completion {
 }
 
 div.course-box {
+    background-color:#f0f0f0;
     display:inline-block;
-    min-width:20%;
-    max-width:20%;
-    min-height:180px;
-    max-height:180px;
     margin-left:10px;
     margin-right:20px;
-    background-color:#f0f0f0;
+    max-height:180px;
+    max-width:20%;
+    min-height:180px;
+    min-width:20%;
 }
 
 div.course-box .summary {
+    background-color:#f8f8f8;
     height:115px;
-    margin-top:10px;
     margin-left:5px;
     margin-right:5px;
-    padding:8px;
+    margin-top:10px;
     overflow:hidden;
-    background-color:#f8f8f8;
+    padding:8px;
 }
 
 div.course-box .courseimage {
+    background-color:#f8f8f8;
     height:115px;
-    margin-top:10px;
     margin-left:5px;
     margin-right:5px;
+    margin-top:10px;
     padding:8px;
-    background-color:#f8f8f8;
 }
 
 div.course-box .courseimage img {

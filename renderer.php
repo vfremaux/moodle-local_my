@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package    local_my
  * @category   local
@@ -24,10 +22,11 @@ defined('MOODLE_INTERNAL') || die();
  *
  * this is  aplugin overridable renderer for enhanced my dashboard page
  */
- 
+defined('MOODLE_INTERNAL') || die();
+
 class local_my_renderer extends plugin_renderer_base {
 
-    function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar') {
+    public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar') {
         global $USER, $PAGE;
 
         $str = '';
@@ -37,10 +36,9 @@ class local_my_renderer extends plugin_renderer_base {
             $alltracked = count($completion->get_activities());
             $progressinfo = $completion->get_progress_all('u.id = :userid', array('userid' => $USER->id));
             $completed = 0;
-            // print_object($progressinfo);
             if (!empty($progressinfo)) {
                 if (!empty($progressinfo[$USER->id]->progress)) {
-                    foreach($progressinfo[$USER->id]->progress as $progressrecord) {
+                    foreach ($progressinfo[$USER->id]->progress as $progressrecord) {
                         if ($progressrecord->completionstate) {
                             $completed++;
                         }
@@ -75,7 +73,6 @@ class local_my_renderer extends plugin_renderer_base {
             } else {
                 $str .= '<td class="course-completion">';
             }
-            // $str .= 'No tracking';
             if ($div == 'div') {
                 $str .= '</div>';
             } else {
@@ -86,14 +83,15 @@ class local_my_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    function course_simple_div($course, $classes = '') {
+    public function course_simple_div($course, $classes = '') {
         $str = '';
         $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-        $str .= '<div class="courseinfo '.$classes.'"><a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a></div>';
+        $link = '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
+        $str .= '<div class="courseinfo '.$classes.'">'.$link.'</div>';
         return $str;
     }
 
-    function course_table_row($course, $options) {
+    public function course_table_row($course, $options) {
         global $DB, $USER;
 
         $str = '';
@@ -113,12 +111,6 @@ class local_my_renderer extends plugin_renderer_base {
         }
         $str .= '</td>';
 
-        /*
-        if (!array_key_exists('gaugewidth', $options)) {
-            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        }
-        */
-
         if (empty($options['nocompletion'])) {
             if (!has_capability('moodle/grade:viewall', context_course::instance($course->id), $USER->id, false)) {
                 $str .= $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight']);
@@ -130,7 +122,7 @@ class local_my_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    function course_as_box($c) {
+    public function course_as_box($c) {
         $str = '';
 
         $context = context_course::instance($c->id);
@@ -145,8 +137,11 @@ class local_my_renderer extends plugin_renderer_base {
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
         if ($image = array_pop($images)) {
-            $coursefileurl = moodle_url::make_pluginfile_url($context->id, 'course', 'overviewfiles', '', $image->get_filepath(), $image->get_filename());
-            $str .= '<div class="courseimage" style="background-image:url('.$coursefileurl.');background-size:cover"><a href="'.$courseurl.'">&nbsp;</a></div>';
+            $coursefileurl = moodle_url::make_pluginfile_url($context->id, 'course', 'overviewfiles', '',
+                                                             $image->get_filepath(), $image->get_filename());
+            $str .= '<div class="courseimage" style="background-image:url('.$coursefileurl.');background-size:cover">';
+            $str .= '<a href="'.$courseurl.'">&nbsp;</a>';
+            $str .= '</div>';
         } else {
             $str .= '<div class="summary">'.shorten_text(format_string($c->summary), 80).'</div>';
         }
@@ -156,4 +151,3 @@ class local_my_renderer extends plugin_renderer_base {
         return $str;
     }
 }
-
