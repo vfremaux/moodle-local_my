@@ -22,9 +22,8 @@
  * @reauthor   Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require('../../config.php');
-require_once($CFG->dirroot . '/my/lib.php');
+require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/lib/coursecatlib.php');
 
 // Security.
@@ -34,7 +33,7 @@ require_login();
 
 $titlestr = get_string('enrollablecourses', 'local_my');
 
-// Start setting up the page
+// Start setting up the page.
 $params = array();
 $PAGE->set_context($context);
 $PAGE->set_url('/local/my/enrollable_course.php', $params);

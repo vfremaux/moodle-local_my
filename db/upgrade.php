@@ -16,16 +16,15 @@
 // The commands in here will all be database-neutral,
 // using the functions defined in lib/ddllib.php
 
+/**
+ * @package    local_my
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * @package local_my
- * @category local
- */
-
-function xmldb_local_my_upgrade($oldversion=0) {
-
-    global $CFG, $THEME, $DB;
+function xmldb_local_my_upgrade($oldversion = 0) {
 
     $result = true;
 
@@ -34,13 +33,13 @@ function xmldb_local_my_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2016010801, 'local', 'my');
     }
 
-    // Moodle 2.0 break line
+    // Moodle 2.0 break line.
 
     return $result;
 }
 
 function local_my_move_settings() {
-    global $CFG, $DB;
+    global $DB;
 
     $pattern = 'localmy';
 
