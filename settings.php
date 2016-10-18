@@ -37,7 +37,7 @@ if (is_dir($CFG->dirroot.'/local/adminsettings')) {
 
 $config = get_config('local_my');
 
-if ($hassiteconfig) { 
+if ($hassiteconfig) {
     // Needs this condition or there is error on login page.
     $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
     $ADMIN->add('localplugins', $settings);
@@ -74,7 +74,7 @@ if ($hassiteconfig) {
 
     $options = array();
     $options[0] = get_string('nocourseareas', 'local_my');
-    for ($i = 1 ; $i < 10 ; $i++) {
+    for ($i = 1; $i < 10; $i++) {
         $options[$i] = $i;
     }
     $key = 'local_my/courseareas';
