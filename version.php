@@ -32,4 +32,4 @@ $plugin->component = 'local_my';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '2.8.0000';
+$plugin->codeincrement = '2.8.0001';
