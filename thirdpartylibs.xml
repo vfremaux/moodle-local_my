@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>extlibs</location>
+    <name>Non moodle libs</name>
+    <license>GPL v3</license>
+    <version></version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>js/d3</location>
+    <name>D3 Heatmaps</name>
+    <license>MIT</license>
+    <version>3.4.0</version>
+    <licenseversion>3.4.0</licenseversion>
+  </library>
+</libraries>
