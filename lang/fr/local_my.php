@@ -97,8 +97,8 @@ $string['november'] = 'Novembre';
 $string['december'] = 'Décembre';
 
 $string['localmymodulesdesc'] = '
-<br><p>Les modules de la page my permettent de constituer le tableau de bord. Donnez la liste ordonnée des modules
-à ajouter à la page (un par ligne). Un suffixe "-L" place le module dans la colonne de gauche
+<br><p>Les modules de la page my permettent de constituer le tableau de bord. Donnez la liste ordonnée des modules 
+à ajouter à la page (un par ligne). Un suffixe "-L" place le module dans la colonne de gauche 
 si celle-ci est activée par la présence du module "left_edition_column".</p>
 <p>D\'autres modules peuvent être utilisés:</p>
 <li>latestnews_full</li>
