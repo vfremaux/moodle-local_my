@@ -778,7 +778,7 @@ function local_my_print_latestnews_full() {
  * Prints the news forum as simple compact list of discussion headers.
  */
 function local_my_print_latestnews_headers() {
-    global $PAGE, $CFG, $OUTPUT, $USER, $SESSION;
+    global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $SESSION;
 
     $str = '';
 
@@ -839,7 +839,7 @@ function local_my_print_latestnews_headers() {
  * Same as "full", but removes all subscription or any discussion commandes.
  */
 function local_my_print_latestnews_simple() {
-    global $PAGE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
+    global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
 
     $str = '';
 
