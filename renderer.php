@@ -151,15 +151,19 @@ class local_my_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    public function print_forum_link($forum) {
+    public function print_forum_link($forum, &$forumname) {
         global $SITE;
 
         // Fetch news forum context for proper filtering to happen.
         $newsforumcm = get_coursemodule_from_instance('forum', $forum->id, $SITE->id, false, MUST_EXIST);
         $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
 
-        $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
+        $str = '';
+
+        $forumname = format_string($forum->name, true, array('context' => $newsforumcontext));
         $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
         $str .= html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+
+        return $str;
     }
 }
