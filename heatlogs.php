@@ -50,7 +50,7 @@ if (!$heatmapcachedtable) {
         $table = 'logstore_standard_log';
         $timefield = 'timecreated';
         $additional = ' AND origin != \'cli\' ';
-    } else if($reader instanceof \logstore_legacy\log\store) {
+    } else if ($reader instanceof \logstore_legacy\log\store) {
         $table = 'log';
         $timefield = 'time';
         $additional = '';
