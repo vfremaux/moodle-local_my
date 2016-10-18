@@ -74,7 +74,7 @@ if ($hassiteconfig) {
 
     $options = array();
     $options[0] = get_string('nocourseareas', 'local_my');
-    for ($i = 1 ; $i < 10 ; $i++) {
+    for ($i = 1; $i < 10; $i++) {
         $options[$i] = $i;
     }
     $key = 'local_my/courseareas';

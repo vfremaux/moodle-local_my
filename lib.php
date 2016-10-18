@@ -86,7 +86,7 @@ function local_my_has_capability_somewhere($capability, $excludesystem = true, $
 }
 
 /**
- * checks if a user has a myoverride capability somewhere, so he might be My Moodle 
+ * checks if a user has a myoverride capability somewhere, so he might be My Moodle
  * exampted.
  */
 function local_has_myoverride_somewhere() {
@@ -238,7 +238,7 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                         $str .= '<td class="course">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
                         $str .= '</td>';
-                        $str .='</tr>';
+                        $str .= '</tr>';
                     }
                 }
             }
@@ -394,7 +394,7 @@ function local_get_enrollable_courses($withanonymous = true) {
             }
         }
     }
-    
+
     if (!empty($courses)) {
         uasort($courses, 'local_sort_by_ccc');
     }
@@ -486,7 +486,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
             $str .= '</div>';
             $str .= '</div>';
-            $str .= $OUTPUT->box(get_string('nocourses','local_my'), 'content');
+            $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
         }
     } else {
         if (empty($options['noheading'])) {
@@ -614,7 +614,7 @@ function local_prefetch_course_areas(&$excludedcourses) {
         $coursearea = 'coursearea'.$i;
         if (!empty($config->$coursearea)) {
             $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
-    
+
             // Filter courses of this area.
             $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
             foreach ($allcourses as $c) {

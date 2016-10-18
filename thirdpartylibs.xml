@@ -8,7 +8,7 @@
     <licenseversion></licenseversion>
   </library>
   <library>
-    <location>js/heatmap</location>
+    <location>js/d3</location>
     <name>D3 Heatmaps</name>
     <license>MIT</license>
     <version>3.4.0</version>

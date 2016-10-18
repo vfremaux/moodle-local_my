@@ -337,7 +337,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         return '';
     }
 
-    // post 2.5.
+    // Post 2.5.
     if (!empty($excludedcourses)) {
         foreach (array_keys($excludedcourses) as $cid) {
             unset($mytemplates[$cid]);
@@ -917,7 +917,7 @@ function local_my_print_static($index) {
     return $str;
 }
 
-/** 
+/**
  * Prints a widget with information about me.
  */
 function local_my_print_me() {
@@ -1091,9 +1091,9 @@ function local_my_print_my_heatmap($userid = 0) {
     $str .= '<h2 class="headingblock header">'.get_string('myactivity', 'local_my').'</h2>';
     $str .= '</div></div>';
     $str .= '<div class="content">';
-    $str .= '<script type="text/javascript" src="'.$CFG->wwwroot.'/local/my/js/d3.v3.min.js"></script>';
-    $str .= '<link rel="stylesheet" href="'.$CFG->wwwroot.'/local/my/js/heatmap/cal-heatmap.css" />';
-    $str .= '<script type="text/javascript" src="'.$CFG->wwwroot.'/local/my/js/heatmap/cal-heatmap.min.js"></script>';
+    $str .= '<script type="text/javascript" src="'.$CFG->wwwroot.'/local/my/js/d3/d3.v3.min.js"></script>';
+    $str .= '<link rel="stylesheet" href="'.$CFG->wwwroot.'/local/my/js/d3/heatmap/cal-heatmap.css" />';
+    $str .= '<script type="text/javascript" src="'.$CFG->wwwroot.'/local/my/js/d3/heatmap/cal-heatmap.min.js"></script>';
 
     // Little trick to get margin top effective against js changes.
     $str .= '<div id="cal-heatmap" style=";margin-top:10px;"></div>';
@@ -1103,14 +1103,14 @@ function local_my_print_my_heatmap($userid = 0) {
         var cal = new CalHeatMap();
         var startdate = new Date('.$startmilli.');
         cal.init({
-            domain:"month", 
-            subdomain:"day", 
-            start:startdate, 
+            domain:"month",
+            subdomain:"day",
+            start:startdate,
             data:"'.$CFG->wwwroot.'/local/my/heatlogs.php?id='.$USER->id.'",
-            legendTitleFormat:'.$jsonlegendformat.', 
-            subDomainTitleFormat:'.$jsonsubdomainformat.', 
+            legendTitleFormat:'.$jsonlegendformat.',
+            subDomainTitleFormat:'.$jsonsubdomainformat.',
             itemName:"'.$itemname.'",
-            subDomainDateFormat: 
+            subDomainDateFormat:
             function(date) {
                 return date.toLocaleDateString();
             },
