@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['my:overridemy'] = 'Can override My routing';
 
@@ -11,10 +25,12 @@ $string['choosecoursetoenrollin'] = 'Choose a course to enrol in';
 $string['coursecreation'] = 'Course creation';
 $string['coursesearch'] = 'Search courses';
 $string['courseareasettings'] = 'Course Areas Settings';
+$string['completion'] = 'Completion: {$a}%';
 $string['categorysettings'] = 'Category Settings';
 $string['heatmapsettings'] = 'Heatmap Settings';
 $string['standardcreation'] = 'Create a new empty course';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
+$string['recentcourses'] = 'Most Recent Courses ';
 $string['localmycoursearea'] = 'Course area ';
 $string['localmycourseareas'] = 'Specific course areas';
 $string['localmycourseareasdesc'] = 'Specific course areas are courses lists picked into a specific head category';
@@ -31,7 +47,6 @@ $string['localmymaxavailablelistsizedesc'] = 'Sets the max number of available c
 $string['localmymaxuncategorizedlistsize'] = 'Max size of course list with mention of category';
 $string['localmymaxuncategorizedlistsizedesc'] = 'Over this course count, courses will be shown with mention of category';
 $string['localmymodules'] = 'Area modules ';
-$string['localmymodulesdesc'] = 'Area modules call content generators for outputing several views over courses. Give a list of successive handlers (one per line)';
 $string['localmyprintcategories'] = 'Print with categories (1 level)';
 $string['localmyprintcategoriesdesc'] = 'Print with categories (1 level) if enabld';
 $string['localmyuselefteditioncolumn'] = 'Use left editorial column';
@@ -39,7 +54,6 @@ $string['localmyuselefteditioncolumndesc'] = 'If enabled, prints a left editoria
 $string['localskipmymetas'] = 'Skip my metacourses';
 $string['localskipmymetasdesc'] = 'Skip metacourses in my if enabled';
 $string['managemycourses'] = 'Manage my courses';
-$string['myauthoringcourses'] = 'My authoring courses';
 $string['myauthoringcourses'] = 'My authoring courses';
 $string['mycalendar'] = 'My calendar';
 $string['mycategories'] = 'My authoring categories';
@@ -80,3 +94,16 @@ $string['september'] = 'September';
 $string['october'] = 'October';
 $string['november'] = 'November';
 $string['december'] = 'December';
+
+$string['localmymodulesdesc'] = '
+<br><p>Page modules can be assembled to build the full dashboard view. Mention any module in order 
+(one per lineà. Adding an "-L" suffix will force the module in the left column stack 
+if dual stack is enabled by adding the "left_edition_column" module in the list.</p>
+<p>Other modules can be used :</p>
+<li>latestnews_full</li>
+<li>latestnews_headers</li>
+<li>my_network</li>
+<li>fullme</li>
+<li>my_calendar</li>
+<li>my_templates (needs local plugin course_templates)</li>
+';

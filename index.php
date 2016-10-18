@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * My Moodle -- a user's personal dashboard
  *
@@ -33,11 +31,10 @@ defined('MOODLE_INTERNAL') || die();
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+// This is a customscript include.
+defined('MOODLE_INTERNAL') || die();
 
-// This is a customscript include
-// require_once(dirname(__FILE__) . '/../config.php');
-
-// overrides the customisation if not enabled and return back to standard behaviour....
+// Overrides the customisation if not enabled and return back to standard behaviour....
 $config = get_config('local_my');
 
 if (empty($config->enable)) {
@@ -47,8 +44,8 @@ if (empty($config->enable)) {
 require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
 
-// TODO Add sesskey check to edit
-$edit   = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off
+// TODO Add sesskey check to edit.
+$edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
 
 // Security.
 
@@ -60,14 +57,16 @@ if (!isset($config->maxoverviewedlistsize)) {
 
 $strmymoodle = get_string('myhome');
 
-if (isguestuser()) {  // Force them to see system default, no editing allowed
+if (isguestuser()) { 
+    // Force them to see system default, no editing allowed.
     $userid = null;
-    $USER->editing = $edit = 0;  // Just in case
+    $USER->editing = $edit = 0;  // Just in case.
     $context = context_system::instance();
-    $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
+    $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // Unlikely :).
     $header = "$SITE->shortname: $strmymoodle (GUEST)";
 
-} else {        // We are trying to view or edit our own My Moodle page
+} else { 
+    // We are trying to view or edit our own My Moodle page.
     $userid = $USER->id;  // Owner of the page
     $context = context_user::instance($USER->id);
     $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
@@ -80,7 +79,7 @@ if (!$currentpage = my_get_page($userid, MY_PAGE_PRIVATE)) {
 }
 
 if (!$currentpage->userid) {
-    $context = context_system::instance();  // So we even see non-sticky blocks
+    $context = context_system::instance();  // So we even see non-sticky blocks.
 }
 
 // Start setting up the page.
@@ -94,22 +93,30 @@ $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title($header);
 $PAGE->set_heading($header);
 
+$PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
+$PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
+$PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
+
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
         set_user_preference('user_home_page_preference', HOMEPAGE_MY);
     } else if (!empty($CFG->defaulthomepage) && $CFG->defaulthomepage == HOMEPAGE_USER) {
-        $PAGE->settingsnav->get('usercurrentsettings')->add(get_string('makethismyhome'), new moodle_url('/my/', array('setdefaulthome'=>true)), navigation_node::TYPE_SETTING);
+        $linkurl = new moodle_url('/my/', array('setdefaulthome' => true));
+        $PAGE->settingsnav->get('usercurrentsettings')->add(get_string('makethismyhome'), $linkurl, navigation_node::TYPE_SETTING);
     }
 }
 
-// Toggle the editing state and switches
+// Toggle the editing state and switches.
 if ($PAGE->user_allowed_editing()) {
-    if ($edit !== null) {             // Editing state was specified
-        $USER->editing = $edit;       // Change editing state
+    if ($edit !== null) {
+        // Editing state was specified.
+        $USER->editing = $edit;       // Change editing state.
         if (!$currentpage->userid && $edit) {
-            // If we are viewing a system page as ordinary user, and the user turns
-            // editing on, copy the system pages as new user pages, and get the
-            // new page record
+            /*
+             * If we are viewing a system page as ordinary user, and the user turns
+             * editing on, copy the system pages as new user pages, and get the
+             * new page record
+             */
             if (!$currentpage = my_copy_page($USER->id, MY_PAGE_PRIVATE)) {
                 print_error('mymoodlesetup');
             }
@@ -117,23 +124,26 @@ if ($PAGE->user_allowed_editing()) {
             $PAGE->set_context($context);
             $PAGE->set_subpage($currentpage->id);
         }
-    } else {                          // Editing state is in session
-        if ($currentpage->userid) {   // It's a page we can edit, so load from session
+    } else {
+        // Editing state is in session.
+        if ($currentpage->userid) {
+            // It's a page we can edit, so load from session.
             if (!empty($USER->editing)) {
                 $edit = 1;
             } else {
                 $edit = 0;
             }
-        } else {                      // It's a system page and they are not allowed to edit system pages
-            $USER->editing = $edit = 0;          // Disable editing completely, just to be safe
+        } else {
+            // It's a system page and they are not allowed to edit system pages.
+            $USER->editing = $edit = 0; // Disable editing completely, just to be safe.
         }
     }
 
-    // Add button for editing page
+    // Add button for editing page.
     $params = array('edit' => !$edit);
 
     if (!$currentpage->userid) {
-        // viewing a system page -- let the user customise it
+        // Viewing a system page -- let the user customise it.
         $editstring = get_string('updatemymoodleon');
         $params['edit'] = 1;
     } else if (empty($edit)) {
@@ -150,7 +160,7 @@ if ($PAGE->user_allowed_editing()) {
     $USER->editing = $edit = 0;
 }
 
-// HACK WARNING!  This loads up all this page's blocks in the system context
+// HACK WARNING!  This loads up all this page's blocks in the system context.
 if ($currentpage->userid == 0) {
     $CFG->blockmanagerclass = 'my_syspage_block_manager';
 }
@@ -161,13 +171,13 @@ $my_modules = array();
 $my_left_modules = array();
 if ($config->modules) {
     $modules = preg_split("/[\\n,]|\\s+/", $config->modules);
-    for ($i = 0 ; $i < count($modules) ; $i++) {
+    for ($i = 0; $i < count($modules); $i++) {
         $module = trim($modules[$i]);
-        $modules[$i] = $module; // store it back into full modules list
+        $modules[$i] = $module; // Store it back into full modules list.
         if (preg_match('/-L$/', $module)) {
             $my_left_modules[$i] = preg_replace('/-L$/', '', $module);
         } else {
-            // in case it has been explicitely right-located (default);
+            // In case it has been explicitely right-located (default).
             $my_modules[$i] = preg_replace('/-R$/', '', $module);
         }
     }
@@ -175,7 +185,6 @@ if ($config->modules) {
 
 echo $OUTPUT->header();
 
-//  echo $OUTPUT->blocks_for_region('content');
 echo '<div id="my-content">';
 
 if (in_array('my_caption', $my_modules)) {
@@ -184,7 +193,9 @@ if (in_array('my_caption', $my_modules)) {
 
 $fooarray = null;
 $courseareacourses = $excludedcourses = array();
-if ((in_array('course_areas', $modules) || in_array('course_areas_and_availables', $modules)) && $config->courseareas > 0) {
+if ((in_array('course_areas', $modules) ||
+        in_array('course_areas_and_availables', $modules)) &&
+                $config->courseareas > 0) {
     $excludedcourses = $courseareacourses = local_prefetch_course_areas($fooarray);
 }
 
@@ -201,11 +212,17 @@ if (in_array('left_edition_column', $my_modules)) {
     if (!empty($my_left_modules)) {
         foreach ($my_left_modules as $m) {
             $m = trim($m);
-            if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
-            if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
-            if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
+            if (empty($m) || preg_match('/^\s+$/', $m)) {
+                continue; // Blank lines.
+            }
+            if (preg_match('/^[!_*#]/', $m)) {
+                continue; // Ignore some modules.
+            }
+            if ($m == 'my_caption' || $m == 'left_edition_column') {
+                continue; // Special cases.
+            }
     
-            // special case : print statics can be freely indexed
+            // Special case : print statics can be freely indexed.
             if (preg_match('/static(\d+)$/', $m, $matches)) {
                 $fname = 'local_my_print_static';
                 echo $fname($matches[1]);
@@ -228,15 +245,21 @@ if (in_array('left_edition_column', $my_modules)) {
 
 echo "<td id=\"my-dashboard-right\" width=\"{$colwidth}%\">";
 
-// The main overview in the middle of the page
+// The main overview in the middle of the page.
 
 foreach ($my_modules as $m) {
     $m = trim($m);
-    if (empty($m) || preg_match('/^\s+$/', $m)) continue; // blank lines
-    if (preg_match('/^[!_*#]/', $m)) continue; // ignore some modules
-    if ($m == 'my_caption' || $m == 'left_edition_column') continue; // special cases
+    if (empty($m) || preg_match('/^\s+$/', $m)) {
+        continue; // Blank lines.
+    }
+    if (preg_match('/^[!_*#]/', $m)) {
+        continue; // Ignore some modules.
+    }
+    if ($m == 'my_caption' || $m == 'left_edition_column') {
+        continue; // Special cases.
+    }
 
-    // special case : print statics can be freely indexed
+    // Special case : print statics can be freely indexed.
     if (preg_match('/static(\d+)$/', $m, $matches)) {
         $fname = 'local_my_print_static';
         echo $fname($matches[1]);
