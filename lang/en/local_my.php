@@ -96,8 +96,8 @@ $string['november'] = 'November';
 $string['december'] = 'December';
 
 $string['localmymodulesdesc'] = '
-<br><p>Page modules can be assembled to build the full dashboard view. Mention any module in order 
-(one per lineà. Adding an "-L" suffix will force the module in the left column stack 
+<br><p>Page modules can be assembled to build the full dashboard view. Mention any module in order
+(one per lineà. Adding an "-L" suffix will force the module in the left column stack
 if dual stack is enabled by adding the "left_edition_column" module in the list.</p>
 <p>Other modules can be used :</p>
 <li>latestnews_full</li>

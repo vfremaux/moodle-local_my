@@ -57,7 +57,7 @@ if (!isset($config->maxoverviewedlistsize)) {
 
 $strmymoodle = get_string('myhome');
 
-if (isguestuser()) { 
+if (isguestuser()) {
     // Force them to see system default, no editing allowed.
     $userid = null;
     $USER->editing = $edit = 0;  // Just in case.
@@ -65,9 +65,9 @@ if (isguestuser()) {
     $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // Unlikely :).
     $header = "$SITE->shortname: $strmymoodle (GUEST)";
 
-} else { 
+} else {
     // We are trying to view or edit our own My Moodle page.
-    $userid = $USER->id;  // Owner of the page
+    $userid = $USER->id;  // Owner of the page.
     $context = context_user::instance($USER->id);
     $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
     $header = "$SITE->shortname: $strmymoodle";
@@ -167,18 +167,18 @@ if ($currentpage->userid == 0) {
 
 // Get and clean modules names.
 
-$my_modules = array();
-$my_left_modules = array();
+$mymodules = array();
+$myleftmodules = array();
 if ($config->modules) {
     $modules = preg_split("/[\\n,]|\\s+/", $config->modules);
     for ($i = 0; $i < count($modules); $i++) {
         $module = trim($modules[$i]);
         $modules[$i] = $module; // Store it back into full modules list.
         if (preg_match('/-L$/', $module)) {
-            $my_left_modules[$i] = preg_replace('/-L$/', '', $module);
+            $myleftmodules[$i] = preg_replace('/-L$/', '', $module);
         } else {
             // In case it has been explicitely right-located (default).
-            $my_modules[$i] = preg_replace('/-R$/', '', $module);
+            $mymodules[$i] = preg_replace('/-R$/', '', $module);
         }
     }
 }
@@ -187,7 +187,7 @@ echo $OUTPUT->header();
 
 echo '<div id="my-content">';
 
-if (in_array('my_caption', $my_modules)) {
+if (in_array('my_caption', $mymodules)) {
     local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
 }
 
@@ -201,7 +201,7 @@ if ((in_array('course_areas', $modules) ||
 
 echo '<table id="mydashboard" width="100%" cellpadding="10"><tr valign="top">';
 
-if (in_array('left_edition_column', $my_modules)) {
+if (in_array('left_edition_column', $mymodules)) {
     $colwidth = 50;
     echo "<td id=\"my-dashboard-left\" width=\"{$colwidth}%\">";
     if (function_exists('local_print_static_text')) {
@@ -209,8 +209,8 @@ if (in_array('left_edition_column', $my_modules)) {
         local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
     }
 
-    if (!empty($my_left_modules)) {
-        foreach ($my_left_modules as $m) {
+    if (!empty($myleftmodules)) {
+        foreach ($myleftmodules as $m) {
             $m = trim($m);
             if (empty($m) || preg_match('/^\s+$/', $m)) {
                 continue; // Blank lines.
@@ -221,7 +221,7 @@ if (in_array('left_edition_column', $my_modules)) {
             if ($m == 'my_caption' || $m == 'left_edition_column') {
                 continue; // Special cases.
             }
-    
+
             // Special case : print statics can be freely indexed.
             if (preg_match('/static(\d+)$/', $m, $matches)) {
                 $fname = 'local_my_print_static';
@@ -243,11 +243,11 @@ if (in_array('left_edition_column', $my_modules)) {
     $colwidth = 100;
 }
 
-echo "<td id=\"my-dashboard-right\" width=\"{$colwidth}%\">";
+echo '<td id="my-dashboard-right" width="'.$colwidth.'%">';
 
 // The main overview in the middle of the page.
 
-foreach ($my_modules as $m) {
+foreach ($mymodules as $m) {
     $m = trim($m);
     if (empty($m) || preg_match('/^\s+$/', $m)) {
         continue; // Blank lines.
@@ -279,5 +279,4 @@ echo '</div>';
 echo '</td>';
 
 echo $OUTPUT->footer();
-
 die;
