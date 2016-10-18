@@ -36,7 +36,8 @@ require_once($CFG->dirroot.'/local/lib.php');
  * @param bool $doanything
  * @param string $contextlevels restrict to some contextlevel may speedup the query.
  */
-function local_my_has_capability_somewhere($capability, $excludesystem = true, $excludesite = true, $doanything = false, $contextlevels = '') {
+function local_my_has_capability_somewhere($capability, $excludesystem = true, $excludesite = true,
+                                           $doanything = false, $contextlevels = '') {
     global $USER, $DB;
 
     $contextclause = '';
@@ -85,7 +86,7 @@ function local_my_has_capability_somewhere($capability, $excludesystem = true, $
 }
 
 /**
- * checks if a user has a myoverride capability somewhere, so he might be My Moodle 
+ * checks if a user has a myoverride capability somewhere, so he might be My Moodle
  * exampted.
  */
 function local_has_myoverride_somewhere() {
@@ -99,7 +100,7 @@ function local_has_myoverride_somewhere() {
 
     /*
      * ADDED : on special configuration check positive response of an override driver
-     * that could come from having some profile field marked 
+     * that could come from having some profile field marked
      */
     if (@$CFG->specialprofilefieldmyoverridedrivers) {
 
@@ -210,7 +211,7 @@ function local_print_courses_by_cats($courselist, $options = array()) {
         if ($catid) {
             $catcontext = context_coursecat::instance($catid);
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
-                $catstyle = ($cat->category->visible) ? '' : 'shadow' ;
+                $catstyle = ($cat->category->visible) ? '' : 'shadow';
                 if ($options['withcats'] == 1) {
                     $str .= '<tr valign="top">';
                     $str .= '<td class="'.$catstyle.'"><b>'.format_string($cat->category->name).'</b></td>';
@@ -232,12 +233,12 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                         $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-                        $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow' ;
+                        $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
                         $str .= '<tr valign="top">';
                         $str .= '<td class="course">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
                         $str .= '</td>';
-                        $str .='</tr>';
+                        $str .= '</tr>';
                     }
                 }
             }
@@ -393,7 +394,7 @@ function local_get_enrollable_courses($withanonymous = true) {
             }
         }
     }
-    
+
     if (!empty($courses)) {
         uasort($courses, 'local_sort_by_ccc');
     }
@@ -404,7 +405,7 @@ function local_get_enrollable_courses($withanonymous = true) {
 function local_sort_by_ccc($a, $b) {
     if ($a->ccsortorder * 10000 + $a->sortorder > $b->ccsortorder * 10000 + $b->sortorder) {
         return 1;
-    } elseif ($a->ccsortorder * 10000 + $a->sortorder < $b->ccsortorder * 10000 + $b->sortorder) {
+    } else if ($a->ccsortorder * 10000 + $a->sortorder < $b->ccsortorder * 10000 + $b->sortorder) {
         return -1;
     }
     return 0;
@@ -450,7 +451,7 @@ function local_my_is_meta(&$c, $userid = 0) {
         if (is_null($userid)) {
             return true;
         } else {
-            $uid = ($userid === 0) ? $USER->id : $userid ;
+            $uid = ($userid === 0) ? $USER->id : $userid;
             foreach ($metaenrols as $me) {
                 $select = "
                     userid = ? AND
@@ -485,7 +486,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
             $str .= '</div>';
             $str .= '</div>';
-            $str .= $OUTPUT->box(get_string('nocourses','local_my'), 'content');
+            $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
         }
     } else {
         if (empty($options['noheading'])) {
@@ -499,7 +500,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
             $str .= local_print_course_overview($courses, $options);
-        } elseif (!empty($options['withcats'])) {
+        } else if (!empty($options['withcats'])) {
             $str .= local_print_courses_by_cats($courses, $options, $config->printcategories);
         } else {
             foreach ($courses as $c) {
@@ -613,7 +614,7 @@ function local_prefetch_course_areas(&$excludedcourses) {
         $coursearea = 'coursearea'.$i;
         if (!empty($config->$coursearea)) {
             $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
-    
+
             // Filter courses of this area.
             $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
             foreach ($allcourses as $c) {
@@ -645,7 +646,7 @@ function local_my_hide_home() {
 }
 
 /**
- * This function clones the accesslib.php function get_user_capability_course, and gets the list 
+ * This function clones the accesslib.php function get_user_capability_course, and gets the list
  * of courses that this user has a particular capability in. the difference resides in that we look
  * only for direct assignations here and not on propagated authorisations.
  * It is still not very efficient.
@@ -770,7 +771,7 @@ function local_my_get_logstore_info() {
         $logstoreinfo->table = 'logstore_standard_log';
         $logstoreinfo->courseparam = 'courseid';
         $logstoreinfo->timeparam = 'timecreated';
-    } elseif($reader instanceof \logstore_legacy\log\store) {
+    } else if($reader instanceof \logstore_legacy\log\store) {
         $logstoreinfo->table = 'log';
         $logstoreinfo->courseparam = 'course';
         $logstoreinfo->timeparam = 'time';
