@@ -162,7 +162,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $forumname = format_string($forum->name, true, array('context' => $newsforumcontext));
         $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        $str .= html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+        $str .= html_writer::tag('a', get_string('skipa', 'access', core_text::strtolower(strip_tags($forumname))), $attrs);
 
         return $str;
     }
