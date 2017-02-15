@@ -38,7 +38,7 @@ define('MAX_COURSE_OVERVIEWED_LIST', 20);
  * Prints the "classical" "My Courses" area
  */
 function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $DB, $CFG, $USER;
+    global $DB, $USER;
 
     $debug = 0;
 
@@ -385,7 +385,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
  * Prints the specific courses area as a 3 column link list
  */
 function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
-    global $USER, $CFG, $OUTPUT, $DB;
+    global $OUTPUT, $DB;
 
     $allcourses = enrol_get_my_courses('id, shortname, fullname');
     $config = get_config('local_my');
@@ -493,7 +493,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
  * Prints the specific courses area as a 3 column link list
  */
 function local_my_print_course_areas_and_availables(&$excludedcourses, &$courseareacourses) {
-    global $USER, $CFG, $OUTPUT, $DB;
+    global $OUTPUT, $DB;
 
     $debug = 0;
 
@@ -714,7 +714,7 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
  * Prints the news forum as a list of full deployed discussions.
  */
 function local_my_print_latestnews_full() {
-    global $SITE, $CFG, $OUTPUT, $SESSION, $USER;
+    global $SITE, $CFG, $SESSION, $USER;
 
     $str = '';
     if ($SITE->newsitems) {
@@ -731,13 +731,13 @@ function local_my_print_latestnews_full() {
 
         $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
         $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+        echo html_writer::tag('a', get_string('skipa', 'access', core_text::strtolower(strip_tags($forumname))), $attrs);
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
             $subtext = '';
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $subtext = get_string('unsubscribe', 'forum');
                 }
             } else {
@@ -799,8 +799,8 @@ function local_my_print_latestnews_headers() {
             }
             $SESSION->fromdiscussion = $CFG->wwwroot;
             $subtext = '';
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $subtext = get_string('unsubscribe', 'forum');
                 }
             } else {
@@ -839,7 +839,7 @@ function local_my_print_latestnews_headers() {
  * Same as "full", but removes all subscription or any discussion commandes.
  */
 function local_my_print_latestnews_simple() {
-    global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
+    global $PAGE, $SITE, $CFG, $OUTPUT, $DB, $SESSION;
 
     $str = '';
 
@@ -897,7 +897,7 @@ function local_my_print_latestnews_simple() {
  * Prints a static div with content stored into central configuration.
  */
 function local_my_print_static($index) {
-    global $OUTPUT, $USER, $CFG;
+    global $CFG;
 
     include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
     $str = '<div id="custommystaticarea'.$index.'">';
@@ -1123,7 +1123,10 @@ function local_my_print_my_heatmap($userid = 0) {
  */
 function local_my_print_my_network() {
 
-    $blockinstance = block_instance('user_mnet_hosts');
+    if (!$blockinstance = block_instance('user_mnet_hosts')) {
+        // Not installed ? 
+        return;
+    }
     $content = $blockinstance->get_content();
 
     $str = '';
@@ -1162,7 +1165,11 @@ function local_my_print_my_network() {
 function local_my_print_my_calendar() {
     global $PAGE;
 
-    $blockinstance = block_instance('calendar_month');
+    if (!$blockinstance = block_instance('calendar_month')) {
+        // Not installed or disabled ?
+        return;
+    }
+
     $blockinstance->page = $PAGE;
     $content = $blockinstance->get_content();
 
