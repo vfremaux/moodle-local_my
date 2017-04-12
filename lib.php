@@ -25,7 +25,6 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
 }
 
 require_once($CFG->dirroot.'/local/my/modules.php');
-require_once($CFG->dirroot.'/local/lib.php');
 
 /**
  * This is a relocalized function in order to get local_my more compact.
