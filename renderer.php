@@ -166,4 +166,161 @@ class local_my_renderer extends plugin_renderer_base {
 
         return $str;
     }
+
+    /**
+     * Prints tabs if separated role screens
+     */
+    public function tabs(&$view) {
+        global $SESSION;
+
+        $config = get_config('local_my');
+
+        if (empty($config->teachermodules)) {
+            return;
+        }
+
+        if (empty($view)) {
+            $view = @$SESSION->localmyview;
+
+            if (local_my_has_capability_somewhere('moodle/course:manageactivities')) {
+                if (empty($view)) {
+                    $view = 'asteacher';
+                }
+            } else {
+                // Force anyway the student view only, including forcing session.
+                $view = 'asstudent';
+                return;
+            }
+        }
+
+        $tabname = get_string('asteacher', 'local_my');
+        $params = array('view' => 'asteacher');
+        $taburl = new moodle_url('/my', $params);
+        $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
+
+        $tabname = get_string('asstudent', 'local_my');
+        $params = array('view' => 'asstudent');
+        $taburl = new moodle_url('/my', $params);
+        $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
+
+        return print_tabs($rows, $view, null, null, true);
+    }
+
+    function courses_slider($courseids) {
+        global $CFG, $PAGE;
+
+        $totalfcourse = count($courseids);
+
+        $featuredheader = '<div class="custom-courses-list">
+                           <div class="container-fluid">
+                           <div data-crow="'.$totalfcourse.'">';
+
+        $featuredfooter = '';
+        $featuredfooter .= '<div class="clearfix"></div>';
+        $featuredfooter .= '</div>';
+        $featuredfooter .= '</div>';
+        $featuredfooter .= '</div>';
+
+        $str = '';
+
+        if (!empty($courseids)) {
+            $rowcontent = '<div><div class="row-fluid local-my-carousel">';
+
+            foreach ($courseids as $courseid) {
+
+                $course = get_course($courseid);
+
+                $summary = local_my_strip_html_tags($course->summary);
+                $summary = local_my_course_trim_char($summary, 20);
+                $trimtitle = local_my_course_trim_char($course->fullname, 25);
+
+                $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
+
+                if ($course instanceof stdClass) {
+                    require_once($CFG->libdir. '/coursecatlib.php');
+                    $course = new course_in_list($course);
+                }
+
+                $imgurl = '';
+                $context = context_course::instance($course->id);
+
+                foreach ($course->get_course_overviewfiles() as $file) {
+                    if ($isimage = $file->is_valid_image()) {
+                        $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
+                        $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
+                        $imgurl = file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
+                        break;
+                    }
+                }
+                if (!$imgurl) {
+                    $imgurl = $this->get_image_url('coursedefaultimage');
+                }
+
+                $rowcontent .= '<div class="local-my-promowrap">';
+                $rowcontent .= '<div class="local-my-fp-coursebox">';
+                $rowcontent .= '<div class="local-my-fp-coursethumb">';
+                $rowcontent .= '<a href="'.$courseurl.'">';
+                $rowcontent .= '<img src="'.$imgurl.'" width="100%" height="125" title="'.$course->fullname.'">';
+                $rowcontent .= '</a>';
+                $rowcontent .= '<div class="local-my-fp-courseinfo">';
+                $rowcontent .= '<h5><a href="'.$courseurl.'" id="button" data-toggle="tooltip" data-placement="bottom" title="'.$course->fullname.'" >'.$trimtitle.'</a></h5>';
+                $rowcontent .= '</div>';
+                $rowcontent .= '<div class="local-my-fp-summary">'.$summary.'</div>';
+                $rowcontent .= '</div>';
+                $rowcontent .= '</div>';
+                $rowcontent .= '</div>';
+            }
+            $rowcontent .= '</div></div>';
+            $str .= $rowcontent;
+        }
+
+        return $featuredheader.$str.$featuredfooter;
+    }
+
+    protected function get_image_url($imgname) {
+        global $PAGE;
+
+        $fs = get_file_storage();
+
+        $context = context_system::instance();
+
+        $haslocalfile = false;
+        $frec = new StdClass;
+        $frec->contextid = $context->id;
+        $frec->component = 'local_my';
+        $frec->filearea = 'rendererimages';
+        $frec->filename = $imgname.'.svg';
+        if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
+            $frec->filename = $imgname.'.png';
+            if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
+                $frec->filename = $imgname.'.jpg';
+                if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
+                    $frec->filename = $imgname.'.gif';
+                    if ($fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
+                        $haslocalfile = true;
+                    }
+                } else {
+                    $haslocalfile = true;
+                }
+            } else {
+                $haslocalfile = true;
+            }
+        } else {
+            $haslocalfile = true;
+        }
+
+        if ($haslocalfile) {
+            $fileurl = moodle_url::make_pluginfile_url($frec->contextid, $frec->component, $frec->filearea, 0, '/',
+                                                    $frec->filename, false);
+            return $fileurl;
+        }
+
+        if ($PAGE->theme->resolve_image_location($imgname, 'theme', true)) {
+            $imgurl = $this->output->pix_url($imgname, 'theme');
+        } else {
+            return $this->output->pix_url($imgname, 'local_my');
+        }
+
+        return $imgurl;
+    }
 }
