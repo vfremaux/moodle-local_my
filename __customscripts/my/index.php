@@ -34,10 +34,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Customscript type : CUSTOMSCRIPT_CHANGE.
+
 defined('MOODLE_INTERNAL') || die;
 
+// CHANGE+.
 require($CFG->dirroot.'/local/my/index.php');
 die;
+// CHANGE-.
 
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->dirroot . '/my/lib.php');

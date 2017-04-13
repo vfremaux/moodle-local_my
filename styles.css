@@ -116,3 +116,45 @@ div.course-box .title {
 .courselist {
     line-height:30px;
 }
+
+.local-my-promowrap {
+    background-color: #f0f0f0;
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.4);
+    margin:10px;
+    display: inline-block;
+    float:none;
+    vertical-align: bottom;
+    min-height: 250px !important;
+}
+
+.local-my-fp-coursebox {
+  text-align: center;
+}
+.local-my-fp-coursethumb {
+  margin-left: auto;
+  margin-right:auto;
+  padding:5px;
+}
+.local-my-fp-courseinfo {
+    text-align: center;
+}
+
+.local-my-fp-coursebox{
+  text-align: center;
+  margin:0px;
+  padding:0px;
+}
+
+@media (max-width: 900px) {
+    .local-my-fp-summary {
+    display:none;
+    height:auto;
+    text-align: left;
+  }
+}
+
+.local-my-fp-summary {
+    text-align: left;
+    max-width: 450px;
+    margin: auto;
+}
