@@ -50,6 +50,11 @@ function local_my_has_capability_somewhere($capability, $excludesystem = true, $
     $params['capability'] = $capability;
     $params['userid'] = $USER->id;
 
+    $sitecontextexclclause = '';
+    if ($excludesite) {
+        $sitecontextexclclause = " ctx.id != 1  AND ";
+    }
+
     // This is a a quick rough query that may not handle all role override possibility.
 
     $sql = "
@@ -62,15 +67,13 @@ function local_my_has_capability_somewhere($capability, $excludesystem = true, $
         WHERE
             rc.roleid = ra.roleid AND
             ra.contextid = ctx.id AND
+            $sitecontextexclclause
             rc.capability = :capability
             $contextclause
             AND ra.userid = :userid AND
             rc.permission = 1
     ";
     $hassome = $DB->count_records_sql($sql, $params);
-    if ($excludesite && !empty($hassome) && array_key_exists(SITEID, $hassome)) {
-        unset($hassome[SITEID]);
-    }
 
     if (!empty($hassome)) {
         return true;
@@ -117,6 +120,34 @@ function local_has_myoverride_somewhere() {
     }
 
     return false;
+}
+
+function local_my_fetch_modules($view) {
+
+    $config = get_config('local_my');
+
+    $mymodules = array();
+    $myleftmodules = array();
+
+    $modgroup = ($view == 'asteacher') ? 'teachermodules' : 'modules';
+
+    if ($config->$modgroup) {
+
+        $modules = preg_split("/[\\n,]|\\s+/", $config->$modgroup);
+
+        for ($i = 0; $i < count($modules); $i++) {
+            $module = trim($modules[$i]);
+            $modules[$i] = $module; // Store it back into full modules list.
+            if (preg_match('/-L$/', $module)) {
+                $myleftmodules[$i] = preg_replace('/-L$/', '', $module);
+            } else {
+                // In case it has been explicitely right-located (default).
+                $mymodules[$i] = preg_replace('/-R$/', '', $module);
+            }
+        }
+    }
+
+    return array($modules, $mymodules, $myleftmodules);
 }
 
 /**
@@ -371,7 +402,7 @@ function local_get_enrollable_courses($withanonymous = true) {
             }
 
             if (!$pass && $nopass) {
-                // If none is passing, but one at leas retriction method fired, then discard.
+                // If none is passing, but one at least retriction method fired, then discard.
                 continue;
             }
 
@@ -758,11 +789,11 @@ function local_my_is_meta_for_user($courseid, $userid) {
 function local_my_get_logstore_info() {
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
-        return false; // No log reader found.
+        return false;
     }
 
     $logstoreinfo = new StdClass;
@@ -775,8 +806,102 @@ function local_my_get_logstore_info() {
         $logstoreinfo->courseparam = 'course';
         $logstoreinfo->timeparam = 'time';
     } else {
-        return;
+        $logstoreinfo->table = 'logstore_standard_log';
+        $logstoreinfo->courseparam = 'courseid';
+        $logstoreinfo->timeparam = 'timecreated';
     }
     return $logstoreinfo;
 
+}
+
+function local_my_strip_html_tags($text) {
+    $text = preg_replace(
+        array(
+            // Remove invisible content.
+            '@<head[^>]*?>.*?</head>@siu',
+            '@<style[^>]*?>.*?</style>@siu',
+            '@<script[^>]*?.*?</script>@siu',
+            '@<object[^>]*?.*?</object>@siu',
+            '@<embed[^>]*?.*?</embed>@siu',
+            '@<applet[^>]*?.*?</applet>@siu',
+            '@<noframes[^>]*?.*?</noframes>@siu',
+            '@<noscript[^>]*?.*?</noscript>@siu',
+            '@<noembed[^>]*?.*?</noembed>@siu',
+            // Add line breaks before and after blocks.
+            '@</?((address)|(blockquote)|(center)|(del))@iu',
+            '@</?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))@iu',
+            '@</?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))@iu',
+            '@</?((table)|(th)|(td)|(caption))@iu',
+            '@</?((form)|(button)|(fieldset)|(legend)|(input))@iu',
+            '@</?((label)|(select)|(optgroup)|(option)|(textarea))@iu',
+            '@</?((frameset)|(frame)|(iframe))@iu',
+        ),
+        array(
+            ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+            "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0",
+            "\n\$0", "\n\$0",
+        ),
+        $text
+    );
+    return strip_tags( $text );
+}
+
+/**
+ * Cut the Course content.
+ *
+ * @param $str
+ * @param $n
+ * @param $end_char
+ * @return string
+ */
+function local_my_course_trim_char($str, $n = 500, $endchar = '&#8230;') {
+    if (strlen($str) < $n) {
+        return $str;
+    }
+
+    $str = preg_replace("/\s+/", ' ', str_replace(array("\r\n", "\r", "\n"), ' ', $str));
+    if (strlen($str) <= $n) {
+        return $str;
+    }
+
+    $out = "";
+    $small = substr($str, 0, $n);
+    $out = $small.$endchar;
+    return $out;
+}
+
+/**
+ * Serves the format page context (course context) attachments. Implements needed access control ;-)
+ *
+ * @param object $course
+ * @param object $cm
+ * @param object $context
+ * @param string $filearea
+ * @param array $args
+ * @param bool $forcedownload
+ * @return bool false if file not found, does not return if found - justsend the file
+ */
+function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+
+    require_course_login($course);
+
+    $fileareas = array('rendererimages');
+    if (!in_array($filearea, $fileareas)) {
+        return false;
+    }
+
+    $context = context_system::instance();
+
+    $pageid = (int) array_shift($args);
+
+    $fs = get_file_storage();
+    $relativepath = implode('/', $args);
+    $fullpath = "/$context->id/local_my/$filearea/$pageid/$relativepath";
+    if ((!$file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
+        echo "Out not found";
+        return false;
+    }
+
+    // Finally send the file.
+    send_stored_file($file, 0, 0, true); // Download MUST be forced - security!
 }

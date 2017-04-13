@@ -16,66 +16,59 @@
 
 $string['my:overridemy'] = 'Can override My routing';
 
+$string['asstudent'] = 'Student';
+$string['asteacher'] = 'Teacher';
 $string['available'] = 'Available';
 $string['availablecourses'] = 'Available courses for free enrol';
 $string['backtohome'] = 'Back to home page';
 $string['cachedef_heatmap'] = 'User\'s heatmap data';
+$string['categorysettings'] = 'Category Settings';
 $string['choosecategory'] = 'Choose a category for creating course';
 $string['choosecoursetoenrollin'] = 'Choose a course to enrol in';
+$string['contentfor'] = 'Content for people having \'{$a->profile}\' being \'{$a->data}\'';
+$string['completion'] = 'Completion: {$a}%';
+$string['courseareasettings'] = 'Course Areas Settings';
 $string['coursecreation'] = 'Course creation';
 $string['coursesearch'] = 'Search courses';
-$string['courseareasettings'] = 'Course Areas Settings';
-$string['completion'] = 'Completion: {$a}%';
-$string['categorysettings'] = 'Category Settings';
-$string['heatmapsettings'] = 'Heatmap Settings';
-$string['standardcreation'] = 'Create a new empty course';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
-$string['recentcourses'] = 'Most Recent Courses ';
+$string['frequentationitem'] = "page";
+$string['frequentationitemplural'] = "pages";
+$string['heatmapsettings'] = 'Heatmap Settings';
 $string['localmycoursearea'] = 'Course area ';
 $string['localmycourseareas'] = 'Specific course areas';
-$string['localmycourseareasdesc'] = 'Specific course areas are courses lists picked into a specific head category';
 $string['localmyenable'] = 'Enable customized my';
-$string['localmyenabledesc'] = 'If activated, the customized my replaces standard my page';
 $string['localmyforce'] = 'Force my page to users';
-$string['localmyforcedesc'] = 'If enabled, users will be forced to My page, unless they have myoverride capability (this is related to a block navigation hack. See README)';
 $string['localmyheatmaprange'] = 'HeatMap Range';
-$string['localmyheatmaprangedesc'] = 'Range (in months) of the heatmap';
-$string['localmymaxoverviewedlistsize'] = 'Max size of course list with full overviewes';
-$string['localmymaxoverviewedlistsizedesc'] = 'Sets the max number of courses that will be printed with full activity overview. Set 0 to full disable overviewes';
 $string['localmymaxavailablelistsize'] = 'Max size of available courses';
-$string['localmymaxavailablelistsizedesc'] = 'Sets the max number of available courses that will be printed. Set 0 to full disable list size limit';
+$string['localmymaxoverviewedlistsize'] = 'Max size of course list with full overviewes';
 $string['localmymaxuncategorizedlistsize'] = 'Max size of course list with mention of category';
-$string['localmymaxuncategorizedlistsizedesc'] = 'Over this course count, courses will be shown with mention of category';
 $string['localmymodules'] = 'Area modules ';
+$string['localmyteachermodules'] = 'Teacher area modules ';
 $string['localmyprintcategories'] = 'Print with categories (1 level)';
-$string['localmyprintcategoriesdesc'] = 'Print with categories (1 level) if enabld';
 $string['localmyuselefteditioncolumn'] = 'Use left editorial column';
-$string['localmyuselefteditioncolumndesc'] = 'If enabled, prints a left editorial column for admins to put text or institutional communication inside';
 $string['localskipmymetas'] = 'Skip my metacourses';
-$string['localskipmymetasdesc'] = 'Skip metacourses in my if enabled';
 $string['managemycourses'] = 'Manage my courses';
+$string['myactivity'] = 'My activity';
 $string['myauthoringcourses'] = 'My authoring courses';
 $string['mycalendar'] = 'My calendar';
 $string['mycategories'] = 'My authoring categories';
 $string['mycourses'] = 'My courses';
 $string['mynetwork'] = 'My network';
 $string['mytemplates'] = 'My templates';
-$string['newtemplate'] = 'New template';
 $string['newcourse'] = 'Create new course';
 $string['newcoursefromtemplate'] = 'Create course from template';
+$string['newtemplate'] = 'New template';
 $string['noavailablecourses'] = 'No course in free access.';
 $string['nocourseareas'] = 'No course areas';
 $string['nocourses'] = 'No courses.';
 $string['pluginname'] = 'Enhanced my';
+$string['recentcourses'] = 'Most Recent Courses ';
 $string['restorecourse'] = 'Restore a course';
+$string['rendererimages'] = 'Renderer images';
 $string['seealllist'] = '... see more courses.';
-$string['unknownmodule'] = 'Unknown output module {$a}';
+$string['standardcreation'] = 'Create a new empty course';
 $string['templateinitialisationadvice'] = 'No templates. Administrator should create first template before all other users can create their own.';
-
-$string['myactivity'] = 'My activity';
-
-$string['frequentationitem'] = "page";
-$string['frequentationitemplural'] = "pages";
+$string['unknownmodule'] = 'Unknown output module {$a}';
 
 $string['lower'] = "Less than {min} {name}";
 $string['inner'] = "Between {down} and {up}";
@@ -95,15 +88,54 @@ $string['october'] = 'October';
 $string['november'] = 'November';
 $string['december'] = 'December';
 
-$string['localmymodulesdesc'] = '
+$string['localmymodules_desc'] = '
 <br><p>Page modules can be assembled to build the full dashboard view. Mention any module in order
-(one per lineà. Adding an "-L" suffix will force the module in the left column stack
+(one per line. Adding an "-L" suffix will force the module in the left column stack
 if dual stack is enabled by adding the "left_edition_column" module in the list.</p>
-<p>Other modules can be used :</p>
+<p>Default modules:</p>
+<li>me: short user identity block</li>
+<li>my_courses</li>
+<li>my_templates</li>
+<li>authored_courses</li>
+<li>available_courses</li>
+<li>course_areas: special dedicated course areas</li>
+<p>Other modules can be used:</p>
 <li>latestnews_full</li>
 <li>latestnews_headers</li>
-<li>my_network</li>
-<li>fullme</li>
+<li>my_network: user\'s accessible network</li>
+<li>fullme: complete identity block</li>
 <li>my_calendar</li>
+<li>recent_courses</li>
 <li>my_templates (needs local plugin course_templates)</li>
+<li>static<n></li>
 ';
+
+$string['localmyteachermodules_desc'] = '
+An optional module set that splits the my view in two separated screens if used.
+';
+
+$string['rendererimages_desc'] = 'All images for renderer. We expect a "coursedefaultimage" image';
+
+$string['localmycourseareas_desc'] = 'Specific course areas are courses lists picked into a specific head category';
+
+$string['localmyenable_desc'] = 'If activated, the customized my replaces standard my page';
+
+$string['localmyforce_desc'] = 'If enabled, users will be forced to My page, unless they have myoverride capability
+(this is related to a block navigation hack. See README)';
+
+$string['localmyheatmaprange_desc'] = 'Range (in months) of the heatmap';
+
+$string['localmymaxavailablelistsize_desc'] = 'Sets the max number of available courses that will be printed. Set 0
+to full disable list size limit';
+
+$string['localmymaxoverviewedlistsize_desc'] = 'Sets the max number of courses that will be printed with full activity overview.
+Set 0 to full disable overviewes';
+
+$string['localmymaxuncategorizedlistsize_desc'] = 'Over this course count, courses will be shown with mention of category';
+
+$string['localmyprintcategories_desc'] = 'Print with categories (1 level) if enabld';
+
+$string['localmyuselefteditioncolumn_desc'] = 'If enabled, prints a left editorial column for admins to put text or institutional
+communication inside';
+
+$string['localskipmymetas_desc'] = 'Skip metacourses in my if enabled';
