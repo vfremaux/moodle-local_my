@@ -38,7 +38,7 @@ define('MAX_COURSE_OVERVIEWED_LIST', 20);
  * Prints the "classical" "My Courses" area
  */
 function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $DB, $CFG, $USER;
+    global $DB, $USER;
 
     $debug = 0;
 
@@ -107,6 +107,69 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
     }
 
     $str .= '</table>';
+    $str .= '</div>';
+    $str .= '</div>';
+
+    return $str;
+}
+
+/**
+ * Prints the "classical" "My Courses" area
+ */
+function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses) {
+    global $DB, $USER, $PAGE;
+
+
+    $renderer = $PAGE->get_renderer('local_my');
+
+    $config = get_config('local_my');
+
+    $mycourses = enrol_get_my_courses('id, shortname, fullname');
+
+    if (!empty($excludedcourses)) {
+        foreach ($excludedcourses as $id => $c) {
+            unset($mycourses[$id]);
+        }
+    }
+
+    $debug = optional_param('debug', false, PARAM_BOOL);
+
+    foreach ($mycourses as $id => $c) {
+        if (!empty($config->skipmymetas)) {
+            if (local_my_is_meta_for_user($c->id, $USER->id)) {
+                if ($debug) {
+                    echo "reject meta $id as meta disabled";
+                }
+                unset($mycourses[$id]);
+                continue;
+            }
+        }
+        $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
+    }
+
+    $str = '';
+
+    $str .= '<div class="block block_my_courses">';
+    $str .= '<div class="header">';
+    $str .= '<div class="title">';
+    $str .= '<h2>'.get_string('mycourses', 'local_my').'</h2>';
+    $str .= '</div>';
+    $str .= '</div>';
+    $str .= '<div class="content">';
+
+    if (empty($mycourses)) {
+        $str .= '<table id="mycourselist" width="100%" class="courselist">';
+        $str .= '<tr valign="top">';
+        $str .= '<td>';
+        $str .= get_string('nocourses', 'local_my');
+        $str .= '</td>';
+        $str .= '</tr>';
+        $str .= '</table>';
+    } else {
+        $str .= $renderer->courses_slider(array_keys($mycourses));
+        $excludedcourses = $excludedcourses + $mycourses;
+    }
+
     $str .= '</div>';
     $str .= '</div>';
 
@@ -385,7 +448,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
  * Prints the specific courses area as a 3 column link list
  */
 function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
-    global $USER, $CFG, $OUTPUT, $DB;
+    global $OUTPUT, $DB;
 
     $allcourses = enrol_get_my_courses('id, shortname, fullname');
     $config = get_config('local_my');
@@ -493,7 +556,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
  * Prints the specific courses area as a 3 column link list
  */
 function local_my_print_course_areas_and_availables(&$excludedcourses, &$courseareacourses) {
-    global $USER, $CFG, $OUTPUT, $DB;
+    global $OUTPUT, $DB;
 
     $debug = 0;
 
@@ -714,7 +777,7 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
  * Prints the news forum as a list of full deployed discussions.
  */
 function local_my_print_latestnews_full() {
-    global $SITE, $CFG, $OUTPUT, $SESSION, $USER;
+    global $SITE, $CFG, $SESSION, $USER;
 
     $str = '';
     if ($SITE->newsitems) {
@@ -731,7 +794,7 @@ function local_my_print_latestnews_full() {
 
         $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
         $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), $attrs);
+        echo html_writer::tag('a', get_string('skipa', 'access', core_text::strtolower(strip_tags($forumname))), $attrs);
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
@@ -839,7 +902,7 @@ function local_my_print_latestnews_headers() {
  * Same as "full", but removes all subscription or any discussion commandes.
  */
 function local_my_print_latestnews_simple() {
-    global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $DB, $SESSION;
+    global $PAGE, $SITE, $CFG, $OUTPUT, $DB, $SESSION;
 
     $str = '';
 
@@ -895,11 +958,79 @@ function local_my_print_latestnews_simple() {
 
 /**
  * Prints a static div with content stored into central configuration.
+ * If index points to a recognizable profile field, will check the current user
+ * profile field to display.
  */
 function local_my_print_static($index) {
-    global $OUTPUT, $USER, $CFG;
+    global $CFG, $DB, $USER;
 
     include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
+
+    if (preg_match('/profile_field_(.*?)_(.*)/', $index, $matches)) {
+        $profileexpectedvalue = core_text::strtolower($matches[2]);
+        if (is_numeric($matches[1])) {
+            $fieldid = $matches[1];
+            $field = $DB->get_record('user_info_field', array('id' => $fieldid));
+        } else {
+            $fieldname = $matches[1];
+            $field = $DB->get_record('user_info_field', array('shortname' => $fieldname));
+            $fieldid = $field->id;
+        }
+
+        if ($field->datatype == 'menu') {
+            $modalities = explode("\n", $field->param1);
+        }
+
+        $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
+        $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
+
+        $context = context_system::instance();
+        if (has_capability('moodle/site:config', $context)) {
+
+            $str = '';
+
+            // I'm administrator, so i can see all modalities and edit them.
+            if (!isset($modalities)) {
+                $sql = "
+                    SELECT
+                        DISTINCT(data) as data
+                    FROM
+                        {user_info_data}
+                    WHERE
+                        fieldid = ?
+                ";
+    
+                $modalities = $DB->get_records_sql($sql, array($fieldid));
+            }
+
+            foreach ($modalities as $modality) {
+                if (is_object($modality)) {
+                    $modality = core_text::strtolower($modality->data);
+                } else {
+                    $modality = core_text::strtolower($modality);
+                }
+                $str .= '<div id="custommystaticarea'.$index.'" class="editing">';
+                $str .= '<div class="staticareaname">';
+                $a = new StdClass;
+                $a->profile = $field->shortname;
+                $a->data = $modality;
+                $str .= get_string('contentfor', 'local_my', $a);
+                $str .= '</div>';
+                $str .= '<div class="content" id="">';
+                $str .= local_print_static_text('custommystaticarea'.$index, $CFG->wwwroot.'/my/index.php', '', true);
+                $str .= '</div>';
+                $str .= '</div>';
+            }
+            return $str;
+        }
+
+        if ($profilevalue != $profileexpectedvalue) {
+            return '';
+        }
+
+    }
+
+    // Normal user, one sees his own.
     $str = '<div id="custommystaticarea'.$index.'">';
     $str .= local_print_static_text('custommystaticarea'.$index, $CFG->wwwroot.'/my/index.php', '', true);
     $str .= '</div>';
@@ -1205,3 +1336,4 @@ function local_my_print_course_search() {
 
     return $str;
 }
+
