@@ -47,27 +47,37 @@ if ($hassiteconfig) {
 
     $key = 'local_my/enable';
     $label = get_string('localmyenable', 'local_my');
-    $desc = get_string('localmyenabledesc', 'local_my');
+    $desc = get_string('localmyenable_desc', 'local_my');
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 
     $key = 'local_my/force';
     $label = get_string('localmyforce', 'local_my');
-    $desc = get_string('localmyforcedesc', 'local_my');
+    $desc = get_string('localmyforce_desc', 'local_my');
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 
     $key = 'local_my/skipmymetas';
     $label = get_string('localskipmymetas', 'local_my');
-    $desc = get_string('localskipmymetasdesc', 'local_my');
+    $desc = get_string('localskipmymetas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
-    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nauthored_courses\nmy_courses\n";
-    $defaultmodules = "course_areas\navailable_courses\nlatestnews_simple";
+    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nauthored_courses\n";
+    $defaultmodules .= "latestnews_simple";
     if (!isset($config->modules)) {
-        set_config('localmymodules', $defaultmodules);
+        set_config('teachermodules', $defaultmodules, 'local_my');
+    }
+    $key = 'local_my/teachermodules';
+    $label = get_string('localmyteachermodules', 'local_my');
+    $desc = get_string('localmyteachermodules_desc', 'local_my');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+
+    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nmy_courses\n";
+    $defaultmodules .= "course_areas\navailable_courses\nlatestnews_simple";
+    if (!isset($config->modules)) {
+        set_config('modules', $defaultmodules, 'local_my');
     }
     $key = 'local_my/modules';
     $label = get_string('localmymodules', 'local_my');
-    $desc = get_string('localmymodulesdesc', 'local_my');
+    $desc = get_string('localmymodules_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
     $settings->add(new admin_setting_heading('header2', get_string('courseareasettings', 'local_my'), ''));
@@ -79,7 +89,7 @@ if ($hassiteconfig) {
     }
     $key = 'local_my/courseareas';
     $label = get_string('localmycourseareas', 'local_my');
-    $desc = get_string('localmycourseareasdesc', 'local_my');
+    $desc = get_string('localmycourseareas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
     global $SITE;
@@ -97,25 +107,25 @@ if ($hassiteconfig) {
 
     $key = 'local_my/printcategories';
     $label = get_string('localmyprintcategories', 'local_my');
-    $desc = get_string('localmyprintcategoriesdesc', 'local_my');
+    $desc = get_string('localmyprintcategories_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
     $overviewedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20);
     $key = 'local_my/maxoverviewedlistsize';
     $label = get_string('localmymaxoverviewedlistsize', 'local_my');
-    $desc = get_string('localmymaxoverviewedlistsizedesc', 'local_my');
+    $desc = get_string('localmymaxoverviewedlistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $overviewedoptions, PARAM_INT));
 
     $availableoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50);
     $key = 'local_my/maxavailablelistsize';
     $label = get_string('localmymaxavailablelistsize', 'local_my');
-    $desc = get_string('localmymaxavailablelistsizedesc', 'local_my');
+    $desc = get_string('localmymaxavailablelistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 30, $availableoptions, PARAM_INT));
 
     $uncategorizedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 50 => 50, 100 => 100);
     $key = 'local_my/maxuncategorizedlistsize';
     $label = get_string('localmymaxuncategorizedlistsize', 'local_my');
-    $desc = get_string('localmymaxuncategorizedlistsizedesc', 'local_my');
+    $desc = get_string('localmymaxuncategorizedlistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $uncategorizedoptions, PARAM_INT));
 
     $settings->add(new admin_setting_heading('header4', get_string('heatmapsettings', 'local_my'), ''));
@@ -123,6 +133,12 @@ if ($hassiteconfig) {
     $heatmapoptions = array(1 => 1, 2 => 2, 3 => 3, 4 => 4, 6 => 6, 8 => 8, 10 => 10, 12 => 12);
     $key = 'local_my/heatmaprange';
     $label = get_string('localmyheatmaprange', 'local_my');
-    $desc = get_string('localmyheatmaprangedesc', 'local_my');
+    $desc = get_string('localmyheatmaprange_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 6, $heatmapoptions, PARAM_INT));
+
+    $key = 'local_my/rendererimages';
+    $label = get_string('rendererimages', 'local_my');
+    $desc = get_string('rendererimages_desc', 'local_my');
+    $options = array('subdirs' => false, 'maxfiles' => 20);
+    $settings->add(new admin_setting_configstoredfile($key, $label, $desc, 'rendererimages', 0, $options));
 }

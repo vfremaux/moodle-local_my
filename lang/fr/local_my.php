@@ -16,67 +16,58 @@
 
 $string['my:overridemy'] = 'Peut surpasser la page My';
 
+$string['asstudent'] = 'Etudiant';
+$string['asteacher'] = 'Enseignant';
 $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';
 $string['cachedef_heatmap'] = 'Données de carte d\'activité';
+$string['categorysettings'] = 'Réglages relatifs aux catégories';
 $string['choosecategory'] = 'Choisir une de mes catégories pour la création du cours';
 $string['choosecoursetoenrollin'] = 'Choisir un cours';
+$string['completion'] = 'Achèvement: {$a}%';
+$string['contentfor'] = 'Contenu pour les profils dont \'{$a->profile}\' vaut \'{$a->data}\'';
+$string['courseareasettings'] = 'Réglages des zones de cours';
 $string['coursecreation'] = 'Création de cours';
 $string['coursesearch'] = 'Rechercher des cours';
-$string['courseareasettings'] = 'Réglages des zones de cours';
-$string['completion'] = 'Achèvement: {$a}%';
-$string['categorysettings'] = 'Réglages relatifs aux catégories';
-$string['heatmapsettings'] = 'Réglages du HeatMap';
-$string['standardcreation'] = 'Créer un nouveau cours';
 $string['enrollablecourses'] = 'Cours en inscription libre';
+$string['frequentationitem'] = 'action';
+$string['frequentationitemplural'] = 'actions';
+$string['heatmapsettings'] = 'Réglages du HeatMap';
 $string['localmycoursearea'] = 'Aire de cours ';
 $string['localmycourseareas'] = 'Zones de cours specifiques';
-$string['localmycourseareasdesc'] = 'Les zones de cours spécifiques sont des listes de cours prises dans une certaine branche des catégories de cours';
 $string['localmyenable'] = 'Activer la customisation my';
-$string['localmyenabledesc'] = 'Si activée, la page my customisée remplace la page standard';
-$string['localskipmymetas'] = 'Ignorer les metacours';
-$string['localskipmymetasdesc'] = 'Si activé, les métacours n\'apparaissent pas dans les listes';
 $string['localmyforce'] = 'Force le mode My page';
-$string['localmyforcedesc'] = 'Si actif, le mode Ma page est forcé pour tous les utilisateurs qui n\'ont pas la possibilité de surpasser';
 $string['localmyheatmaprange'] = 'Profondeur HeatMap';
-$string['localmyheatmaprangedesc'] = 'Plage (en mois) d\'affichage du module heatmap';
-$string['localmymaxoverviewedlistsize'] = 'Taille maximum de liste avec vues d\'ensemble';
-$string['localmymaxoverviewedlistsizedesc'] = 'Définit la taille max de la liste de cours qui sera affichée avec la vue d\'ensemble des activités. Au delà de cette taille, une liste simple est affichée. Laisser à 0 pour complètement désactiver les vues d\'ensemble';
 $string['localmymaxavailablelistsize'] = 'Taille maximum de liste des cours disponibles';
-$string['localmymaxavailablelistsizedesc'] = 'Définit la taille max de la liste des cours disponibles en autoinscrption. Laisser à 0 pour complètement désactiver la limite';
-$string['localmymaxuncategorizedlistsize'] = 'Taille max de liste sans catégorisatoin';
-$string['localmymaxuncategorizedlistsizedesc'] = 'Au dessus de ce nombre de cours, les listes sont affichées avec mention de la catégorie (et par catégorie)';
+$string['localmymaxoverviewedlistsize'] = 'Taille maximum de liste avec vues d\'ensemble';
+$string['localmymaxuncategorizedlistsize'] = 'Taille max de liste sans catégorisation';
 $string['localmymodules'] = 'Modules actifs ';
 $string['localmyprintcategories'] = 'Afficher les catégories';
-$string['localmyprintcategoriesdesc'] = 'Si activé, les cours sont listés avec le premier niveau de catégories';
 $string['localmyuselefteditioncolumn'] = 'Utiliser la colonne éditoriale de gauche';
-$string['localmyuselefteditioncolumndesc'] = 'Si activé, une colonne éditoriale est ajoutée à gauche de la liste de cours pour communiquer avec les utilisateurs';
 $string['localskipmymetas'] = 'Ignorer les metacours';
-$string['localskipmymetasdesc'] = 'Si activé, les métacours n\'apparaissent pas dans les listes';
 $string['managemycourses'] = 'Gérer mes cours';
+$string['myactivity'] = 'Mon activité';
 $string['myauthoringcourses'] = 'Mes éditions';
 $string['mycalendar'] = 'Mon calendrier';
 $string['mycategories'] = 'Mes catégories';
 $string['mycourses'] = 'Mes cours';
 $string['mynetwork'] = 'Mon réseau';
 $string['mytemplates'] = 'Mes modèles';
-$string['newtemplate'] = 'Nouveau modèle';
 $string['newcourse'] = 'Créer un nouveau cours';
 $string['newcoursefromtemplate'] = 'Créer à partir d\'un modèle';
+$string['newtemplate'] = 'Nouveau modèle';
 $string['noavailablecourses'] = 'Aucun cours en accès libre.';
 $string['nocourseareas'] = 'Pas de zones de cours spécifiques';
 $string['nocourses'] = 'Pas de cours.';
 $string['pluginname'] = 'Mon moodle amélioré';
 $string['recentcourses'] = 'Cours récents ';
 $string['restorecourse'] = 'Restaurer un cours';
+$string['rendererimages'] = 'Images du renderer';
 $string['seealllist'] = '... plus de cours';
-$string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres utilisateurs puissent créer les leurs.';
-
-$string['myactivity'] = 'Mon activité';
-
-$string['frequentationitem'] = 'action';
-$string['frequentationitemplural'] = 'actions';
+$string['standardcreation'] = 'Créer un nouveau cours';
+$string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
+utilisateurs puissent créer les leurs.';
 
 $string['lower'] = 'Moins que {min} {name}';
 $string['inner'] = 'Entre {down} et {up}';
@@ -96,15 +87,54 @@ $string['october'] = 'Octobre';
 $string['november'] = 'Novembre';
 $string['december'] = 'Décembre';
 
-$string['localmymodulesdesc'] = '
+$string['localmymodules_desc'] = '
 <br><p>Les modules de la page my permettent de constituer le tableau de bord. Donnez la liste ordonnée des modules
 à ajouter à la page (un par ligne). Un suffixe "-L" place le module dans la colonne de gauche
 si celle-ci est activée par la présence du module "left_edition_column".</p>
 <p>D\'autres modules peuvent être utilisés:</p>
+<p>Default modules:</p>
+<li>me: identité compacte</li>
+<li>my_courses</li>
+<li>my_templates</li>
+<li>authored_courses</li>
+<li>available_courses</li>
+<li>course_areas: aires de cours spécialisées</li>
 <li>latestnews_full</li>
 <li>latestnews_headers</li>
-<li>my_network</li>
-<li>fullme</li>
+<li>my_network: voisinage réseau accessible pour l\'utilisateur</li>
+<li>fullme: bloc complet d\'identité</li>
 <li>my_calendar</li>
-<li>my_templates (avec le plugin course_templates)</li>
+<li>recent_courses</li>
+<li>my_templates (avec le plugin local course_templates)</li>
+<li>static<n></li>
 ';
+
+$string['localmycourseareas_desc'] = 'Les zones de cours spécifiques sont des listes de cours prises dans une certaine
+branche des catégories de cours';
+
+$string['localmyenable_desc'] = 'Si activée, la page my customisée remplace la page standard';
+
+$string['localmyforce_desc'] = 'Si actif, le mode Ma page est forcé pour tous les utilisateurs qui n\'ont pas la
+possibilité de surpasser';
+
+$string['localmyheatmaprange_desc'] = 'Plage (en mois) d\'affichage du module heatmap';
+
+$string['localmymaxavailablelistsize_desc'] = 'Définit la taille max de la liste des cours disponibles en autoinscrption.
+Laisser à 0 pour complètement désactiver la limite';
+
+$string['localmymaxoverviewedlistsize_desc'] = 'Définit la taille max de la liste de cours qui sera affichée avec la vue
+d\'ensemble des activités. Au delà de cette taille, une liste simple est affichée. Laisser à 0 pour complètement désactiver
+les vues d\'ensemble';
+
+$string['localmymaxuncategorizedlistsize_desc'] = 'Au dessus de ce nombre de cours, les listes sont affichées avec mention de
+la catégorie (et par catégorie)';
+
+$string['localmyprintcategories_desc'] = 'Si activé, les cours sont listés avec le premier niveau de catégories';
+
+$string['localmyuselefteditioncolumn_desc'] = 'Si activé, une colonne éditoriale est ajoutée à gauche de la liste de cours pour
+communiquer avec les utilisateurs';
+
+$string['localskipmymetas_desc'] = 'Si activé, les métacours n\'apparaissent pas dans les listes';
+
+$string['rendererimages_desc'] = 'Toutes les images par défaut pour l\'interface de ce composant. Images attendues
+"coursedefaultimage.&lt;ext&gt;". Les images peuvent être en .svg, .png, .jp ou .gif.';
