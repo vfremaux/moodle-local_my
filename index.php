@@ -62,6 +62,7 @@ if (isguestuser()) {
     $userid = null;
     $USER->editing = $edit = 0;  // Just in case.
     $context = context_system::instance();
+    $PAGE->set_context($context);
     $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // Unlikely :).
     $header = "$SITE->shortname: $strmymoodle (GUEST)";
 
@@ -69,6 +70,7 @@ if (isguestuser()) {
     // We are trying to view or edit our own My Moodle page.
     $userid = $USER->id;  // Owner of the page.
     $context = context_user::instance($USER->id);
+    $PAGE->set_context($context);
     $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
     $header = "$SITE->shortname: $strmymoodle";
 }
@@ -84,7 +86,6 @@ if (!$currentpage->userid) {
 
 // Start setting up the page.
 $params = array();
-$PAGE->set_context($context);
 $PAGE->set_url('/my/index.php', $params);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_pagetype('my-index');
@@ -96,6 +97,9 @@ $PAGE->set_heading($header);
 $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
+$PAGE->requires->jquery_plugin('slick', 'local_my');
+$PAGE->requires->js('/local/my/js/slickinit.js', true);
+$PAGE->requires->css('/local/my/css/slick.css');
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
@@ -105,6 +109,8 @@ if (get_home_page() != HOMEPAGE_MY) {
         $PAGE->settingsnav->get('usercurrentsettings')->add(get_string('makethismyhome'), $linkurl, navigation_node::TYPE_SETTING);
     }
 }
+
+$renderer = $PAGE->get_renderer('local_my');
 
 // Toggle the editing state and switches.
 if ($PAGE->user_allowed_editing()) {
@@ -167,23 +173,11 @@ if ($currentpage->userid == 0) {
 
 // Get and clean modules names.
 
-$mymodules = array();
-$myleftmodules = array();
-if ($config->modules) {
-    $modules = preg_split("/[\\n,]|\\s+/", $config->modules);
-    for ($i = 0; $i < count($modules); $i++) {
-        $module = trim($modules[$i]);
-        $modules[$i] = $module; // Store it back into full modules list.
-        if (preg_match('/-L$/', $module)) {
-            $myleftmodules[$i] = preg_replace('/-L$/', '', $module);
-        } else {
-            // In case it has been explicitely right-located (default).
-            $mymodules[$i] = preg_replace('/-R$/', '', $module);
-        }
-    }
-}
-
 echo $OUTPUT->header();
+
+$view = optional_param('view', '', PARAM_TEXT);
+echo $renderer->tabs($view);
+list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
 echo '<div id="my-content">';
 
@@ -199,11 +193,13 @@ if ((in_array('course_areas', $modules) ||
     $excludedcourses = $courseareacourses = local_prefetch_course_areas($fooarray);
 }
 
-echo '<table id="mydashboard" width="100%" cellpadding="10"><tr valign="top">';
+echo '<div id="mydashboard container-fluid">'; // Table.
+echo '<div id="mydashboard-row row-fluid">'; // Row.
 
 if (in_array('left_edition_column', $mymodules)) {
-    $colwidth = 50;
-    echo "<td id=\"my-dashboard-left\" width=\"{$colwidth}%\">";
+    $spanclass = 'span6 md-col-6 xs-col-12';
+
+    echo '<div id="my-dashboard-left" class="span6 md-col-6 xs-col12">';
     if (function_exists('local_print_static_text')) {
         // In case the local_staticguitexts is coming with.
         local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
@@ -238,12 +234,13 @@ if (in_array('left_edition_column', $mymodules)) {
         }
     }
 
-    echo '</td>';
+    echo '</div>';
 } else {
-    $colwidth = 100;
+    $spanclass = 'span12';
 }
 
-echo '<td id="my-dashboard-right" width="'.$colwidth.'%">';
+
+echo '<div id="my-dashboard-right" class="'.$spanclass.'">';
 
 // The main overview in the middle of the page.
 
@@ -260,7 +257,7 @@ foreach ($mymodules as $m) {
     }
 
     // Special case : print statics can be freely indexed.
-    if (preg_match('/static(\d+)$/', $m, $matches)) {
+    if (preg_match('/static_(.*+)$/', $m, $matches)) {
         $fname = 'local_my_print_static';
         echo $fname($matches[1]);
         continue;
@@ -274,9 +271,9 @@ foreach ($mymodules as $m) {
     }
 }
 
-echo '</td></tr></table>';
-echo '</div>';
-echo '</td>';
+echo '</div>'; // Area
+echo '</div>'; // Row.
+echo '</div>'; // Table.
 
 echo $OUTPUT->footer();
 die;
