@@ -119,7 +119,6 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
 function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses) {
     global $DB, $USER, $PAGE;
 
-
     $renderer = $PAGE->get_renderer('local_my');
 
     $config = get_config('local_my');
@@ -1003,7 +1002,7 @@ function local_my_print_static($index) {
                     WHERE
                         fieldid = ?
                 ";
-    
+
                 $modalities = $DB->get_records_sql($sql, array($fieldid));
             }
 

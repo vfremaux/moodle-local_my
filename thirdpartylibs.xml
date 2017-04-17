@@ -15,6 +15,13 @@
     <licenseversion>3.4.0</licenseversion>
   </library>
   <library>
+    <location>js/slick</location>
+    <name>Slick Slider</name>
+    <license></license>
+    <version></version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
     <location>jquery</location>
     <name>Jquery extra modules</name>
     <license></license>

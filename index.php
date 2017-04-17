@@ -98,7 +98,7 @@ $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 $PAGE->requires->jquery_plugin('slick', 'local_my');
-$PAGE->requires->js('/local/my/js/slickinit.js', true);
+$PAGE->requires->js('/local/my/js/slick/slickinit.js', true);
 $PAGE->requires->css('/local/my/css/slick.css');
 
 if (get_home_page() != HOMEPAGE_MY) {
