@@ -962,7 +962,11 @@ function local_my_print_latestnews_simple() {
  * profile field to display.
  */
 function local_my_print_static($index) {
-    global $CFG, $DB, $USER;
+    global $CFG, $DB, $USER, $OUTPUT;
+
+    if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
+        return $OUTPUT->notification(get_string('staticguitextsnotinstalled', 'local_my'));
+    }
 
     include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
 
@@ -1136,6 +1140,37 @@ function local_my_print_fullme() {
     $str .= '</div>';
     $str .= '</div>';
 
+    return $str;
+}
+
+/**
+ * This module picks a block instance in the current context and prints its content.
+ * The original block may be hidden on the page to avoid info duplicate.
+ * @param int $blockid the block id.
+ * @param int $contextid the parent context.
+ */
+function local_my_print_block($blockid, $contextid) {
+    global $DB;
+
+    if (!$blockrec = $DB->get_record('block_instances', array('id' => $blockid, 'parentcontextid' => $contextid))) {
+        $str = '<div class="block">';
+        $str .= $OUTPUT->notification(get_string('errorbadblock', 'local_my'));
+        $str .= '</div>';
+        return $str;
+    }
+    $blockinstance = block_instance($blockrec->blockname, $blockrec);
+
+    $content = $blockinstance->get_content()->text;
+    $str = '<div class="block">';
+    $str .= '<div class="header">';
+    $str .= '<div class="title">';
+    $str .= '<h2>'.$blockinstance->get_title().'</h2>';
+    $str .= '</div></div>';
+
+    $str .= '<div class="content">';
+    $str .= $content;
+    $str .= '</div>';
+    $str .= '</div>';
     return $str;
 }
 

@@ -207,30 +207,7 @@ if (in_array('left_edition_column', $mymodules)) {
 
     if (!empty($myleftmodules)) {
         foreach ($myleftmodules as $m) {
-            $m = trim($m);
-            if (empty($m) || preg_match('/^\s+$/', $m)) {
-                continue; // Blank lines.
-            }
-            if (preg_match('/^[!_*#]/', $m)) {
-                continue; // Ignore some modules.
-            }
-            if ($m == 'my_caption' || $m == 'left_edition_column') {
-                continue; // Special cases.
-            }
-
-            // Special case : print statics can be freely indexed.
-            if (preg_match('/static(\d+)$/', $m, $matches)) {
-                $fname = 'local_my_print_static';
-                echo $fname($matches[1]);
-                continue;
-            }
-
-            $fname = 'local_my_print_'.$m;
-            if (!function_exists($fname)) {
-                echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
-            } else {
-                echo $fname($excludedcourses, $courseareacourses);
-            }
+            local_my_render_module($m, $excludedcourses, $courseareacourses);
         }
     }
 
@@ -245,30 +222,7 @@ echo '<div id="my-dashboard-right" class="'.$spanclass.'">';
 // The main overview in the middle of the page.
 
 foreach ($mymodules as $m) {
-    $m = trim($m);
-    if (empty($m) || preg_match('/^\s+$/', $m)) {
-        continue; // Blank lines.
-    }
-    if (preg_match('/^[!_*#]/', $m)) {
-        continue; // Ignore some modules.
-    }
-    if ($m == 'my_caption' || $m == 'left_edition_column') {
-        continue; // Special cases.
-    }
-
-    // Special case : print statics can be freely indexed.
-    if (preg_match('/static_(.*+)$/', $m, $matches)) {
-        $fname = 'local_my_print_static';
-        echo $fname($matches[1]);
-        continue;
-    }
-
-    $fname = 'local_my_print_'.$m;
-    if (!function_exists($fname)) {
-        echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
-    } else {
-        echo $fname($excludedcourses, $courseareacourses);
-    }
+    local_my_render_module($m, $excludedcourses, $courseareacourses);
 }
 
 echo '</div>'; // Area
