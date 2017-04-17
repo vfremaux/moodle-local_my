@@ -31,6 +31,7 @@ $string['courseareasettings'] = 'Course Areas Settings';
 $string['coursecreation'] = 'Course creation';
 $string['coursesearch'] = 'Search courses';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
+$string['errorbadblock'] = 'Bad block instance (maybe not in context)';
 $string['frequentationitem'] = "page";
 $string['frequentationitemplural'] = "pages";
 $string['heatmapsettings'] = 'Heatmap Settings';
@@ -69,7 +70,7 @@ $string['seealllist'] = '... see more courses.';
 $string['standardcreation'] = 'Create a new empty course';
 $string['templateinitialisationadvice'] = 'No templates. Administrator should create first template before all other users can create their own.';
 $string['unknownmodule'] = 'Unknown output module {$a}';
-
+$string['staticguitextsnotinstalled'] = 'You need installing the <a href="https://github.com/vfremaux/moodle-local_staticguitexts">local_staticguitexts</a> plugin for this widget being used.';
 $string['lower'] = "Less than {min} {name}";
 $string['inner'] = "Between {down} and {up}";
 $string['upper'] = "More than {max} {name}";
