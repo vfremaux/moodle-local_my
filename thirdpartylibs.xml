@@ -14,4 +14,39 @@
     <version>3.4.0</version>
     <licenseversion>3.4.0</licenseversion>
   </library>
+  <library>
+    <location>js/slick</location>
+    <name>Slick Slider</name>
+    <license></license>
+    <version></version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>jquery</location>
+    <name>Jquery extra modules</name>
+    <license></license>
+    <version></version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
+    <location>__customscripts</location>
+    <name>Core overrides by customscripts</name>
+    <license>GPL</license>
+    <version>3.0</version>
+    <licenseversion>3.0</licenseversion>
+  </library>
+  <library>
+    <location>__reference</location>
+    <name>Reference core scripts</name>
+    <license>GPL</license>
+    <version>3.0</version>
+    <licenseversion>3.0</licenseversion>
+  </library>
+  <library>
+    <location>__patch</location>
+    <name>Moodle core patch and fixes</name>
+    <license>GPL</license>
+    <version>3.0</version>
+    <licenseversion>3.0</licenseversion>
+  </library>
 </libraries>
