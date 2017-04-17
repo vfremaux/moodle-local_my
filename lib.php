@@ -905,3 +905,42 @@ function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     // Finally send the file.
     send_stored_file($file, 0, 0, true); // Download MUST be forced - security!
 }
+
+/**
+ * renders an extended page my module.
+ */
+function local_my_render_module($m, &$excludedcourses, &$courseareacourses) {
+    global $PAGE;
+
+    $m = trim($m);
+    if (empty($m) || preg_match('/^\s+$/', $m)) {
+        return; // Blank lines.
+    }
+    if (preg_match('/^[!_*#]/', $m)) {
+        return; // Ignore some modules.
+    }
+    if ($m == 'my_caption' || $m == 'left_edition_column') {
+        return; // Special cases.
+    }
+
+    // Special case : print a block replica.
+    if (preg_match('/block_(\d+)$/', $m, $matches)) {
+        $fname = 'local_my_print_block';
+        echo $fname($matches[1], $PAGE->context->id);
+        return;
+    }
+
+    // Special case : print statics can be freely indexed.
+    if (preg_match('/static_(.*)$/', $m, $matches)) {
+        $fname = 'local_my_print_static';
+        echo $fname($matches[1]);
+        return;
+    }
+
+    $fname = 'local_my_print_'.$m;
+    if (!function_exists($fname)) {
+        echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
+    } else {
+        echo $fname($excludedcourses, $courseareacourses);
+    }
+}

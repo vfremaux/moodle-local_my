@@ -31,6 +31,7 @@ $string['courseareasettings'] = 'Réglages des zones de cours';
 $string['coursecreation'] = 'Création de cours';
 $string['coursesearch'] = 'Rechercher des cours';
 $string['enrollablecourses'] = 'Cours en inscription libre';
+$string['errorbadblock'] = 'Instance de bloc non existante dans ce contexte';
 $string['frequentationitem'] = 'action';
 $string['frequentationitemplural'] = 'actions';
 $string['heatmapsettings'] = 'Réglages du HeatMap';
@@ -68,6 +69,7 @@ $string['seealllist'] = '... plus de cours';
 $string['standardcreation'] = 'Créer un nouveau cours';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';
+$string['staticguitextsnotinstalled'] = 'Le plugin additionnel <a href="https://github.com/vfremaux/moodle-local_staticguitexts">local_staticguitexts</a> doit être installé pour pouvoir afficher ce module.';
 
 $string['lower'] = 'Moins que {min} {name}';
 $string['inner'] = 'Entre {down} et {up}';

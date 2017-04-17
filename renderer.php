@@ -206,7 +206,7 @@ class local_my_renderer extends plugin_renderer_base {
         return print_tabs($rows, $view, null, null, true);
     }
 
-    function courses_slider($courseids) {
+    public function courses_slider($courseids) {
         global $CFG, $PAGE;
 
         $totalfcourse = count($courseids);
