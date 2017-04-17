@@ -118,7 +118,7 @@
     width: 20px;
 }
 
-.slick-dots li button!important {
+.slick-dots li button {
     background: transparent;
     border: 0;
     color: transparent;
