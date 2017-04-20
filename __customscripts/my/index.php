@@ -16,4 +16,4 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require('../../local/my/index.php');
+require($CFG->dirroot.'/local/my/index.php');
