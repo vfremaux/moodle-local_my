@@ -119,9 +119,9 @@
 }
 
 .slick-dots li button {
-    background: transparent;
+    background-color: #eee;
     border: 0;
-    color: transparent;
+    color: black;
     cursor: pointer;
     display: block;
     font-size: 0;

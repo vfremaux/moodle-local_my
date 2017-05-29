@@ -16,6 +16,7 @@
 
 $string['my:overridemy'] = 'Peut surpasser la page My';
 
+$string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
 $string['asstudent'] = 'Etudiant';
 $string['asteacher'] = 'Enseignant';
 $string['available'] = 'Disponibles';
@@ -32,6 +33,7 @@ $string['coursecreation'] = 'Création de cours';
 $string['coursesearch'] = 'Rechercher des cours';
 $string['enrollablecourses'] = 'Cours en inscription libre';
 $string['errorbadblock'] = 'Instance de bloc non existante dans ce contexte';
+$string['fieldnotfound'] = 'Le champ {$a} n\'a pas été trouvé';
 $string['frequentationitem'] = 'action';
 $string['frequentationitemplural'] = 'actions';
 $string['heatmapsettings'] = 'Réglages du HeatMap';
@@ -46,6 +48,7 @@ $string['localmymaxuncategorizedlistsize'] = 'Taille max de liste sans catégori
 $string['localmymodules'] = 'Modules actifs ';
 $string['localmyprintcategories'] = 'Afficher les catégories';
 $string['localmyuselefteditioncolumn'] = 'Utiliser la colonne éditoriale de gauche';
+$string['localmyexcludedcourses'] = 'Cours à exclure (liste des IDs à virgules)';
 $string['localskipmymetas'] = 'Ignorer les metacours';
 $string['managemycourses'] = 'Gérer mes cours';
 $string['myactivity'] = 'Mon activité';
@@ -140,3 +143,5 @@ $string['localskipmymetas_desc'] = 'Si activé, les métacours n\'apparaissent p
 
 $string['rendererimages_desc'] = 'Toutes les images par défaut pour l\'interface de ce composant. Images attendues
 "coursedefaultimage.&lt;ext&gt;". Les images peuvent être en .svg, .png, .jp ou .gif.';
+
+$string['localmyexcludedcourses_desc'] = 'Entrez une liste d\'identifiants de cours séparés par des virgules.';
