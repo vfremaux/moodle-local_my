@@ -60,6 +60,11 @@ if ($hassiteconfig) {
     $desc = get_string('localskipmymetas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
+    $key = 'local_my/excludedcourses';
+    $label = get_string('localmyexcludedcourses', 'local_my');
+    $desc = get_string('localmyexcludedcourses_desc', 'local_my');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
+
     $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nauthored_courses\n";
     $defaultmodules .= "latestnews_simple";
     if (!isset($config->modules)) {
