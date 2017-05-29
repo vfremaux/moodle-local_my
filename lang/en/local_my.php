@@ -16,6 +16,7 @@
 
 $string['my:overridemy'] = 'Can override My routing';
 
+$string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
 $string['asstudent'] = 'Student';
 $string['asteacher'] = 'Teacher';
 $string['available'] = 'Available';
@@ -32,12 +33,14 @@ $string['coursecreation'] = 'Course creation';
 $string['coursesearch'] = 'Search courses';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
 $string['errorbadblock'] = 'Bad block instance (maybe not in context)';
+$string['fieldnotfound'] = 'The field {$a} was not found';
 $string['frequentationitem'] = "page";
 $string['frequentationitemplural'] = "pages";
 $string['heatmapsettings'] = 'Heatmap Settings';
 $string['localmycoursearea'] = 'Course area ';
 $string['localmycourseareas'] = 'Specific course areas';
 $string['localmyenable'] = 'Enable customized my';
+$string['localmyexcludedcourses'] = 'Course to exclude';
 $string['localmyforce'] = 'Force my page to users';
 $string['localmyheatmaprange'] = 'HeatMap Range';
 $string['localmymaxavailablelistsize'] = 'Max size of available courses';
@@ -140,3 +143,5 @@ $string['localmyuselefteditioncolumn_desc'] = 'If enabled, prints a left editori
 communication inside';
 
 $string['localskipmymetas_desc'] = 'Skip metacourses in my if enabled';
+
+$string['localmyexcludedcourses_desc'] = 'Enter a list of course ids';
