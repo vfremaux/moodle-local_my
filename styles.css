@@ -71,6 +71,29 @@ table#mycourseareas{
     margin-bottom:10px;
 }
 
+.local-my-statictext {
+    margin-bottom:15px;
+}
+
+.local-my-statictext .tinytext {
+    font-size: 80%;
+}
+
+.local-my-statictext.adminview {
+    -moz-border-radius: 5px;
+    -moz-opacity: 0.5;
+    margin-bottom: 15px;
+    border: dashed 1px #888;
+    border-radius: 5px;
+    opacity:0.5;
+}
+
+.local-my-statictext.editing {
+    margin-bottom: 15px;
+    border: dashed 1px #888;
+    border-radius: 5px;
+}
+
 div.course-completion {
     float:right;
 }
@@ -127,22 +150,28 @@ div.course-box .title {
     min-height: 250px !important;
 }
 
-.local-my-fp-coursebox {
-  text-align: center;
-}
 .local-my-fp-coursethumb {
-  margin-left: auto;
-  margin-right:auto;
-  padding:5px;
+  width: 100%;
+  padding-right: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom:5px;
 }
+
+.local-my-fp-coursename {
+    text-align: center;
+    padding: 5px;
+}
+
 .local-my-fp-courseinfo {
     text-align: center;
+    padding: 5px;
 }
 
 .local-my-fp-coursebox{
   text-align: center;
-  margin:0px;
-  padding:0px;
+  margin:0;
+  padding:0;
 }
 
 @media (max-width: 900px) {
@@ -157,8 +186,17 @@ div.course-box .title {
     text-align: left;
     max-width: 450px;
     margin: auto;
+    padding: 8px;
 }
 
 #my-dashboard-right.span12 {
     float: none;
+}
+
+.courselist .course {
+    padding:10px;
+}
+
+#mycourseareas td {
+	padding: 8px;
 }

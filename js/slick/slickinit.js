@@ -28,7 +28,8 @@ responsive: [
       settings: {
         slidesToShow: 1,
         slidesToScroll: 1,
-        dots: false
+        dots: false,
+        arrows: true
       }
     }
   ]
