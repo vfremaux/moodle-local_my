@@ -34,6 +34,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Customscript type : CUSTOMSCRIPT_CHANGE.
+
 defined('MOODLE_INTERNAL') || die;
 
 // CHANGE+.
