@@ -721,6 +721,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
  * Prints the available (enrollable) courses as simple link entries
  */
 function local_my_print_available_courses(&$excludedcourses, &$courseareacourses) {
+    global $OUTPUT;
 
     $str = '';
 
@@ -760,14 +761,14 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
     $options['withcats'] = 2;
     $options['nocompletion'] = 1;
 
-    $str .= '<div class="block block_my_available_courses">';
+    $str .= $OUTPUT->box_start('block block_my_available_courses');
     $str .= local_my_print_courses('availablecourses', $courses, $options);
     if ($overcount) {
         $allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');
         $link = '<a href="'.$allcoursesurl.'">'.get_string('seealllist', 'local_my').'</a>';
-        $str .= '<div class="local-my-overcount">'.$link.'</div>';
+        $str .= $OUTPUT->box($link, 'local-my-overcount');
     }
-    $str .= '</div>';
+    $str .= $OUTPUT->box_end();
 
     return $str;
 }

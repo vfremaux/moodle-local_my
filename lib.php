@@ -281,12 +281,12 @@ function local_print_courses_by_cats($courselist, $options = array()) {
  * get courses i am authoring in.
  *
  */
-function local_get_my_authoring_courses() {
+function local_get_my_authoring_courses($fields = '*') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course('moodle/course:viewhiddenactivities', $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id));
+            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
         return $authoredcourses;
     }
