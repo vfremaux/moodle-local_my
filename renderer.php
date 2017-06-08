@@ -182,12 +182,13 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($view)) {
             $view = @$SESSION->localmyview;
 
-            if (local_my_has_capability_somewhere('moodle/course:manageactivities')) {
+            if (local_my_has_capability_somewhere('moodle/course:viewhiddenactivities')) {
                 if (empty($view)) {
                     $view = 'asteacher';
                 }
             } else {
                 // Force anyway the student view only, including forcing session.
+                // Do NOT print any tabs.
                 $view = 'asstudent';
                 return;
             }

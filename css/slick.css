@@ -111,30 +111,31 @@
 .slick-dots li {
     cursor: pointer;
     display: inline-block;
-    height: 20px;
+    height: 30px;
     margin: 0 5px;
     padding: 0;
     position: relative;
-    width: 20px;
+    width: 30px;
 }
 
 .slick-dots li button {
     background-color: #eee;
-    border: 0;
+    border: 1px solid #444;
     color: black;
     cursor: pointer;
     display: block;
-    font-size: 0;
-    height: 20px;
-    line-height: 0;
+    font-size: 12px;
+    height: 30px;
+    line-height: 12px;
     outline: none;
     padding: 5px;
-    width: 20px;
+    width: 30px;
 }
 
 .slick-dots li button:hover,
 .slick-dots li button:focus {
     outline: none;
+    color:white;
 }
 
 .slick-dots li button:hover:before,

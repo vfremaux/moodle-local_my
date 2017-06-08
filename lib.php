@@ -224,9 +224,14 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
  * Print a simple list of coures with first level category caption
  */
 function local_print_courses_by_cats($courselist, $options = array()) {
-    global $CFG, $DB;
+    global $CFG, $DB, $USER;
 
     $str = '';
+
+    // Get user preferences for collapser.
+    $select = " userid = ? and name LIKE 'local-my%' ";
+    $params = array('userid' => $USER->id);
+    $collapses = $DB->get_records_select_menu('user_preferences', $select, $params, 'name,value');
 
     // Reorganise by cat.
     foreach ($courselist as $c) {
@@ -239,7 +244,14 @@ function local_print_courses_by_cats($courselist, $options = array()) {
 
     foreach ($catcourses as $catid => $cat) {
         if ($catid) {
+
             $catcontext = context_coursecat::instance($catid);
+            if (array_key_exists('local_my_authoredcat_'.$catid.'_hidden', $collpases)) {
+                $collapseclass = 'collapsed';
+            } else {
+                $collpaseclass = '';
+            }
+
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
                 $catstyle = ($cat->category->visible) ? '' : 'shadow';
                 if ($options['withcats'] == 1) {
@@ -257,15 +269,21 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                         }
                     }
                     $cats = array_reverse($cats);
-                    $str .= '<tr valign="top"><td class="'.$catstyle.'"><b>'.implode(' / ', $cats).'</b></td></tr>';
+                    if (!empty($collapseclass)) {
+                        $collapseiconurl = $OUTPUT->pix_url('collapsed', 'local_my');
+                    } else {
+                        $collapseiconurl = $OUTPUT->pix_url('expanded', 'local_my');
+                    }
+                    $collapseicon = '<img src="'.$collapseiconurl.'" id="local-my-cathandle-{$cat->id}" class="local-my-cat-collapse">';
+                    $str .= '<tr valign="top"><td class="'.$catstyle.'"><b>'.implode(' / ', $cats).'</b></td><td>'.$collapseicon.'</td></tr>';
                 }
                 foreach ($cat->courses as $c) {
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                         $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
                         $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
-                        $str .= '<tr valign="top">';
-                        $str .= '<td class="course">';
+                        $str .= '<tr valign="top" class="local-my-course cat-{$cat->id}" class="'.$collapseclass.'">';
+                        $str .= '<td class="course" colspan="2">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
                         $str .= '</td>';
                         $str .= '</tr>';
@@ -281,12 +299,12 @@ function local_print_courses_by_cats($courselist, $options = array()) {
  * get courses i am authoring in.
  *
  */
-function local_get_my_authoring_courses() {
+function local_get_my_authoring_courses($fields = '*') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course('moodle/course:viewhiddenactivities', $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id));
+            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
         return $authoredcourses;
     }

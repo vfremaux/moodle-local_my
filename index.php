@@ -172,12 +172,17 @@ if ($currentpage->userid == 0) {
     $CFG->blockmanagerclass = 'my_syspage_block_manager';
 }
 
+// Get exclusions startup from config.
+$excludedcourses = explode(',', @$config->excludedcourses);
+
 // Get and clean modules names.
 
 echo $OUTPUT->header();
 
 $view = optional_param('view', '', PARAM_TEXT);
+
 echo $renderer->tabs($view);
+
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
 echo $OUTPUT->box_start('', 'my-content');
@@ -188,13 +193,22 @@ if (in_array('my_caption', $mymodules)) {
 
 $fooarray = null;
 $courseareacourses = array();
-$excludedcourses = explode(',', @$config->excludedcourses);
+
+// Calculate course areas content for exclusions.
 if ((in_array('course_areas', $modules) ||
         in_array('course_areas_and_availables', $modules)) &&
                 @$config->courseareas > 0) {
     $courseareacourses = local_prefetch_course_areas($fooarray);
     $excludedcourses = $excludedcourses + $courseareacourses;
 }
+
+if ($view == 'student' && local_my_has_capability_somewhere('moodle/course:viewhiddenactivities')) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_authoring_courses('id');
+    $excludedcourses = $excludedcourses + array_keys($prefetchcourses);
+}
+
+// Render dahsboard.
 
 echo $OUTPUT->box_start('container-fluid', 'mydashboard>'); // Table.
 echo $OUTPUT->box_start('row-fluid', 'mydashboard-row'); // Row.
