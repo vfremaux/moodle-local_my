@@ -281,12 +281,12 @@ function local_print_courses_by_cats($courselist, $options = array()) {
  * get courses i am authoring in.
  *
  */
-function local_get_my_authoring_courses() {
+function local_get_my_authoring_courses($fields = '*') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course('moodle/course:viewhiddenactivities', $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id));
+            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
         return $authoredcourses;
     }
@@ -511,22 +511,23 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
 
     if (empty($courses)) {
         if (!empty($options['printifempty']) && empty($options['noheading'])) {
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
+            $str .= $OUTPUT->box_start('header');
+            $str .= $OUTPUT->box_start('title');
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
         }
     } else {
         if (empty($options['noheading'])) {
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
+            $str .= $OUTPUT->box_start('header');
+            $str .= $OUTPUT->box_start('title');
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_start('content');
         }
+
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
             $str .= local_print_course_overview($courses, $options);
@@ -540,8 +541,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         $str .= '</table>';
 
         if (empty($options['noheading'])) {
-            $str .= '</div>';
-            $str .= '</div>';
+            $str .= $OUTPUT->box_end();
         }
     }
 

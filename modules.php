@@ -721,6 +721,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
  * Prints the available (enrollable) courses as simple link entries
  */
 function local_my_print_available_courses(&$excludedcourses, &$courseareacourses) {
+    global $OUTPUT;
 
     $str = '';
 
@@ -760,14 +761,14 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
     $options['withcats'] = 2;
     $options['nocompletion'] = 1;
 
-    $str .= '<div class="block block_my_available_courses">';
+    $str .= $OUTPUT->box_start('block block_my_available_courses');
     $str .= local_my_print_courses('availablecourses', $courses, $options);
     if ($overcount) {
         $allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');
         $link = '<a href="'.$allcoursesurl.'">'.get_string('seealllist', 'local_my').'</a>';
-        $str .= '<div class="local-my-overcount">'.$link.'</div>';
+        $str .= $OUTPUT->box($link, 'local-my-overcount');
     }
-    $str .= '</div>';
+    $str .= $OUTPUT->box_end();
 
     return $str;
 }
@@ -963,6 +964,9 @@ function local_my_print_latestnews_simple() {
 function local_my_print_static($index) {
     global $CFG, $DB, $USER, $OUTPUT;
 
+    $context = context_system::instance();
+    $str = '';
+
     if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
         return $OUTPUT->notification(get_string('staticguitextsnotinstalled', 'local_my'));
     }
@@ -970,6 +974,9 @@ function local_my_print_static($index) {
     include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
 
     if (preg_match('/profile_field_(.*?)_(.*)/', $index, $matches)) {
+
+        // Provide content for an only modality of a profile selector.
+
         $profileexpectedvalue = core_text::strtolower($matches[2]);
         if (is_numeric($matches[1])) {
             $fieldid = $matches[1];
@@ -980,17 +987,65 @@ function local_my_print_static($index) {
             $fieldid = $field->id;
         }
 
+        $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
+        $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
+
+        if ($field->datatype == 'menu') {
+            $modalities = explode("\n", $field->param1);
+        }
+
+        $class = '';
+        if (($profilevalue != $profileexpectedvalue)) {
+            if (!has_capability('moodle/site:config', $context)) {
+                return '';
+            } else {
+                $class = 'adminview';
+            }
+        }
+
+        // Normal user, one sees his own.
+        $str .= '<div id="custommystaticarea_'.$index.'" class="local-my-statictext '.$class.'">';
+        if ($class == 'adminview') {
+            $e = new StdClass;
+            $e->field = $field->name;
+            $e->value = $profileexpectedvalue;
+            $str .= get_string('adminview', 'local_my', $e).'<br/>';
+        }
+        $str .= local_print_static_text('custommystaticarea_'.$index, $CFG->wwwroot.'/my/index.php', '', true);
+        $str .= '</div>';
+
+    } else if (preg_match('/profile_field_(.*)$/', $index, $matches)) {
+
+        // Provide values for all modalities of a profile selector.
+
+        if (is_numeric($matches[1])) {
+            $fieldid = $matches[1];
+            $field = $DB->get_record('user_info_field', array('id' => $fieldid));
+        } else {
+            $fieldname = $matches[1];
+            $field = $DB->get_record('user_info_field', array('shortname' => $fieldname));
+            if ($field) {
+                $fieldid = $field->id;
+            } else {
+                $str = $OUTPUT->notification(get_string('fieldnotfound', 'local_my', $fieldname));
+            }
+        }
+
+        if (!$field) {
+            return;
+        }
+
         if ($field->datatype == 'menu') {
             $modalities = explode("\n", $field->param1);
         }
 
         $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
         $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
+        $profilevalue = trim($profilevalue);
+        $profilevalue = str_replace(' ', '_', $profilevalue);
 
-        $context = context_system::instance();
+        // This is a global match catching all values.
         if (has_capability('moodle/site:config', $context)) {
-
-            $str = '';
 
             // I'm administrator, so i can see all modalities and edit them.
             if (!isset($modalities)) {
@@ -1006,37 +1061,61 @@ function local_my_print_static($index) {
                 $modalities = $DB->get_records_sql($sql, array($fieldid));
             }
 
-            foreach ($modalities as $modality) {
-                if (is_object($modality)) {
-                    $modality = core_text::strtolower($modality->data);
-                } else {
-                    $modality = core_text::strtolower($modality);
+            if ($modalities) {
+
+                $modstrs = array();
+                $modoptions = array();
+
+                foreach ($modalities as $modality) {
+
+                    // Reformat key for token integrity.
+                    if (is_object($modality)) {
+                        $modality = core_text::strtolower($modality->data);
+                    } else {
+                        $modality = core_text::strtolower($modality);
+                    }
+                    $modality = trim($modality);
+                    $modality = str_replace(' ', '_', $modality);
+                    $modalindex = $index.'_'.$modality;
+
+                    $tmp = '<div id="custommystaticarea_'.$modalindex.'" class="editing local-my-statictext">';
+                    $tmp .= '<div class="staticareaname">';
+                    $a = new StdClass;
+                    $a->profile = $field->shortname;
+                    $a->data = $modality;
+                    $tmp .= get_string('contentfor', 'local_my', $a);
+                    $tmp .= '</div>';
+                    $tmp .= '<div class="content" id="">';
+                    $tmp .= local_print_static_text('custommystaticarea_'.$modalindex, $CFG->wwwroot.'/my/index.php', '', true);
+                    $tmp .= '</div>';
+                    $tmp .= '</div>';
+                    $modstrs[] = $tmp;
+
+                    $modoptions[$modality] = $modality;
                 }
-                $str .= '<div id="custommystaticarea'.$index.'" class="editing">';
-                $str .= '<div class="staticareaname">';
-                $a = new StdClass;
-                $a->profile = $field->shortname;
-                $a->data = $modality;
-                $str .= get_string('contentfor', 'local_my', $a);
+
+                /*
+                $str .= '<div id="custommystaticarea_ctl_'.$index.'" class="editing local-my-statictext-ctl">';
+                $str .= html_writer::select($modoptions, 'modalities');
                 $str .= '</div>';
-                $str .= '<div class="content" id="">';
-                $str .= local_print_static_text('custommystaticarea'.$index, $CFG->wwwroot.'/my/index.php', '', true);
-                $str .= '</div>';
-                $str .= '</div>';
+                */
+
+                $str .= implode("\n", $modstrs);
             }
             return $str;
+        } else {
+            // Normal user, one sees his own.
+
+            $modalindex = $index.'_'.$profilevalue;
+            $str .= '<div id="custommystaticarea_'.$modalindex.'" class="local-my-statictext">';
+            $str .= local_print_static_text('custommystaticarea_'.$modalindex, $CFG->wwwroot.'/my/index.php', '', true);
+            $str .= '</div>';
         }
 
-        if ($profilevalue != $profileexpectedvalue) {
-            return '';
-        }
+        $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
+        $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
 
     }
-
-    // Normal user, one sees his own.
-    $str = '<div id="custommystaticarea'.$index.'">';
-    $str .= local_print_static_text('custommystaticarea'.$index, $CFG->wwwroot.'/my/index.php', '', true);
-    $str .= '</div>';
 
     return $str;
 }

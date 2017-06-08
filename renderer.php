@@ -182,12 +182,13 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($view)) {
             $view = @$SESSION->localmyview;
 
-            if (local_my_has_capability_somewhere('moodle/course:manageactivities')) {
+            if (local_my_has_capability_somewhere('moodle/course:viewhiddenactivities')) {
                 if (empty($view)) {
                     $view = 'asteacher';
                 }
             } else {
                 // Force anyway the student view only, including forcing session.
+                // Do NOT print any tabs.
                 $view = 'asstudent';
                 return;
             }
@@ -231,8 +232,8 @@ class local_my_renderer extends plugin_renderer_base {
                 $course = get_course($courseid);
 
                 $summary = local_my_strip_html_tags($course->summary);
-                $summary = local_my_course_trim_char($summary, 20);
-                $trimtitle = local_my_course_trim_char($course->fullname, 25);
+                $summary = local_my_course_trim_char($summary, 250);
+                $trimtitle = local_my_course_trim_char($course->fullname, 40);
 
                 $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
 
@@ -259,9 +260,11 @@ class local_my_renderer extends plugin_renderer_base {
                 $rowcontent .= '<div class="local-my-promowrap">';
                 $rowcontent .= '<div class="local-my-fp-coursebox">';
                 $rowcontent .= '<div class="local-my-fp-coursethumb">';
+                $rowcontent .= '<div class="local-my-fp-coursename">';
                 $rowcontent .= '<a href="'.$courseurl.'">';
                 $rowcontent .= '<img src="'.$imgurl.'" width="100%" height="125" title="'.$course->fullname.'">';
                 $rowcontent .= '</a>';
+                $rowcontent .= '</div>';
                 $rowcontent .= '<div class="local-my-fp-courseinfo">';
                 $rowcontent .= '<h5><a href="'.$courseurl.'" id="button" data-toggle="tooltip" data-placement="bottom" title="'.$course->fullname.'" >'.$trimtitle.'</a></h5>';
                 $rowcontent .= '</div>';
