@@ -30,4 +30,21 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
+
+    'local/my:isteacher' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
+
+    'local/my:isauthor' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
 );

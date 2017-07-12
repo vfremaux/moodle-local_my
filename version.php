@@ -25,10 +25,10 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2016010801;   // The (date) version of this plugin.
+$plugin->version  = 2017070501;   // The (date) version of this plugin.
 $plugin->requires = 2014110400;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '2.8.0 (Build 2016010801)';
+$plugin->release = '2.8.0 (Build 2017070501)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
