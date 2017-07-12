@@ -105,6 +105,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $str .= '<tr valign="top">';
         $str .= '<td class="courserow">';
+        $str .= $this->editing_icon($course);
         $str .= '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
         if (!empty($options['withdescription'])) {
             $str .= '<p class="coursedescription">'.format_text($course->summary, $course->summaryformat).'</p>';
@@ -112,7 +113,8 @@ class local_my_renderer extends plugin_renderer_base {
         $str .= '</td>';
 
         if (empty($options['nocompletion'])) {
-            if (!has_capability('moodle/grade:viewall', context_course::instance($course->id), $USER->id, false)) {
+            if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
+                // Only non teachers can see progression.
                 $str .= $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight']);
             }
         }
@@ -120,6 +122,14 @@ class local_my_renderer extends plugin_renderer_base {
         $str .= '</tr>';
 
         return $str;
+    }
+
+    public function editing_icon(&$course) {
+        $context = context_course::instance($course->id);
+        if (has_capability('moodle/course:manageactivities', $context)) {
+            $pixurl = $this->output->pix_url('editing', 'local_my');
+            return $this->output->box('<img src="'.$pixurl.'" title="'.get_string('editing', 'local_my').'">', 'editing-icon pull-right');
+        }
     }
 
     public function course_as_box($c) {
@@ -132,7 +142,9 @@ class local_my_renderer extends plugin_renderer_base {
         $css = $c->visible ? '' : 'dimmed';
 
         $str .= '<div class="course-box '.$css.' pull-left">';
-        $str .= '<div class="title"><a href="'.$courseurl.'" title="'.$c->fullname.'">'.$c->shortname.'</a></div>';
+        $str .= '<div class="title"><a href="'.$courseurl.'" title="'.$c->fullname.'">'.$c->shortname.'</a>';
+        $str .= $this->editing_icon($course);
+        $str .= '</div>';
 
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
@@ -170,7 +182,7 @@ class local_my_renderer extends plugin_renderer_base {
     /**
      * Prints tabs if separated role screens
      */
-    public function tabs(&$view) {
+    public function tabs(&$view, $isteacher) {
         global $SESSION;
 
         $config = get_config('local_my');
@@ -182,12 +194,13 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($view)) {
             $view = @$SESSION->localmyview;
 
-            if (local_my_has_capability_somewhere('moodle/course:manageactivities')) {
+            if ($isteacher) {
                 if (empty($view)) {
                     $view = 'asteacher';
                 }
             } else {
                 // Force anyway the student view only, including forcing session.
+                // Do NOT print any tabs.
                 $view = 'asstudent';
                 return;
             }
@@ -231,8 +244,8 @@ class local_my_renderer extends plugin_renderer_base {
                 $course = get_course($courseid);
 
                 $summary = local_my_strip_html_tags($course->summary);
-                $summary = local_my_course_trim_char($summary, 20);
-                $trimtitle = local_my_course_trim_char($course->fullname, 25);
+                $summary = local_my_course_trim_char($summary, 250);
+                $trimtitle = local_my_course_trim_char($course->fullname, 40);
 
                 $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
 
@@ -259,9 +272,11 @@ class local_my_renderer extends plugin_renderer_base {
                 $rowcontent .= '<div class="local-my-promowrap">';
                 $rowcontent .= '<div class="local-my-fp-coursebox">';
                 $rowcontent .= '<div class="local-my-fp-coursethumb">';
+                $rowcontent .= '<div class="local-my-fp-coursename">';
                 $rowcontent .= '<a href="'.$courseurl.'">';
                 $rowcontent .= '<img src="'.$imgurl.'" width="100%" height="125" title="'.$course->fullname.'">';
                 $rowcontent .= '</a>';
+                $rowcontent .= '</div>';
                 $rowcontent .= '<div class="local-my-fp-courseinfo">';
                 $rowcontent .= '<h5><a href="'.$courseurl.'" id="button" data-toggle="tooltip" data-placement="bottom" title="'.$course->fullname.'" >'.$trimtitle.'</a></h5>';
                 $rowcontent .= '</div>';
@@ -322,5 +337,64 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         return $imgurl;
+    }
+
+    /**
+     *
+     *
+     *
+     */
+    public function course_creator_buttons($mycatlist) {
+        global $CFG, $OUTPUT, $USER, $DB;
+
+        $str = '';
+
+        if (!empty($mycatlist)) {
+
+            $levels = CONTEXT_COURSECAT;
+            $cancreate = local_my_has_capability_somewhere('moodle/course:create', false, false, true, $levels);
+
+            $catids = array_keys($mycatlist);
+            $firstcatid = array_shift($catids);
+            $button0 = '';
+            $button1 = '';
+            $button2 = '';
+            $button3 = '';
+
+            if ($cancreate) {
+                $params = array('view' => 'courses', 'categoryid' => $firstcatid);
+                $label = get_string('managemycourses', 'local_my');
+                $button0 = $OUTPUT->single_button(new moodle_url('/course/management.php', $params), $label);
+
+                $label = get_string('newcourse', 'local_my');
+                $button1 = $OUTPUT->single_button(new moodle_url('/local/my/create_course.php'), $label);
+
+                if (is_dir($CFG->dirroot.'/local/coursetemplates')) {
+                    $config = get_config('local_coursetemplates');
+                    if ($config->enabled && $config->templatecategory) {
+                        $params = array('category' => $config->templatecategory, 'visible' => 1);
+                        if ($DB->count_records('course', $params)) {
+                            $buttonurl = new moodle_url('/local/coursetemplates/index.php');
+                            $button2 = $OUTPUT->single_button($buttonurl, get_string('newcoursefromtemplate', 'local_my'));
+                        }
+                    }
+                }
+
+                // Need fetch a context where user has effective capability.
+
+                $powercontext = local_get_one_of_my_power_contexts();
+                if ($powercontext) {
+                    $params = array('contextid' => $powercontext->id);
+                    $buttonurl = new moodle_url('/backup/restorefile.php', $params);
+                    $button3 = $OUTPUT->single_button($buttonurl, get_string('restorecourse', 'local_my'));
+                }
+            }
+
+            $str .= $OUTPUT->box_start('right-button course-creation-buttons');
+            $str .= $button0.' '.$button1.' '.$button2.' '.$button3;
+            $str .= $OUTPUT->box_end();
+        }
+
+        return $str;
     }
 }

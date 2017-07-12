@@ -171,35 +171,60 @@ if ($currentpage->userid == 0) {
     $CFG->blockmanagerclass = 'my_syspage_block_manager';
 }
 
+// Get exclusions startup from config.
+$excludedcourses = explode(',', @$config->excludedcourses);
+
+// Get user status.
+// TODO : change dynamically wether using teacher_courses or authored_courses in settings.
+$teachercap = 'moodle/course:viewparticipants';
+$isteacher = local_my_has_capability_somewhere($teachercap);
+
 // Get and clean modules names.
 
 echo $OUTPUT->header();
 
 $view = optional_param('view', '', PARAM_TEXT);
-echo $renderer->tabs($view);
+if (empty($view) && $isteacher) {
+    // Defaults for teachers.
+    $view = 'asteacher';
+}
+
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
-echo '<div id="my-content">';
-
-if (in_array('my_caption', $mymodules)) {
+if (in_array('my_caption', $mymodules) && $view != 'asteacher') {
     local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
 }
 
+echo $renderer->tabs($view, $isteacher);
+
+echo $OUTPUT->box_start('', 'my-content');
+
 $fooarray = null;
-$courseareacourses = $excludedcourses = array();
+$courseareacourses = array();
+
+// Calculate course areas content for exclusions.
 if ((in_array('course_areas', $modules) ||
         in_array('course_areas_and_availables', $modules)) &&
-                $config->courseareas > 0) {
-    $excludedcourses = $courseareacourses = local_prefetch_course_areas($fooarray);
+                @$config->courseareas > 0) {
+    $courseareacourses = local_prefetch_course_areas($fooarray);
+    $excludedcourses = array_merge($excludedcourses, array_keys($courseareacourses));
 }
 
-echo '<div id="mydashboard container-fluid">'; // Table.
-echo '<div id="mydashboard-row row-fluid">'; // Row.
+if ($view == 'asstudent' && $isteacher) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
+    $excludedcourses = array_merge($excludedcourses, array_keys($prefetchcourses));
+}
+
+// Render dahsboard.
+
+echo $OUTPUT->box_start('container-fluid', 'mydashboard>'); // Table.
+echo $OUTPUT->box_start('row-fluid', 'mydashboard-row'); // Row.
 
 if (in_array('left_edition_column', $mymodules)) {
     $spanclass = 'span6 md-col-6 xs-col-12';
+    echo $OUTPUT->box_start('span6 md-col-6 xs-col12', 'my-dashboard-left');
 
-    echo '<div id="my-dashboard-left" class="span6 md-col-6 xs-col12">';
     if (function_exists('local_print_static_text')) {
         // In case the local_staticguitexts is coming with.
         local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
@@ -211,23 +236,22 @@ if (in_array('left_edition_column', $mymodules)) {
         }
     }
 
-    echo '</div>';
+    echo $OUTPUT->box_end();
 } else {
     $spanclass = 'span12';
 }
 
-
-echo '<div id="my-dashboard-right" class="'.$spanclass.'">';
-
 // The main overview in the middle of the page.
 
+echo $OUTPUT->box_start($spanclass, 'my-dashboard-right');
 foreach ($mymodules as $m) {
     local_my_render_module($m, $excludedcourses, $courseareacourses);
 }
+echo $OUTPUT->box_end();
 
-echo '</div>'; // Area
-echo '</div>'; // Row.
-echo '</div>'; // Table.
+echo $OUTPUT->box_end();
+echo $OUTPUT->box_end();
+echo $OUTPUT->box_end();
 
 echo $OUTPUT->footer();
 die;

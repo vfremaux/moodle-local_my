@@ -224,7 +224,9 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
  * Print a simple list of coures with first level category caption
  */
 function local_print_courses_by_cats($courselist, $options = array()) {
-    global $CFG, $DB;
+    global $CFG, $DB, $USER, $OUTPUT, $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_my');
 
     $str = '';
 
@@ -241,7 +243,9 @@ function local_print_courses_by_cats($courselist, $options = array()) {
         if ($catid) {
             $catcontext = context_coursecat::instance($catid);
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
+
                 $catstyle = ($cat->category->visible) ? '' : 'shadow';
+
                 if ($options['withcats'] == 1) {
                     $str .= '<tr valign="top">';
                     $str .= '<td class="'.$catstyle.'"><b>'.format_string($cat->category->name).'</b></td>';
@@ -259,6 +263,7 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                     $cats = array_reverse($cats);
                     $str .= '<tr valign="top"><td class="'.$catstyle.'"><b>'.implode(' / ', $cats).'</b></td></tr>';
                 }
+
                 foreach ($cat->courses as $c) {
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
@@ -267,6 +272,7 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                         $str .= '<tr valign="top">';
                         $str .= '<td class="course">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
+                        $str .= $renderer->editing_icon($c);
                         $str .= '</td>';
                         $str .= '</tr>';
                     }
@@ -278,15 +284,15 @@ function local_print_courses_by_cats($courselist, $options = array()) {
 }
 
 /**
- * get courses i am authoring in.
+ * get courses i am authoring in (or by capability).
  *
  */
-function local_get_my_authoring_courses() {
+function local_get_my_authoring_courses($fields = '*', $capability = 'moodle/course:viewhiddenactivities') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id));
+            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
         return $authoredcourses;
     }
@@ -323,9 +329,9 @@ function local_get_enrollable_courses($withanonymous = true) {
     global $DB, $USER;
 
     if ($withanonymous) {
-        $enroltypeclause = " (enrol = 'self' OR enrol = 'guest' OR enrol = 'profilefield') AND ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'guest' OR enrol = 'profilefield' OR enrol = 'paypal') AND ";
     } else {
-        $enroltypeclause = " (enrol = 'self' OR enrol = 'profilefield') AND ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'profilefield' OR enrol = 'paypal') AND ";
     }
 
     // Select all active enrols self or guest where i'm not enrolled in.
@@ -511,22 +517,23 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
 
     if (empty($courses)) {
         if (!empty($options['printifempty']) && empty($options['noheading'])) {
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
+            $str .= $OUTPUT->box_start('header');
+            $str .= $OUTPUT->box_start('title');
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
         }
     } else {
         if (empty($options['noheading'])) {
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
+            $str .= $OUTPUT->box_start('header');
+            $str .= $OUTPUT->box_start('title');
             $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_end();
+            $str .= $OUTPUT->box_start('content');
         }
+
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
             $str .= local_print_course_overview($courses, $options);
@@ -540,8 +547,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         $str .= '</table>';
 
         if (empty($options['noheading'])) {
-            $str .= '</div>';
-            $str .= '</div>';
+            $str .= $OUTPUT->box_end();
         }
     }
 

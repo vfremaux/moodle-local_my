@@ -14,6 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * My Moodle -- a user's personal dashboard
+ *
+ * - each user can currently have their own page (cloned from system and then customised)
+ * - only the user can see their own dashboard
+ * - users can add any blocks they want
+ * - the administrators can define a default site dashboard for users who have
+ *   not created their own dashboard
+ *
+ * This script implements the user's view of the dashboard, and allows editing
+ * of the dashboard.
+ *
+ * @package    moodlecore
+ * @subpackage my
+ * @copyright  2010 Remote-Learner.net
+ * @author     Hubert Chathi <hubert@remote-learner.net>
+ * @author     Olav Jordan <olav.jordan@remote-learner.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die;
 
+// CHANGE+.
 require($CFG->dirroot.'/local/my/index.php');
+die;
+// CHANGE-.
+
