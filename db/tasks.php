@@ -15,21 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * Definition of local_my scheduled tasks.
  *
- * @package     local_my
- * @category    local
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright   2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_my
+ * @category  task
+ * @copyright 2014 Dan Poltawski <dan@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2017072100;   // The (date) version of this plugin.
-$plugin->requires = 2016120500;   // Requires this Moodle version.
-$plugin->component = 'local_my';
-$plugin->release = '3.2.0 (Build 2016010801)';
-$plugin->maturity = MATURITY_STABLE;
-
-// Non moodle attributes.
-$plugin->codeincrement = '3.2.0003';
+$tasks = array(
+    array(
+        'classname' => 'local_my\task\compile_stats_task',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '5',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
+);

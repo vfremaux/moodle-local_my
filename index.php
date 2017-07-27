@@ -99,6 +99,7 @@ $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 $PAGE->requires->jquery_plugin('slick', 'local_my');
+$PAGE->requires->js_call_amd('local_my/collapse_control', 'init');
 $PAGE->requires->js('/local/my/js/slick/slickinit.js', true);
 $PAGE->requires->css('/local/my/css/slick.css');
 
@@ -175,21 +176,33 @@ if ($currentpage->userid == 0) {
 // Get exclusions startup from config.
 $excludedcourses = explode(',', @$config->excludedcourses);
 
+// Get user status.
+// TODO : change dynamically wether using teacher_courses or authored_courses in settings.
+$teachercap = 'local/my:isteacher';
+$isteacher = local_my_has_capability_somewhere($teachercap);
+
 // Get and clean modules names.
 
 echo $OUTPUT->header();
 
 $view = optional_param('view', '', PARAM_TEXT);
+if (empty($view) && $isteacher) {
+    // Defaults for teachers.
+    $view = 'asteacher';
+}
 
-echo $renderer->tabs($view);
+// We need prefetch tabs as it may resolve view.
+$tabs = $renderer->tabs($view, $isteacher);
 
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
-
-echo $OUTPUT->box_start('', 'my-content');
 
 if (in_array('my_caption', $mymodules)) {
     local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
 }
+
+echo $tabs;
+
+echo $OUTPUT->box_start('', 'my-content');
 
 $fooarray = null;
 $courseareacourses = array();
@@ -199,18 +212,18 @@ if ((in_array('course_areas', $modules) ||
         in_array('course_areas_and_availables', $modules)) &&
                 @$config->courseareas > 0) {
     $courseareacourses = local_prefetch_course_areas($fooarray);
-    $excludedcourses = $excludedcourses + $courseareacourses;
+    $excludedcourses = array_merge($excludedcourses, array_keys($courseareacourses));
 }
 
-if ($view == 'student' && local_my_has_capability_somewhere('moodle/course:viewhiddenactivities')) {
+if ($view == 'asstudent' && $isteacher) {
     // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
-    $prefetchcourses = local_get_my_authoring_courses('id');
-    $excludedcourses = $excludedcourses + array_keys($prefetchcourses);
+    $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
+    $excludedcourses = array_merge($excludedcourses, array_keys($prefetchcourses));
 }
 
 // Render dahsboard.
 
-echo $OUTPUT->box_start('container-fluid', 'mydashboard>'); // Table.
+echo $OUTPUT->box_start('container-fluid', 'mydashboard'); // Table.
 echo $OUTPUT->box_start('row-fluid', 'mydashboard-row'); // Row.
 
 if (in_array('left_edition_column', $mymodules)) {

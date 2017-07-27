@@ -15,7 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * My Moodle -- a user's personal dashboard
+ * My Moodle
+ * Hook for forced mode in main index.php
  *
  * @package    local_my
  * @category   local
