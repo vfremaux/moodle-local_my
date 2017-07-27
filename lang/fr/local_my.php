@@ -15,8 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['my:overridemy'] = 'Peut surpasser la page My';
+$string['my:ismanager'] = 'A une activité de gestionnaire dans le site';
+$string['my:isteacher'] = 'A une activité d\'enseignement dans un cours';
+$string['my:isauthor'] = 'A une activité d\'auteur dans un cours';
 
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
+$string['enabledusers'] = 'Comptes actifs';
+$string['suspendedusers'] = 'Comptes suspendus';
+$string['connectedusers'] = 'Comptes activés';
+$string['onlineusers'] = 'Utilisateurs en ligne (5 min.)';
+$string['filestorage'] = 'Occupation fichiers';
+$string['numberoffiles'] = 'Nombre de fichiers';
+$string['notcompiledyet'] = 'Les statistiques n\'ont pas encore été calculées. Vous pouvea attendre le passage de la tâche de calcul ou <a href="{$a}">forcer immédiatement le calcul (cela peut prendre du temps).</a>';
+$string['task_compile_stats'] = 'Statistiques de site';
+$string['opencourses'] = 'Cours ouverts';
+$string['futurecourses'] = 'Cours futurs';
+$string['asadmin'] = 'Administrateur';
 $string['asstudent'] = 'Etudiant';
 $string['asteacher'] = 'Enseignant';
 $string['available'] = 'Disponibles';
@@ -32,6 +46,7 @@ $string['courseareasettings'] = 'Réglages des zones de cours';
 $string['coursecreation'] = 'Création de cours';
 $string['coursesearch'] = 'Rechercher des cours';
 $string['enrollablecourses'] = 'Cours en inscription libre';
+$string['editing'] = 'Vous avez les droits d\'édition sur ce cours';
 $string['errorbadblock'] = 'Instance de bloc non existante dans ce contexte';
 $string['fieldnotfound'] = 'Le champ {$a} n\'a pas été trouvé';
 $string['frequentationitem'] = 'action';
@@ -56,7 +71,9 @@ $string['myauthoringcourses'] = 'Mes éditions';
 $string['mycalendar'] = 'Mon calendrier';
 $string['mycategories'] = 'Mes catégories';
 $string['mycourses'] = 'Mes cours';
+$string['myteachings'] = 'Mes enseignements';
 $string['mynetwork'] = 'Mon réseau';
+$string['myteachercourses'] = 'Mes enseignements';
 $string['mytemplates'] = 'Mes modèles';
 $string['newcourse'] = 'Créer un nouveau cours';
 $string['newcoursefromtemplate'] = 'Créer à partir d\'un modèle';
@@ -69,6 +86,8 @@ $string['recentcourses'] = 'Cours récents ';
 $string['restorecourse'] = 'Restaurer un cours';
 $string['rendererimages'] = 'Images du renderer';
 $string['seealllist'] = '... plus de cours';
+$string['seeallnews'] = 'Voir toutes les brèves...';
+$string['sitestats'] = 'Statistiques de site';
 $string['standardcreation'] = 'Créer un nouveau cours';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';

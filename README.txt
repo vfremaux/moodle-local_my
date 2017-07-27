@@ -8,34 +8,39 @@ more moodle compliant way.
 
 It will need several patchs into main index.php and bloc navigation to work.
 
-Recommended patchs : 
+Recommended patchs :
 #######################
 
 Patch in index.php are usefull to allow some people overriding the My Page redirect.
 
 
 
-Possible patchs : 
+Possible patchs :
 #######################
 
-In block/navigation/block_navigation.php, in get content : 
+In block/navigation/block_navigation.php, in get content :
 
         // Get the navigation object or don't display the block if none provided.
         if (!$navigation = $this->get_navigation()) {
             return null;
         }
 
-		// PATCH : Removes link to home when forced my page
-		// removes access to home for forced users
-		$myoverride = false;
+        // PATCH : Removes link to home when forced my page
+        // removes access to home for forced users
+        $myoverride = false;
 
-		if (has_capability('local/my:overridemy', context_system::instance()) && local_has_myoverride_somewhere()){
-	    	$myoverride = true;
-	    }
+        if (has_capability('local/my:overridemy', context_system::instance()) && local_has_myoverride_somewhere()){
+            $myoverride = true;
+        }
 
-	    if ($CFG->localmyforce && !$myoverride) {
-	    	$navigation->children->remove('home', 70);
-	    }
-		// /PATCH
+        if ($CFG->localmyforce && !$myoverride) {
+            $navigation->children->remove('home', 70);
+        }
+        // /PATCH
 
 this requires local/my/lib.php being loaded earlier (f.e. in config.php)
+
+2017072100
+=========================================
+
+Add capability local/my:ismanager to allow non siteadmins to have admin tab.

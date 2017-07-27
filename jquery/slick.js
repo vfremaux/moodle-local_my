@@ -2095,7 +2095,9 @@
 
         var _ = this;
 
-        _.setDimensions();
+        if (_.listWidth == null) {
+            _.setDimensions();
+        }
 
         _.setHeight();
 

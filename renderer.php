@@ -105,6 +105,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $str .= '<tr valign="top">';
         $str .= '<td class="courserow">';
+        $str .= $this->editing_icon($course);
         $str .= '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
         if (!empty($options['withdescription'])) {
             $str .= '<p class="coursedescription">'.format_text($course->summary, $course->summaryformat).'</p>';
@@ -112,7 +113,8 @@ class local_my_renderer extends plugin_renderer_base {
         $str .= '</td>';
 
         if (empty($options['nocompletion'])) {
-            if (!has_capability('moodle/grade:viewall', context_course::instance($course->id), $USER->id, false)) {
+            if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
+                // Only non teachers can see progression.
                 $str .= $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight']);
             }
         }
@@ -120,6 +122,14 @@ class local_my_renderer extends plugin_renderer_base {
         $str .= '</tr>';
 
         return $str;
+    }
+
+    public function editing_icon(&$course) {
+        $context = context_course::instance($course->id);
+        if (has_capability('moodle/course:manageactivities', $context)) {
+            $pixurl = $this->output->pix_url('editing', 'local_my');
+            return $this->output->box('<img src="'.$pixurl.'" title="'.get_string('editing', 'local_my').'">', 'editing-icon pull-right');
+        }
     }
 
     public function course_as_box($c) {
@@ -132,7 +142,9 @@ class local_my_renderer extends plugin_renderer_base {
         $css = $c->visible ? '' : 'dimmed';
 
         $str .= '<div class="course-box '.$css.' pull-left">';
-        $str .= '<div class="title"><a href="'.$courseurl.'" title="'.$c->fullname.'">'.$c->shortname.'</a></div>';
+        $str .= '<div class="title"><a href="'.$courseurl.'" title="'.$c->fullname.'">'.$c->shortname.'</a>';
+        $str .= $this->editing_icon($course);
+        $str .= '</div>';
 
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
@@ -161,19 +173,30 @@ class local_my_renderer extends plugin_renderer_base {
         $str = '';
 
         $forumname = format_string($forum->name, true, array('context' => $newsforumcontext));
-        $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        $str .= html_writer::tag('a', get_string('skipa', 'access', core_text::strtolower(strip_tags($forumname))), $attrs);
-
+        $params = array('f' => $forum->id);
+        $forumurl = new moodle_url('/mod/forum/view.php', $params);
+        $attrs = array('href' => $forumurl);
+        $str .= html_writer::tag('a', get_string('seeallnews', 'local_my'), $attrs);
         return $str;
     }
 
     /**
      * Prints tabs if separated role screens
      */
-    public function tabs(&$view) {
+    public function tabs(&$view, $isteacher) {
         global $SESSION;
 
         $config = get_config('local_my');
+
+        $systemcontext = context_system::instance();
+        $isadmin = has_capability("moodle/site:config", $systemcontext) || has_capability("local/my:ismanager", $systemcontext);
+
+        if (!empty($config->adminmodules) && $isadmin) {
+            $tabname = get_string('asadmin', 'local_my');
+            $params = array('view' => 'asadmin');
+            $taburl = new moodle_url('/my', $params);
+            $rows[0][] = new tabobject('asadmin', $taburl, $tabname);
+        }
 
         if (empty($config->teachermodules)) {
             return;
@@ -182,7 +205,11 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($view)) {
             $view = @$SESSION->localmyview;
 
-            if (local_my_has_capability_somewhere('moodle/course:viewhiddenactivities')) {
+            if ($isadmin) {
+                if (empty($view)) {
+                    $view = 'asadmin';
+                }
+            } else if ($isteacher) {
                 if (empty($view)) {
                     $view = 'asteacher';
                 }
@@ -325,5 +352,150 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         return $imgurl;
+    }
+
+    /**
+     *
+     *
+     *
+     */
+    public function course_creator_buttons($mycatlist) {
+        global $CFG, $OUTPUT, $USER, $DB;
+
+        $str = '';
+
+        if (!empty($mycatlist)) {
+
+            $levels = CONTEXT_COURSECAT;
+            $cancreate = local_my_has_capability_somewhere('moodle/course:create', false, false, true, $levels);
+
+            $catids = array_keys($mycatlist);
+            $firstcatid = array_shift($catids);
+            $button0 = '';
+            $button1 = '';
+            $button2 = '';
+            $button3 = '';
+
+            if ($cancreate) {
+                $params = array('view' => 'courses', 'categoryid' => $firstcatid);
+                $label = get_string('managemycourses', 'local_my');
+                $button0 = $OUTPUT->single_button(new moodle_url('/course/management.php', $params), $label);
+
+                $label = get_string('newcourse', 'local_my');
+                $button1 = $OUTPUT->single_button(new moodle_url('/local/my/create_course.php'), $label);
+
+                if (is_dir($CFG->dirroot.'/local/coursetemplates')) {
+                    $config = get_config('local_coursetemplates');
+                    if ($config->enabled && $config->templatecategory) {
+                        $params = array('category' => $config->templatecategory, 'visible' => 1);
+                        if ($DB->count_records('course', $params)) {
+                            $buttonurl = new moodle_url('/local/coursetemplates/index.php');
+                            $button2 = $OUTPUT->single_button($buttonurl, get_string('newcoursefromtemplate', 'local_my'));
+                        }
+                    }
+                }
+
+                // Need fetch a context where user has effective capability.
+
+                $powercontext = local_get_one_of_my_power_contexts();
+                if ($powercontext) {
+                    $params = array('contextid' => $powercontext->id);
+                    $buttonurl = new moodle_url('/backup/restorefile.php', $params);
+                    $button3 = $OUTPUT->single_button($buttonurl, get_string('restorecourse', 'local_my'));
+                }
+            }
+
+            $str .= $OUTPUT->box_start('right-button course-creation-buttons');
+            $str .= $button0.' '.$button1.' '.$button2.' '.$button3;
+            $str .= $OUTPUT->box_end();
+        }
+
+        return $str;
+    }
+
+    public function site_stats() {
+        global $CFG, $DB, $OUTPUT;
+
+        $statsraw = get_config('local_my', 'sitestats');
+        if (empty($statsraw)) {
+            $compile = optional_param('compile', false, PARAM_BOOL);
+            if ($compile) {
+                // Avoid DoD attack by compiling continuously.
+                require_sesskey();
+                $task = new \local_my\task\compile_stats_task();
+                $task->execute();
+                $statsraw = get_config('local_my', 'sitestats');
+            } else {
+                $params = array('view' =>'asadmin', 'compile' => 1, 'sesskey' => sesskey());
+                $forceurl = new moodle_url('/my/index.php', $params);
+                return $OUTPUT->notification(get_string('notcompiledyet', 'local_my', ''.$forceurl));
+            }
+        }
+        $stats = unserialize($statsraw);
+
+        $str = '';
+
+        $template = new StdClass;
+        $template->label = get_string('filestorage', 'local_my');
+        $template->value = sprintf('%0.2f', $stats->filesize / 1024 / 1024).' MB';
+        $template->faicon = 'fa-pie-chart';
+        $template->facolor = 'text-red';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $template = new StdClass;
+        $template->label = get_string('numberoffiles', 'local_my');
+        $template->value = $stats->numfiles;
+        $template->faicon = 'fa-pie-chart';
+        $template->facolor = 'text-orange';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $template = new StdClass;
+        $template->label = get_string('enabledusers', 'local_my');
+        $template->value =  0 + $stats->usercounters->active;
+        $template->faicon = 'fa-users';
+        $template->facolor = 'text-blue';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $template = new StdClass;
+        $template->label = get_string('suspendedusers', 'local_my');
+        $template->value = 0 + $stats->usercounters->suspended;
+        $template->faicon = 'fa-users';
+        $template->facolor = 'text-red';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $conratio = $stats->usercounters->connected / $stats->usercounters->active * 100;
+
+        $template = new StdClass;
+        $template->label = get_string('connectedusers', 'local_my');
+        $template->value = 0 + $stats->usercounters->connected.' ('.sprintf('%.2f', $conratio).' %)';
+        $template->faicon = 'fa-users';
+        $template->facolor = 'text-green';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $select = " suspended = 0 AND deleted = 0 AND lastaccess > ? ";
+        $onlineusers = $DB->count_records_select('user', $select, array(time() - 5 * MINSECS));
+
+        $template = new StdClass;
+        $template->label = get_string('onlineusers', 'local_my');
+        $template->value = 0 + $onlineusers;
+        $template->faicon = 'fa-users';
+        $template->facolor = 'text-yellow';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $template = new StdClass;
+        $template->label = get_string('opencourses', 'local_my');
+        $template->value = 0 + $stats->coursecounters->visible;
+        $template->faicon = 'fa-folder-open';
+        $template->facolor = 'text-green';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        $template = new StdClass;
+        $template->label = get_string('futurecourses', 'local_my');
+        $template->value = 0 + $stats->coursecounters->future;
+        $template->faicon = 'fa-folder-open';
+        $template->facolor = 'text-red';
+        $str .= $this->render_from_template('local_my/admin_overview_element', $template);
+
+        return $str;
     }
 }
