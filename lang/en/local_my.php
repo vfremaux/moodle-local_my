@@ -15,8 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['my:overridemy'] = 'Can override My routing';
+$string['my:ismanager'] = 'Has manager activity in site';
+$string['my:isteacher'] = 'Has teacher activity in some courses';
+$string['my:isauthor'] = 'Has editing teacher activity in some courses';
 
 $string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
+$string['enabledusers'] = 'Active accounts';
+$string['suspendedusers'] = 'Suspended accounts';
+$string['connectedusers'] = 'Connected (once) accounts';
+$string['onlineusers'] = 'Online users (5 min.)';
+$string['opencourses'] = 'Oen courses';
+$string['futurecourses'] = 'Future courses';
+$string['filestorage'] = 'File storage size';
+$string['numberoffiles'] = 'Number of files';
+$string['notcompiledyet'] = 'Stats were never compiled yet. you can wait the next stats task run, or <a href="{$a}">force compile now (it may take some time)</a>';
+$string['task_compile_stats'] = 'Site wide stats';
+$string['asadmin'] = 'Administrator';
 $string['asstudent'] = 'Student';
 $string['asteacher'] = 'Teacher';
 $string['available'] = 'Available';
@@ -33,6 +47,7 @@ $string['coursecreation'] = 'Course creation';
 $string['coursesearch'] = 'Search courses';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
 $string['errorbadblock'] = 'Bad block instance (maybe not in context)';
+$string['editing'] = 'You can edit this course';
 $string['fieldnotfound'] = 'The field {$a} was not found';
 $string['frequentationitem'] = "page";
 $string['frequentationitemplural'] = "pages";
@@ -46,8 +61,9 @@ $string['localmyheatmaprange'] = 'HeatMap Range';
 $string['localmymaxavailablelistsize'] = 'Max size of available courses';
 $string['localmymaxoverviewedlistsize'] = 'Max size of course list with full overviewes';
 $string['localmymaxuncategorizedlistsize'] = 'Max size of course list with mention of category';
-$string['localmymodules'] = 'Area modules ';
-$string['localmyteachermodules'] = 'Teacher area modules ';
+$string['localmymodules'] = 'Student panel modules ';
+$string['localmyteachermodules'] = 'Teacher panel modules ';
+$string['localmyadminmodules'] = 'Admin panel modules ';
 $string['localmyprintcategories'] = 'Print with categories (1 level)';
 $string['localmyuselefteditioncolumn'] = 'Use left editorial column';
 $string['localskipmymetas'] = 'Skip my metacourses';
@@ -57,8 +73,10 @@ $string['myauthoringcourses'] = 'My authoring courses';
 $string['mycalendar'] = 'My calendar';
 $string['mycategories'] = 'My authoring categories';
 $string['mycourses'] = 'My courses';
+$string['myteachings'] = 'My teaching';
 $string['mynetwork'] = 'My network';
 $string['mytemplates'] = 'My templates';
+$string['myteachercourses'] = 'My courses as a teacher';
 $string['newcourse'] = 'Create new course';
 $string['newcoursefromtemplate'] = 'Create course from template';
 $string['newtemplate'] = 'New template';
@@ -70,6 +88,8 @@ $string['recentcourses'] = 'Most Recent Courses ';
 $string['restorecourse'] = 'Restore a course';
 $string['rendererimages'] = 'Renderer images';
 $string['seealllist'] = '... see more courses.';
+$string['seeallnews'] = 'See all news...';
+$string['sitestats'] = 'Site stats';
 $string['standardcreation'] = 'Create a new empty course';
 $string['templateinitialisationadvice'] = 'No templates. Administrator should create first template before all other users can create their own.';
 $string['unknownmodule'] = 'Unknown output module {$a}';
@@ -115,7 +135,11 @@ if dual stack is enabled by adding the "left_edition_column" module in the list.
 ';
 
 $string['localmyteachermodules_desc'] = '
-An optional module set that splits the my view in two separated screens if used.
+An optional module set that adds separate panel for teachers.
+';
+
+$string['localmyadminmodules_desc'] = '
+An optional module set that adds separate panel for admins.
 ';
 
 $string['rendererimages_desc'] = 'All images for renderer. We expect a "coursedefaultimage" image';

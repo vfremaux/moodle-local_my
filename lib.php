@@ -129,7 +129,18 @@ function local_my_fetch_modules($view) {
     $mymodules = array();
     $myleftmodules = array();
 
-    $modgroup = ($view == 'asteacher') ? 'teachermodules' : 'modules';
+    switch ($view) {
+        case 'asteacher';
+            $modgroup = 'teachermodules';
+            break;
+
+        case 'asadmin':
+            $modgroup = 'adminmodules';
+            break;
+
+        default:
+            $modgroup = 'modules';
+    }
 
     if ($config->$modgroup) {
 
@@ -224,9 +235,16 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
  * Print a simple list of coures with first level category caption
  */
 function local_print_courses_by_cats($courselist, $options = array()) {
-    global $CFG, $DB;
+    global $CFG, $DB, $USER, $OUTPUT, $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_my');
 
     $str = '';
+
+    // Get user preferences for collapser.
+    $select = " userid = ? and name LIKE 'local-my%' ";
+    $params = array('userid' => $USER->id);
+    $collapses = $DB->get_records_select_menu('user_preferences', $select, $params, 'name,value');
 
     // Reorganise by cat.
     foreach ($courselist as $c) {
@@ -239,12 +257,28 @@ function local_print_courses_by_cats($courselist, $options = array()) {
 
     foreach ($catcourses as $catid => $cat) {
         if ($catid) {
+
             $catcontext = context_coursecat::instance($catid);
+            if (array_key_exists('local_my_authoredcat_'.$catid.'_hidden', $collapses)) {
+                $collapseclass = 'collapsed';
+            } else {
+                $collapseclass = '';
+            }
+
+            if (!empty($collapseclass)) {
+                $collapseiconurl = $OUTPUT->pix_url('collapsed', 'local_my');
+            } else {
+                $collapseiconurl = $OUTPUT->pix_url('expanded', 'local_my');
+            }
+            $collapseicon = '<img src="'.$collapseiconurl.'" id="local-my-cathandle-'.$cat->category->id.'" class="local-my-cat-collapse">';
+
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
+
                 $catstyle = ($cat->category->visible) ? '' : 'shadow';
+
                 if ($options['withcats'] == 1) {
                     $str .= '<tr valign="top">';
-                    $str .= '<td class="'.$catstyle.'"><b>'.format_string($cat->category->name).'</b></td>';
+                    $str .= '<td class="course-category '.$catstyle.'">'.$collapseicon.' <b>'.format_string($cat->category->name).'</b></td>';
                     $str .= '</tr>';
                 } else if ($options['withcats'] > 1) {
                     $cats = array();
@@ -257,16 +291,18 @@ function local_print_courses_by_cats($courselist, $options = array()) {
                         }
                     }
                     $cats = array_reverse($cats);
-                    $str .= '<tr valign="top"><td class="'.$catstyle.'"><b>'.implode(' / ', $cats).'</b></td></tr>';
+                    $str .= '<tr valign="top"><td class="'.$catstyle.'">'.$collapseicon.' <b>'.implode(' / ', $cats).'</b></td></tr>';
                 }
+
                 foreach ($cat->courses as $c) {
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                         $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
                         $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
-                        $str .= '<tr valign="top">';
+                        $str .= '<tr valign="top" class="local-my-course local-my-course cat-'.$cat->category->id.' '.$collapseclass.'">';
                         $str .= '<td class="course">';
                         $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
+                        $str .= $renderer->editing_icon($c);
                         $str .= '</td>';
                         $str .= '</tr>';
                     }
@@ -278,13 +314,13 @@ function local_print_courses_by_cats($courselist, $options = array()) {
 }
 
 /**
- * get courses i am authoring in.
+ * get courses i am authoring in (or by capability).
  *
  */
-function local_get_my_authoring_courses($fields = '*') {
+function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course('moodle/course:viewhiddenactivities', $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'sortorder')) {
         foreach ($authored as $a) {
             $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
@@ -295,18 +331,22 @@ function local_get_my_authoring_courses($fields = '*') {
 
 /**
  * get courses i am authoring in.
- *
+ * @return an array of course records.
  */
 function local_get_my_templates() {
-    global $USER, $DB;
+    global $USER, $DB, $CFG;
+
+    require_once($CFG->dirroot.'/local/coursetemplates/xlib.php');
 
     $config = get_config('local_coursetemplates');
 
+    $templatecatids = local_coursetemplates_get_template_categories();
+
     $templatecourses = array();
-    if ($templates = local_get_user_capability_course('moodle/course:manageactivities', $USER->id, false, '', 'sortorder')) {
+    if ($templates = local_get_user_capability_course('local/my:isauthor', $USER->id, false, '', 'sortorder')) {
         foreach ($templates as $t) {
             $category = $DB->get_field('course', 'category', array('id' => $t->id));
-            if ($category == $config->templatecategory) {
+            if (in_array($category, $templatecatids)) {
                 $templatecourses[$t->id] = $DB->get_record('course', array('id' => $t->id));
             }
         }
@@ -323,9 +363,9 @@ function local_get_enrollable_courses($withanonymous = true) {
     global $DB, $USER;
 
     if ($withanonymous) {
-        $enroltypeclause = " (enrol = 'self' OR enrol = 'guest' OR enrol = 'profilefield') AND ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'guest' OR enrol = 'profilefield' OR enrol = 'paypal') AND ";
     } else {
-        $enroltypeclause = " (enrol = 'self' OR enrol = 'profilefield') AND ";
+        $enroltypeclause = " (enrol = 'self' OR enrol = 'profilefield' OR enrol = 'paypal') AND ";
     }
 
     // Select all active enrols self or guest where i'm not enrolled in.
@@ -748,7 +788,6 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
 
     // Check capability for each course in turn.
     foreach ($rs as $course) {
-        context_helper::preload_from_record($course);
         $context = context_course::instance($course->id);
         if (has_capability($capability, $context, $userid, $doanything)) {
             /*
@@ -811,7 +850,6 @@ function local_my_get_logstore_info() {
         $logstoreinfo->timeparam = 'timecreated';
     }
     return $logstoreinfo;
-
 }
 
 function local_my_strip_html_tags($text) {

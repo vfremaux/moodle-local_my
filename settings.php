@@ -65,9 +65,18 @@ if ($hassiteconfig) {
     $desc = get_string('localmyexcludedcourses_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
 
-    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nauthored_courses\n";
-    $defaultmodules .= "latestnews_simple";
-    if (!isset($config->modules)) {
+    $defaultmodules = "me\nadmin_stats\ncourse_search\nmy_network\nmy_heatmap";
+    if (!isset($config->adminmodules)) {
+        set_config('adminmodules', $defaultmodules, 'local_my');
+    }
+    $key = 'local_my/adminmodules';
+    $label = get_string('localmyadminmodules', 'local_my');
+    $desc = get_string('localmyadminmodules_desc', 'local_my');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+
+    $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
+    $defaultmodules .= "latestnews_simple\nmy_heatmap";
+    if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
     }
     $key = 'local_my/teachermodules';
@@ -75,8 +84,8 @@ if ($hassiteconfig) {
     $desc = get_string('localmyteachermodules_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
-    $defaultmodules = "me\nmy_heatmap-L\nleft_edition_column\nmy_courses\n";
-    $defaultmodules .= "course_areas\navailable_courses\nlatestnews_simple";
+    $defaultmodules = "my_caption\nme\nmy_courses\n";
+    $defaultmodules .= "course_areas\navailable_courses\nlatestnews_simple\nmy_heatmap";
     if (!isset($config->modules)) {
         set_config('modules', $defaultmodules, 'local_my');
     }
