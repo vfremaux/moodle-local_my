@@ -311,7 +311,7 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
     $myauthcourses = local_get_my_authoring_courses();
 
     if (!empty($excludedcourses)) {
-        foreach (array_keys($excludedcourses) as $cid) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
                 echo "rejected authored $cid as excluded</br/>";
             }
@@ -365,12 +365,16 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
         $str .= '</td></tr>';
         $str .= '</table>';
 
-        if ($debug) {
+        if (!empty($myauthcourses)) {
             foreach ($myauthcourses as $ac) {
-                echo "exclude authored $ac->id as authored <br/>";
+                if ($debug) {
+                    echo "exclude authored $ac->id as authored <br/>";
+                }
+                if (!in_array($ac->id, $excludedcourses)) {
+                    $excludedcourses[] = $ac->id;
+                }
             }
         }
-        $excludedcourses = array_merge($excludedcourses, array_keys($myauthcourses));
     }
 
     if ($hascontent) {
@@ -392,7 +396,7 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     $config = get_config('local_my');
 
     $coursefields = 'shortname, fullname, category, visible';
-    $teachercourses = get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields);
+    $teachercourses = get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields, 'sortorder ASC');
     $myteachercourses = array();
     if (!empty($teachercourses)) {
         // Key eahc course with id.
@@ -626,7 +630,12 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
     if (!empty($mytemplates)) {
         $str .= local_my_print_courses('mytemplates', $mytemplates, array('noheading' => 1, 'nocompletion' => 1));
 
-        $excludedcourses = array_merge($excludedcourses, array_keys($mytemplates));
+        // Add templates to exclusions.
+        foreach(array_keys($mytemplates) as $tplid) {
+            if (!in_array($tplid, $excludedcourses)) {
+                $excludedcourses[] = $tplid;
+            }
+        }
     }
 
     $str .= '</div>';
@@ -793,7 +802,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
 
     foreach ($mycourses as $cid => $c) {
         // TODO Add logger selection.
-        $mycourses[$cid]->lastaccess = $DB->get_field('logstore_standard_log', 'max(timemodified)', array('course' => $cid));
+        $mycourses[$cid]->lastaccess = $DB->get_field('logstore_standard_log', 'max(timecreated)', array('courseid' => $cid));
     }
 
     $str = '';
@@ -1646,6 +1655,7 @@ function local_my_print_course_search() {
     $str .= $OUTPUT->box_start('my-modules admin-stats');
 
     $str .= $OUTPUT->box_start('box block');
+
     $str .= $OUTPUT->box_start('header');
     $str .= $OUTPUT->box_start('title');
     $str .= '<h2 class="headingblock header">'.get_string('coursesearch', 'local_my').'</h2>';
@@ -1655,6 +1665,7 @@ function local_my_print_course_search() {
     $str .= $OUTPUT->box_start('content');
     $str .= $renderer->course_search_form($search, 'plain');
     $str .= $OUTPUT->box_end();
+
     $str .= $OUTPUT->box_end();
 
     $str .= $OUTPUT->box_end();
