@@ -44,3 +44,8 @@ this requires local/my/lib.php being loaded earlier (f.e. in config.php)
 =========================================
 
 Add capability local/my:ismanager to allow non siteadmins to have admin tab.
+
+2017082200
+=========================================
+
+Add manager as being an author when assigned in some context
