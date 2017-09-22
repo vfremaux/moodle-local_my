@@ -38,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
 $config = get_config('local_my');
 
 if (empty($config->enable)) {
-    return;
+    return -1;
 }
 
 require_once($CFG->dirroot.'/my/lib.php');
