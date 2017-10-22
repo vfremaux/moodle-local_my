@@ -438,6 +438,10 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     $str .= '</div>';
     $str .= '<div class="content">';
 
+    include_once($CFG->dirroot.'/lib/coursecatlib.php');
+    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $str .= $renderer->course_creator_buttons($mycatlist);
+
     if (empty($myteachercourses)) {
         $str .= '<table id="mycourselist" width="100%" class="courselist">';
         $str .= '<tr valign="top">';
