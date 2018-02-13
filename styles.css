@@ -132,6 +132,11 @@ div.course-box .courseimage img {
     max-height:110px;
 }
 
+.local-my-fp-coursename a img,
+.local-my-fp-coursethumb a img{
+    height: 250px !important;
+}
+
 div.course-box .title {
     padding:8px 5px 5px 8px;
 }

@@ -43,6 +43,10 @@ $capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
+<<<<<<< HEAD
+=======
+            'manager' => CAP_ALLOW,
+>>>>>>> MOODLE_34_STABLE
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW
         )
