@@ -196,8 +196,11 @@ $tabs = $renderer->tabs($view, $isteacher);
 
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
-if (in_array('my_caption', $mymodules)) {
-    local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+if (is_dir($CFG->dirroot.'/local/staticguitexts')) {
+    // Is local/staticguitexts installed ? 
+    if (in_array('my_caption', $mymodules)) {
+        local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+    }
 }
 
 echo $tabs;

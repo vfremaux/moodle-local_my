@@ -1618,6 +1618,11 @@ function local_my_print_my_heatmap($userid = 0) {
  * Prints a module that is the content of the user_mnet_hosts block.
  */
 function local_my_print_my_network() {
+    global $CFG;
+
+    if ($CFG->mnet_dispatcher_mode != 'strict') {
+        return '';
+    }
 
     $blockinstance = block_instance('user_mnet_hosts');
     $content = $blockinstance->get_content();

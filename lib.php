@@ -266,9 +266,9 @@ function local_print_courses_by_cats($courselist, $options = array()) {
             }
 
             if (!empty($collapseclass)) {
-                $collapseiconurl = $OUTPUT->pix_url('collapsed', 'local_my');
+                $collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
             } else {
-                $collapseiconurl = $OUTPUT->pix_url('expanded', 'local_my');
+                $collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
             }
             $collapseicon = '<img src="'.$collapseiconurl.'" id="local-my-cathandle-'.$cat->category->id.'" class="local-my-cat-collapse">';
 

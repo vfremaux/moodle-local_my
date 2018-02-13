@@ -127,8 +127,9 @@ class local_my_renderer extends plugin_renderer_base {
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
-            $pixurl = $this->output->pix_url('editing', 'local_my');
-            return $this->output->box('<img src="'.$pixurl.'" title="'.get_string('editing', 'local_my').'">', 'editing-icon pull-right');
+            $alt = get_string('editing', 'local_my');
+            $attrs = array('class' => 'editing-icon pull-right');
+            $pixurl = $this->output->pix_icon('editing', $alt, 'local_my', $attrs);
         }
     }
 
@@ -346,9 +347,9 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         if ($PAGE->theme->resolve_image_location($imgname, 'theme', true)) {
-            $imgurl = $this->output->pix_url($imgname, 'theme');
+            $imgurl = $this->output->image_url($imgname, 'theme');
         } else {
-            return $this->output->pix_url($imgname, 'local_my');
+            return $this->output->image_url($imgname, 'local_my');
         }
 
         return $imgurl;
