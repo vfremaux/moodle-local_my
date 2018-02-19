@@ -1,0 +1,41 @@
+
+
+
+<!-- my_teacher_courses_module -->
+{{^hideifempty}}
+<div class="block block_my_teacher_courses">
+
+    <div class="header">
+        <div class="title">
+            <h2>{{myteachercoursesstr}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+{{/hideifempty}}
+
+        {{{buttons}}}
+
+{{#hascourses}}
+        <table id="myteachercourselist" width="100%" class="generaltable courselist">
+            <tr valign="top">
+                <td>
+                    {{{overviewedcourses}}}
+
+                    {{{simplecourses}}}
+
+                    {{#debuginfo}}
+                    <pre>
+                    {{debuginfo}}
+                    </pre>
+                    {{/debuginfo}}
+                </td>
+            </tr>
+        </table>
+{{/hascourses}}
+
+{{^hideifempty}}
+    </div>
+</div>
+{{/hideifempty}}
+<!-- /my_teacher_courses_module -->

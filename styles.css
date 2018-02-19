@@ -94,6 +94,10 @@ table#mycourseareas{
     border-radius: 5px;
 }
 
+.local-my-hide {
+    display: none;
+}
+
 div.course-completion {
     float:right;
 }
@@ -350,4 +354,23 @@ div.course-box .title {
 
 .my-modules.network table tr td:first-child {
     max-width: 40px;
+}
+
+.local-my-area-ctls {
+    font-size: 85%;
+    cursor:pointer;
+}
+
+.local-my-cat-collapse {
+    cursor:pointer;
+}
+
+.local-my-progress {
+    float: right;
+    padding-left:10px;
+}
+
+.editing-icon img {
+    width: 20px;
+    height: 20px;
 }

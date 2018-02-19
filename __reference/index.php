@@ -167,10 +167,9 @@ if (!empty($CFG->customfrontpageinclude)) {
 
         if ($editing && has_capability('moodle/course:update', $context)) {
             $streditsummary = get_string('editsummary');
-            $sectionurl = new moodle_url('course/editsection.php', array('id' => $section->id));
-            $pix = $OUTPUT->pix_icon('t/edit', $streditsummary, 'core');
-            echo '<a title="'.$streditsummary.'" href="'.$sectionurl.'">'.$pix.'</a>';
-            echo '<br /><br />';
+            echo "<a title=\"$streditsummary\" ".
+                 " href=\"course/editsection.php?id=$section->id\"><img src=\"" . $OUTPUT->pix_url('t/edit') . "\" ".
+                 " class=\"iconsmall\" alt=\"$streditsummary\" /></a><br /><br />";
         }
 
         $courserenderer = $PAGE->get_renderer('core', 'course');

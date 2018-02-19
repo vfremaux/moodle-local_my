@@ -26,10 +26,16 @@ defined('MOODLE_INTERNAL') || die();
 
 class local_my_renderer extends plugin_renderer_base {
 
-    public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar') {
+    /**
+     * Prints a progression progress bar or gauge in a div or a table cell
+     * @param objectref $course
+     * @param string $div 'div' if the result needs being tableless
+     * @param int $width default width
+     * @param int $heigh default height
+     * @param string $progressbar type of gauge renderer.
+     */
+    public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar', &$template) {
         global $USER, $PAGE;
-
-        $str = '';
 
         $completion = new completion_info($course);
         if ($completion->is_enabled(null)) {
@@ -48,39 +54,19 @@ class local_my_renderer extends plugin_renderer_base {
             $ratio = ($alltracked == 0) ? 0 : round($completed / $alltracked * 100);
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');
 
-            if ($div == 'div') {
-                $str .= '<div class="course-completion" title="'.get_string('completion', 'local_my', (0 + $ratio)).'">';
-            } else {
-                $str .= '<td class="course-completion" title="'.get_string('completion', 'local_my', (0 + $ratio)).'">';
-            }
+            $template->completionstr = get_string('completion', 'local_my', (0 + $ratio));
 
             if ($type == 'gauge') {
                 $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
-                $str .= $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id, array($ratio), $properties);
+                $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id, array($ratio), $properties);
             } else {
                 $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
-                $str .= $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id, $ratio, $properties);
-            }
-
-            if ($div == 'div') {
-                $str .= '</div>';
-            } else {
-                $str .= '</td>';
+                $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id, $ratio, $properties);
             }
         } else {
-            if ($div == 'div') {
-                $str .= '<div class="course-completion">';
-            } else {
-                $str .= '<td class="course-completion">';
-            }
-            if ($div == 'div') {
-                $str .= '</div>';
-            } else {
-                $str .= '</td>';
-            }
+            $template->progression = '';
         }
-
-        return $str;
+        // Just let data in incoming template.
     }
 
     public function course_simple_div($course, $classes = '') {
@@ -94,74 +80,66 @@ class local_my_renderer extends plugin_renderer_base {
     public function course_table_row($course, $options) {
         global $DB, $USER;
 
-        $str = '';
+        $template = new StdClass;
 
-        $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
+        $template->courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
 
         if (!isset($course->summary)) {
             $course->summary = $DB->get_field('course', 'summary', array('id' => $course->id));
             $course->summaryformat = $DB->get_field('course', 'summaryformat', array('id' => $course->id));
         }
 
-        $str .= '<tr valign="top">';
-        $str .= '<td class="courserow">';
-        $str .= $this->editing_icon($course);
-        $str .= '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
+        $template->editingicon = $this->editing_icon($course);
+        $template->fullname = format_string($course->fullname);
+        $template->summary = format_text($course->summary, @$course->summaryformat);
         if (!empty($options['withdescription'])) {
-            $str .= '<p class="coursedescription">'.format_text($course->summary, $course->summaryformat).'</p>';
+            $template->hasdescription = true;
         }
-        $str .= '</td>';
 
         if (empty($options['nocompletion'])) {
             if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
                 // Only non teachers can see progression.
-                $str .= $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight']);
+                $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'], 'progressbar', $template);
             }
         }
 
-        $str .= '</tr>';
-
-        return $str;
+        return $this->output->render_from_template('local_my/coursetablerow', $template);
     }
 
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
-            $alt = get_string('editing', 'local_my');
-            $attrs = array('class' => 'editing-icon pull-right');
-            $pixurl = $this->output->pix_icon('editing', $alt, 'local_my', $attrs);
+            $pixurl = $this->output->pix_url('editing', 'local_my');
+            return $this->output->box('<img src="'.$pixurl.'" title="'.get_string('editing', 'local_my').'">', 'editing-icon pull-right');
         }
     }
 
     public function course_as_box($c) {
-        $str = '';
+
+        $template = new StdClass;
 
         $context = context_course::instance($c->id);
-        $courseurl = new moodle_url('/course/view.php?id='.$c->id);
+        $template->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
         $fs = get_file_storage();
 
-        $css = $c->visible ? '' : 'dimmed';
+        $template->css = $c->visible ? '' : 'dimmed';
+        $template->fullname = format_string($c->fullname);
+        $template->shortname = $c->shortname;
 
-        $str .= '<div class="course-box '.$css.' pull-left">';
-        $str .= '<div class="title"><a href="'.$courseurl.'" title="'.$c->fullname.'">'.$c->shortname.'</a>';
-        $str .= $this->editing_icon($course);
-        $str .= '</div>';
+        $template->editingicon = $this->editing_icon($course);
 
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
         if ($image = array_pop($images)) {
             $coursefileurl = moodle_url::make_pluginfile_url($context->id, 'course', 'overviewfiles', '',
                                                              $image->get_filepath(), $image->get_filename());
-            $str .= '<div class="courseimage" style="background-image:url('.$coursefileurl.');background-size:cover">';
-            $str .= '<a href="'.$courseurl.'">&nbsp;</a>';
-            $str .= '</div>';
+            $template->coursefileurl = $coursefileurl;
+            $template->hasimage = true;
         } else {
-            $str .= '<div class="summary">'.shorten_text(format_string($c->summary), 80).'</div>';
+            $template->summary = shorten_text(format_text($c->summary), 80);
         }
 
-        $str .= '</div>';
-
-        return $str;
+        return $this->output->render_from_template('local_my/coursebox', $template);
     }
 
     public function print_forum_link($forum, &$forumname) {
@@ -238,74 +216,47 @@ class local_my_renderer extends plugin_renderer_base {
     public function courses_slider($courseids) {
         global $CFG, $PAGE;
 
-        $totalfcourse = count($courseids);
+        $template = new StdClass;
 
-        $featuredheader = '<div class="custom-courses-list">
-                           <div class="container-fluid">
-                           <div data-crow="'.$totalfcourse.'">';
-
-        $featuredfooter = '';
-        $featuredfooter .= '<div class="clearfix"></div>';
-        $featuredfooter .= '</div>';
-        $featuredfooter .= '</div>';
-        $featuredfooter .= '</div>';
-
-        $str = '';
+        $template->totalfcourse = count($courseids);
 
         if (!empty($courseids)) {
-            $rowcontent = '<div><div class="row-fluid local-my-carousel">';
-
             foreach ($courseids as $courseid) {
 
+                $coursetpl = new StdClass;
                 $course = get_course($courseid);
-
                 $summary = local_my_strip_html_tags($course->summary);
-                $summary = local_my_course_trim_char($summary, 250);
-                $trimtitle = local_my_course_trim_char($course->fullname, 40);
+                $coursetpl->summary = local_my_course_trim_char($summary, 250);
+                $coursetpl->fullname = format_string($course->fullname);
+                $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), 40);
 
                 $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
+                $coursetpl->courseurl = ''.$courseurl;
 
                 if ($course instanceof stdClass) {
                     require_once($CFG->libdir. '/coursecatlib.php');
                     $course = new course_in_list($course);
                 }
 
-                $imgurl = '';
                 $context = context_course::instance($course->id);
 
                 foreach ($course->get_course_overviewfiles() as $file) {
                     if ($isimage = $file->is_valid_image()) {
                         $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
                         $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
-                        $imgurl = file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
+                        $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
                         break;
                     }
                 }
-                if (!$imgurl) {
-                    $imgurl = $this->get_image_url('coursedefaultimage');
+                if (empty($coursetpl->imgurl)) {
+                    $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
                 }
 
-                $rowcontent .= '<div class="local-my-promowrap">';
-                $rowcontent .= '<div class="local-my-fp-coursebox">';
-                $rowcontent .= '<div class="local-my-fp-coursethumb">';
-                $rowcontent .= '<div class="local-my-fp-coursename">';
-                $rowcontent .= '<a href="'.$courseurl.'">';
-                $rowcontent .= '<img src="'.$imgurl.'" width="100%" height="125" title="'.$course->fullname.'">';
-                $rowcontent .= '</a>';
-                $rowcontent .= '</div>';
-                $rowcontent .= '<div class="local-my-fp-courseinfo">';
-                $rowcontent .= '<h5><a href="'.$courseurl.'" id="button" data-toggle="tooltip" data-placement="bottom" title="'.$course->fullname.'" >'.$trimtitle.'</a></h5>';
-                $rowcontent .= '</div>';
-                $rowcontent .= '<div class="local-my-fp-summary">'.$summary.'</div>';
-                $rowcontent .= '</div>';
-                $rowcontent .= '</div>';
-                $rowcontent .= '</div>';
+                $template->courses[] = $coursetpl;
             }
-            $rowcontent .= '</div></div>';
-            $str .= $rowcontent;
         }
 
-        return $featuredheader.$str.$featuredfooter;
+        return $this->output->render_from_template('local_my/course_slider', $template);
     }
 
     protected function get_image_url($imgname) {
@@ -347,12 +298,142 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         if ($PAGE->theme->resolve_image_location($imgname, 'theme', true)) {
-            $imgurl = $this->output->image_url($imgname, 'theme');
+            $imgurl = $this->output->pix_url($imgname, 'theme');
         } else {
-            return $this->output->image_url($imgname, 'local_my');
+            return $this->output->pix_url($imgname, 'local_my');
         }
 
         return $imgurl;
+    }
+
+    /**
+     * Print a simple list of coures with first level category caption
+     */
+    function courses_by_cats($courselist, $options = array(), $area) {
+        global $CFG, $DB, $USER, $OUTPUT, $PAGE;
+
+        $renderer = $PAGE->get_renderer('local_my');
+
+        // Get user preferences for collapser.
+        $select = " userid = ? and name LIKE 'local_my%' ";
+        $params = array('userid' => $USER->id);
+        $collapses = $DB->get_records_select_menu('user_preferences', $select, $params, 'name,value', 'name,value');
+
+        // Reorganise by cat.
+        foreach ($courselist as $c) {
+            if (!isset($catcourses[$c->category])) {
+                $catcourses[$c->category] = new StdClass;
+                $catcourses[$c->category]->category = $DB->get_record('course_categories', array('id' => $c->category));
+            }
+            $catcourses[$c->category]->courses[] = $c;
+        }
+
+        $template = new StdClass;
+        $template->area = $area;
+        $template->collapseallstr = get_string('collapseall', 'local_my');
+        $template->expandallstr = get_string('expandall', 'local_my');
+        $template->catidlist = implode(',', array_keys($catcourses));
+
+        foreach ($catcourses as $catid => $cat) {
+
+            if (!$catid) {
+                continue;
+            }
+
+            $cattpl = new Stdclass;
+            $cattpl->catid = $cat->category->id;
+
+            $catcontext = context_coursecat::instance($catid);
+            if (array_key_exists('local_my_'.$area.'_'.$catid.'_hidden', $collapses)) {
+                $cattpl->collapseclass = 'collapsed';
+            } else {
+                $cattpl->collapseclass = '';
+            }
+
+            if (!empty($cattpl->collapseclass)) {
+                $cattpl->collapseiconurl = $OUTPUT->pix_url('collapsed', 'local_my');
+            } else {
+                $cattpl->collapseiconurl = $OUTPUT->pix_url('expanded', 'local_my');
+            }
+
+            if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
+
+                $cattpl->catstyle = ($cat->category->visible) ? '' : 'shadow';
+
+                if ($options['withcats'] == 1) {
+                    $cattpl->catname = format_string($cat->category->name);
+                } else if ($options['withcats'] > 1) {
+                    $cats = array();
+                    $cats[] = format_string($cat->category->name);
+                    if ($cat->category->parent) {
+                        $parent = $cat->category;
+                        for ($i = 1; $i < $options['withcats']; $i++) {
+                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
+                            $cats[] = format_string($parent->name);
+                        }
+                    }
+                    $cats = array_reverse($cats);
+                    $cattpl->catname = implode(' / ', $cats);
+                }
+
+                $cattpl->courses = array();
+                foreach ($cat->courses as $c) {
+                    $coursetpl = new StdClass;
+                    $coursecontext = context_course::instance($c->id);
+                    if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+                        $coursetpl->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
+                        $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
+                        $coursetpl->fullname = format_string($c->fullname);
+                        $coursetpl->editingicon = $renderer->editing_icon($c);
+                        $cattpl->courses[] = $coursetpl;
+                    }
+                }
+
+                $template->categories[] = $cattpl;
+                $template->hascategories = true;
+            }
+        }
+        return($this->output->render_from_template('local_my/courses_with_categories', $template));
+    }
+
+    /**
+     * an adaptation of the standard print_course_overview()
+     * @param array $courses a course array to print
+     * @param boolean $return if true returns the string
+     * @return the rendered view if return is true
+     */
+    function course_overview($courses, $options = array()) {
+        global $PAGE, $OUTPUT;
+
+        $renderer = $PAGE->get_renderer('local_my');
+
+        // Be sure we have something in lastaccess.
+        foreach ($courses as $cid => $c) {
+            $courses[$cid]->lastaccess = 0 + @$courses[$cid]->lastaccess;
+        }
+
+        $overviews = array();
+        if ($modules = get_plugin_list_with_function('mod', 'print_overview')) {
+            foreach ($modules as $fname) {
+                $fname($courses, $overviews);
+            }
+        }
+
+        $template = new StdClass;
+
+        foreach ($courses as $cid => $c) {
+            $coursetpl = new StdClass;
+            if (empty($options['nocompletion'])) {
+                $coursetpl->showprogression = true;
+                $w = $options['gaugewidth'];
+                $h = $options['gaugeheight'];
+                $renderer->course_completion_gauge($c, 'div', $w, $h, 'progressbar', $coursetpl);
+            }
+            $coursetpl->coursediv = $renderer->course_simple_div($c);
+            $template->course[] = $coursetpl;
+        }
+
+        return $this->output->render_from_template('local_my/course_overview', $template);
     }
 
     /**
@@ -378,9 +459,13 @@ class local_my_renderer extends plugin_renderer_base {
             $button3 = '';
 
             if ($cancreate) {
+
+                $label = get_string('allcategories', 'local_my');
+                $button00 = $OUTPUT->single_button(new moodle_url('/course/index.php'), $label);
+
                 $params = array('view' => 'courses', 'categoryid' => $firstcatid);
                 $label = get_string('managemycourses', 'local_my');
-                $button0 = $OUTPUT->single_button(new moodle_url('/course/management.php', $params), $label);
+                $button0 = $OUTPUT->single_button(new moodle_url('/local/my/management.php', $params), $label);
 
                 $label = get_string('newcourse', 'local_my');
                 $button1 = $OUTPUT->single_button(new moodle_url('/local/my/create_course.php'), $label);
@@ -407,7 +492,7 @@ class local_my_renderer extends plugin_renderer_base {
             }
 
             $str .= $OUTPUT->box_start('right-button course-creation-buttons');
-            $str .= $button0.' '.$button1.' '.$button2.' '.$button3;
+            $str .= $button00.' '.$button0.' '.$button1.' '.$button2.' '.$button3;
             $str .= $OUTPUT->box_end();
         }
 
@@ -498,5 +583,13 @@ class local_my_renderer extends plugin_renderer_base {
         $str .= $this->render_from_template('local_my/admin_overview_element', $template);
 
         return $str;
+    }
+
+    public function add_category_link($categoryid) {
+        $template = new StdClass;
+
+        $template->addsubcaturl = new moodle_url('/course/editcategory.php', array('parent' => $categoryid));
+        $template->newsubcategorystr = get_string('addnewsubcategory', 'local_my');
+        return $this->render_from_template('local_my/add_category_link', $template);
     }
 }

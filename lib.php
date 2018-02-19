@@ -27,6 +27,14 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
 require_once($CFG->dirroot.'/local/my/modules.php');
 
 /**
+ * This function is not implemented in thos plugin, but is needed to mark
+ * the vf documentation custom volume availability.
+ */
+function local_my_supports_feature() {
+    assert(1);
+}
+
+/**
  * This is a relocalized function in order to get local_my more compact.
  * checks if a user has a some named capability effective somewhere in a course.
  * @param string $capability;
@@ -232,95 +240,13 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
 }
 
 /**
- * Print a simple list of coures with first level category caption
- */
-function local_print_courses_by_cats($courselist, $options = array()) {
-    global $CFG, $DB, $USER, $OUTPUT, $PAGE;
-
-    $renderer = $PAGE->get_renderer('local_my');
-
-    $str = '';
-
-    // Get user preferences for collapser.
-    $select = " userid = ? and name LIKE 'local-my%' ";
-    $params = array('userid' => $USER->id);
-    $collapses = $DB->get_records_select_menu('user_preferences', $select, $params, 'name,value');
-
-    // Reorganise by cat.
-    foreach ($courselist as $c) {
-        if (!isset($catcourses[$c->category])) {
-            $catcourses[$c->category] = new StdClass;
-            $catcourses[$c->category]->category = $DB->get_record('course_categories', array('id' => $c->category));
-        }
-        $catcourses[$c->category]->courses[] = $c;
-    }
-
-    foreach ($catcourses as $catid => $cat) {
-        if ($catid) {
-
-            $catcontext = context_coursecat::instance($catid);
-            if (array_key_exists('local_my_authoredcat_'.$catid.'_hidden', $collapses)) {
-                $collapseclass = 'collapsed';
-            } else {
-                $collapseclass = '';
-            }
-
-            if (!empty($collapseclass)) {
-                $collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
-            } else {
-                $collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
-            }
-            $collapseicon = '<img src="'.$collapseiconurl.'" id="local-my-cathandle-'.$cat->category->id.'" class="local-my-cat-collapse">';
-
-            if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
-
-                $catstyle = ($cat->category->visible) ? '' : 'shadow';
-
-                if ($options['withcats'] == 1) {
-                    $str .= '<tr valign="top">';
-                    $str .= '<td class="course-category '.$catstyle.'">'.$collapseicon.' <b>'.format_string($cat->category->name).'</b></td>';
-                    $str .= '</tr>';
-                } else if ($options['withcats'] > 1) {
-                    $cats = array();
-                    $cats[] = format_string($cat->category->name);
-                    if ($cat->category->parent) {
-                        $parent = $cat->category;
-                        for ($i = 1; $i < $options['withcats']; $i++) {
-                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
-                            $cats[] = format_string($parent->name);
-                        }
-                    }
-                    $cats = array_reverse($cats);
-                    $str .= '<tr valign="top"><td class="'.$catstyle.'">'.$collapseicon.' <b>'.implode(' / ', $cats).'</b></td></tr>';
-                }
-
-                foreach ($cat->courses as $c) {
-                    $coursecontext = context_course::instance($c->id);
-                    if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
-                        $courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-                        $cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
-                        $str .= '<tr valign="top" class="local-my-course local-my-course cat-'.$cat->category->id.' '.$collapseclass.'">';
-                        $str .= '<td class="course">';
-                        $str .= '<a class="'.$cstyle.'" href="'.$courseurl.'">'.format_string($c->fullname).'</a>';
-                        $str .= $renderer->editing_icon($c);
-                        $str .= '</td>';
-                        $str .= '</tr>';
-                    }
-                }
-            }
-        }
-    }
-    return $str;
-}
-
-/**
  * get courses i am authoring in (or by capability).
  *
  */
 function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
     global $USER, $DB;
 
-    if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'sortorder')) {
+    if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
         foreach ($authored as $a) {
             $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
         }
@@ -343,7 +269,7 @@ function local_get_my_templates() {
     $templatecatids = local_coursetemplates_get_template_categories();
 
     $templatecourses = array();
-    if ($templates = local_get_user_capability_course('local/my:isauthor', $USER->id, false, '', 'sortorder')) {
+    if ($templates = local_get_user_capability_course('local/my:isauthor', $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
         foreach ($templates as $t) {
             $category = $DB->get_field('course', 'category', array('id' => $t->id));
             if (in_array($category, $templatecatids)) {
@@ -536,7 +462,7 @@ function local_my_is_meta(&$c, $userid = 0) {
     return false;
 }
 
-function local_my_print_courses($title = 'mycourses', $courses, $options = array()) {
+function local_my_print_courses($area = 'mycourses', $courses, $options = array()) {
     global $OUTPUT, $DB, $PAGE;
 
     $config = get_config('local_my');
@@ -553,7 +479,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         if (!empty($options['printifempty']) && empty($options['noheading'])) {
             $str .= $OUTPUT->box_start('header');
             $str .= $OUTPUT->box_start('title');
-            $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
+            $str .= '<h2>'.get_string($area, 'local_my').'</h2>';
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
@@ -562,7 +488,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         if (empty($options['noheading'])) {
             $str .= $OUTPUT->box_start('header');
             $str .= $OUTPUT->box_start('title');
-            $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
+            $str .= '<h2>'.get_string($area, 'local_my').'</h2>';
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_start('content');
@@ -570,9 +496,9 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
 
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
-            $str .= local_print_course_overview($courses, $options);
+            $str .= $renderer->course_overview($courses, $options);
         } else if (!empty($options['withcats'])) {
-            $str .= local_print_courses_by_cats($courses, $options, $config->printcategories);
+            $str .= $renderer->courses_by_cats($courses, $options, $area);
         } else {
             foreach ($courses as $c) {
                 $str .= $renderer->course_table_row($c, $options);
@@ -584,46 +510,6 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= $OUTPUT->box_end();
         }
     }
-
-    return $str;
-}
-
-/**
- * an adaptation of the standard print_course_overview()
- * @param array $courses a course array to print
- * @param boolean $return if true returns the string
- * @return the rendered view if return is true
- */
-function local_print_course_overview($courses, $options = array()) {
-    global $PAGE, $OUTPUT;
-
-    $renderer = $PAGE->get_renderer('local_my');
-
-    // Be sure we have something in lastaccess.
-    foreach ($courses as $cid => $c) {
-        $courses[$cid]->lastaccess = 0 + @$courses[$cid]->lastaccess;
-    }
-
-    $overviews = array();
-    if ($modules = get_plugin_list_with_function('mod', 'print_overview')) {
-        foreach ($modules as $fname) {
-            $fname($courses, $overviews);
-        }
-    }
-
-    $str = '';
-
-    $str .= '<div class="courselist">';
-    foreach ($courses as $cid => $c) {
-        $str .= '<div>';
-        if (empty($options['nocompletion'])) {
-            $str .= $renderer->course_completion_gauge($c, 'div', $options['gaugewidth'], $options['gaugeheight']);
-        }
-        $str .= $renderer->course_simple_div($c);
-        $str .= '</div>';
-    }
-
-    $str .= '</div>';
 
     return $str;
 }
@@ -663,12 +549,12 @@ function local_get_cat_branch_ids_rec($categoryid) {
 function local_prefetch_course_areas(&$excludedcourses) {
     global $DB;
 
-    $allcourses = enrol_get_my_courses('id, shortname');
+    $allmycourses = enrol_get_my_courses('id, shortname');
     $config = get_config('local_my');
 
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $c) {
-            unset($allcourses[$id]);
+            unset($allmycourses[$id]);
         }
     }
 
@@ -749,7 +635,7 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
             if ($orderby) {
                 $orderby .= ',';
             }
-            $orderby .= 'c.'.$field;
+            $orderby .= $field;
         }
         $orderby = 'ORDER BY '.$orderby;
     }
@@ -779,6 +665,10 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
             {role_assignments} ra
         ON
             (ra.contextid = x.id AND ra.userid = ?)
+        JOIN
+            {course_categories} cc
+        ON
+            cc.id = c.category
         GROUP BY
             c.id
 
@@ -980,5 +870,18 @@ function local_my_render_module($m, &$excludedcourses, &$courseareacourses) {
         echo get_string('unknownmodule', 'local_my', $fname).'<br/>';
     } else {
         echo $fname($excludedcourses, $courseareacourses);
+    }
+}
+
+function local_my_scalar_array_merge(&$arr1, &$arr2) {
+
+    if (empty($arr2)) {
+        return;
+    }
+    foreach ($arr2 as $val) {
+        if (!in_array($val, $arr1)) {
+            $arr1[] = $val;
+        }
+        sort($arr1);
     }
 }
