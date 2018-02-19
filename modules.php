@@ -23,7 +23,9 @@
  * This file contains content output modules for the my page.
  * All printable modules are function whith names starting with local_my_print_<modulename>()
  */
-defined('MOODLE_EARLY_INTERNAL') || die();
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die();
+}
 
 require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
 
@@ -937,8 +939,8 @@ function local_my_print_latestnews_full() {
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
@@ -991,8 +993,8 @@ function local_my_print_latestnews_headers() {
             $renderer = $PAGE->get_renderer('local_my');
             $template->forumname = $renderer->print_forum_link($newsforum, $forumname);
 
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
