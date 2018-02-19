@@ -1,0 +1,26 @@
+
+
+<!-- course_slider_module -->
+<div class="block block_{{widgetname}}}">
+
+    <div class="header">
+        <div class="title">
+            <h2>{{courselisttitlestr}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+
+        {{{buttons}}}
+
+{{^hascourses}}
+        {{{nocourses}}}
+{{/hascourses}}
+
+{{#hascourses}}
+        {{{courseslider}}}
+{{/hascourses}}
+
+    </div>
+</div>
+<!-- /course_slider_module -->
