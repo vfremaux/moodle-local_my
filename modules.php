@@ -23,7 +23,9 @@
  * This file contains content output modules for the my page.
  * All printable modules are function whith names starting with local_my_print_<modulename>()
  */
-defined('MOODLE_EARLY_INTERNAL') || die();
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die();
+}
 
 require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
 
