@@ -198,6 +198,7 @@ list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
 if (in_array('my_caption', $mymodules)) {
     if (file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
+        include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
         local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
     } else {
         echo $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'my_caption'));
