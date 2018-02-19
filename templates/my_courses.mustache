@@ -1,0 +1,37 @@
+
+
+
+<div class="block block_my_courses">
+
+    <div class="header">
+        <div class=title">
+            <h2>{{mycoursesstr}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+
+{{^hascourses}}
+        {{{nocourses}}}
+{{/hascourses}}
+
+{{#hascourses}}
+
+        <table width="100%">
+            <tr valign="top">
+                <td>
+                    {{{overviewedcourses}}}
+
+                    {{{simplecourses}}}
+
+                    {{#debuginfo}}
+                    <pre>
+                    {{debuginfo}}
+                    </pre>
+                    {{/debuginfo}}
+                </td>
+            </tr>
+        </table>
+{{/hascourses}}
+    </div>
+</div>

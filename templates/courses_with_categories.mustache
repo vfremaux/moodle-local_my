@@ -1,0 +1,31 @@
+
+
+<!-- course_with_categories -->
+
+{{#hascategories}}
+    <tr valign="top">
+        <td class="course-category-ctls">
+            <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> - 
+            <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}"">{{expandallstr}}</a>
+            <span id="local-my-areacategories-{{area}}" style="display:none">{{catidlist}}</span>
+        </td>
+    </tr>
+{{/hascategories}}
+
+{{#categories}}
+    <tr valign="top">
+        <td class="course-category {{catstyle}}">
+            <img src="{{{collapseiconurl}}}" id="local-my-cathandle-{{area}}-{{catid}}" class="local-my-cat-collapse local-my-cat-collapse-{{area}}"> <b>{{catname}}</b>
+        </td>
+    </tr>
+
+    {{#courses}}
+    <tr valign="top" class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
+        <td class="course">
+            <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}}</a>
+            {{{editingicon}}}
+        </td>
+    </tr>
+    {{/courses}}
+{{/categories}}
+<!-- /course_with_categories -->

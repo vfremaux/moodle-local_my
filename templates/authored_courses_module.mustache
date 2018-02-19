@@ -1,0 +1,44 @@
+
+
+<!-- authored_courses_module -->
+{{^hideifempty}}
+<div class="block block_my_authored_courses">
+    <div class="header">
+        <div class="title">
+            <h2>{{myauthoringcoursesstr}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+
+        {{{buttons}}}
+
+{{/hideifempty}}
+{{#hascourses}}
+        <table id="myauthoredcourselist" width="100%" class="generaltable courselist">
+            <tr valign="top">
+                <td>
+
+                    {{{overviewedcourses}}}
+
+                    {{{simplecourses}}}
+
+                    {{#debuginfo}}
+                    <pre>
+                    {{debuginfo}}
+                    </pre>
+                    {{/debuginfo}}
+                </td>
+            </tr>
+        </table>
+{{/hascourses}}
+
+{{^hideifempty}}
+    {{^hascourses}}
+    {{{nocourses}}}
+    {{/hascourses}}
+
+    </div>
+</div>
+{{/hideifempty}}
+<!-- /authored_courses_module -->

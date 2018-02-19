@@ -1,0 +1,21 @@
+
+
+<!- coursebox -->
+<div class="course-box {{css}} pull-left">
+    <div class="title">
+        <a href="{{{courseurl}}}" title="{{fullname}}">{{shortname}}</a>
+        {{{editingicon}}}
+    </div>
+
+{{#hasimage}}
+    <div class="courseimage" style="background-image:url({{{coursefileurl}}});background-size: cover">
+        <a href="{{{courseurl}}}">&nbsp;</a>
+    </div>
+{{/hasimage}}
+
+{{^hasimage}}
+    <div class="summary">{{summary}}</div>
+{{/hasimage}}
+
+</div>
+<!- /coursebox -->
