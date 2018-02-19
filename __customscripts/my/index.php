@@ -37,7 +37,10 @@
 defined('MOODLE_INTERNAL') || die;
 
 // CHANGE+.
-require($CFG->dirroot.'/local/my/index.php');
+$result = require($CFG->dirroot.'/local/my/index.php');
+if ($result == -1) {
+    return;
+}
 die;
 // CHANGE-.
 

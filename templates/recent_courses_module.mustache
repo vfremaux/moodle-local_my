@@ -1,0 +1,21 @@
+
+
+<!-- recent_courses_module -->
+<div class="block block_{{widgetname}}">
+
+    <div class="header">
+        <div class="title">
+            <h2>{{courselisttitlestr}}</h2>
+        </div>
+    </div>
+
+    <div class="content constainer-fluid">
+        <div id="mycourselist" width="100%" class="courselist row-fluid clearfix">
+            {{#courses}}
+            {{> local_my/coursebox}}
+            {{/courses}}
+        </div>
+    </div>
+
+</div>
+<!-- /recent_courses_module -->
