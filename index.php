@@ -38,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
 $config = get_config('local_my');
 
 if (empty($config->enable)) {
-    return;
+    return -1;
 }
 
 require_once($CFG->dirroot.'/my/lib.php');
@@ -98,9 +98,9 @@ $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
-$PAGE->requires->jquery_plugin('slick', 'local_my');
-$PAGE->requires->js_call_amd('local_my/collapse_control', 'init');
-$PAGE->requires->js('/local/my/js/slick/slickinit.js', true);
+$PAGE->requires->js_call_amd('local_my/local_my', 'init');
+$PAGE->requires->js_call_amd('local_my/slick', 'init');
+$PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 $PAGE->requires->css('/local/my/css/slick.css');
 
 if (get_home_page() != HOMEPAGE_MY) {
@@ -197,7 +197,11 @@ $tabs = $renderer->tabs($view, $isteacher);
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
 if (in_array('my_caption', $mymodules)) {
-    local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+    if (file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
+        local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+    } else {
+        echo $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'my_caption'));
+    }
 }
 
 echo $tabs;
@@ -212,13 +216,16 @@ if ((in_array('course_areas', $modules) ||
         in_array('course_areas_and_availables', $modules)) &&
                 @$config->courseareas > 0) {
     $courseareacourses = local_prefetch_course_areas($fooarray);
-    $excludedcourses = array_merge($excludedcourses, array_keys($courseareacourses));
+
+    $courseareaskeys = array_keys($courseareacourses);
+    local_my_scalar_array_merge($excludedcourses, $courseareaskeys);
 }
 
 if ($view == 'asstudent' && $isteacher) {
     // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
     $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
-    $excludedcourses = array_merge($excludedcourses, array_keys($prefetchcourses));
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
 }
 
 // Render dahsboard.

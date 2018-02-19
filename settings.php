@@ -40,7 +40,11 @@ $config = get_config('local_my');
 if ($hassiteconfig) {
     // Needs this condition or there is error on login page.
     $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
+    $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
     $ADMIN->add('localplugins', $settings);
+    if ($config->enable) {
+        $ADMIN->add('appearance', $displaysettings);
+    }
 
     $yesnooptions[0] = get_string('no');
     $yesnooptions[1] = get_string('yes');
@@ -59,11 +63,13 @@ if ($hassiteconfig) {
     $label = get_string('localskipmymetas', 'local_my');
     $desc = get_string('localskipmymetas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
+    $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
     $key = 'local_my/excludedcourses';
     $label = get_string('localmyexcludedcourses', 'local_my');
     $desc = get_string('localmyexcludedcourses_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
+    $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
 
     $defaultmodules = "me\nadmin_stats\ncourse_search\nmy_network\nmy_heatmap";
     if (!isset($config->adminmodules)) {
@@ -73,6 +79,7 @@ if ($hassiteconfig) {
     $label = get_string('localmyadminmodules', 'local_my');
     $desc = get_string('localmyadminmodules_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+    $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
     $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
@@ -83,6 +90,7 @@ if ($hassiteconfig) {
     $label = get_string('localmyteachermodules', 'local_my');
     $desc = get_string('localmyteachermodules_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+    $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
     $defaultmodules = "my_caption\nme\nmy_courses\n";
     $defaultmodules .= "course_areas\navailable_courses\nlatestnews_simple\nmy_heatmap";
@@ -93,6 +101,7 @@ if ($hassiteconfig) {
     $label = get_string('localmymodules', 'local_my');
     $desc = get_string('localmymodules_desc', 'local_my');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+    $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
     $settings->add(new admin_setting_heading('header2', get_string('courseareasettings', 'local_my'), ''));
 
@@ -105,6 +114,7 @@ if ($hassiteconfig) {
     $label = get_string('localmycourseareas', 'local_my');
     $desc = get_string('localmycourseareas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
+    $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
     global $SITE;
 
@@ -115,6 +125,7 @@ if ($hassiteconfig) {
         $key = 'local_my/coursearea'.$i;
         $label = get_string('localmycoursearea', 'local_my').' '.$i;
         $settings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
+        $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
 
     $settings->add(new admin_setting_heading('header3', get_string('categorysettings', 'local_my'), ''));

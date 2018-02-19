@@ -24,14 +24,33 @@
 require('../../../config.php');
 
 $item = required_param('item', PARAM_ALPHA); // At start 'authoredcat'.
-$catid = required_param('catid', PARAM_INT);
-$hide = required_param('hide', PARAM_BOOL);
+$catid = optional_param('catid', 0, PARAM_INT);
+$hide = optional_param('hide', false, PARAM_BOOL);
+$action = optional_param('what', '', PARAM_ALPHA);
+$catids = optional_param('catids', '', PARAM_TEXT);
+
+require_login();
+
+if (!empty($action)) {
+    $select = ' userid = ? AND name LIKE ? ';
+    // Delete all hide keys.
+    $DB->delete_records_select('user_preferences', $select, array($USER->id, 'local_my_'.$item.'%'));
+
+    if ($action == 'collapseall') {
+        $catidsarr = explode(',', $catids);
+        foreach ($catidsarr as $catid) {
+            $record = new StdClass;
+            $record->userid = $USER->id;
+            $record->name = 'local_my_'.$item.'_'.$catid.'_hidden';
+            $DB->insert_record('user_preferences', $record);
+        }
+    }
+    die;
+}
 
 if (!$coursecat = $DB->get_record('course_categories', array('id' => $catid))) {
     print_error('badcatid');
 }
-
-require_login();
 
 $hidekey = 'local_my_'.$item.'_'.$catid.'_hidden';
 $params = array('userid' => $USER->id, 'name' => $hidekey);
