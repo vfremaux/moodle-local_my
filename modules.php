@@ -1198,8 +1198,8 @@ function local_my_print_latestnews_full() {
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
@@ -1252,8 +1252,8 @@ function local_my_print_latestnews_headers() {
             $renderer = $PAGE->get_renderer('local_my');
             $template->forumname = $renderer->print_forum_link($newsforum, $forumname);
 
-            if (forum_is_subscribed($USER->id, $newsforum)) {
-                if (!forum_is_forcesubscribed($newsforum)) {
+            if (\mod_forum\subscriptions::is_subscribed($USER->id, $newsforum)) {
+                if (!\mod_forum\subscriptions::is_forcesubscribed($newsforum)) {
                     $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
