@@ -38,9 +38,9 @@ define('MAX_COURSE_OVERVIEWED_LIST', 20);
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
-    global $DB, $USER, $OUTPUT, $PAGE;
+    global $DB, $USER, $OUTPUT, $PAGE, $CFG;
 
-    $debug = 0;
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $config = get_config('local_my');
     $renderer = $PAGE->get_renderer('local_my');
@@ -49,6 +49,9 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
 
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $c) {
+            if ($debug) {
+                echo "reject $id as excluded \n";
+            }
             unset($mycourses[$id]);
         }
     }
@@ -66,25 +69,16 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
         $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
     }
 
-    $str = '';
-
-    $str .= $OUTPUT->box_start('block block_my_courses');
-
-    $str .= $OUTPUT->box_start('header');
-    $str .= $OUTPUT->box_start('title');
-    $str .= '<h2>'.get_string('mycourses', 'local_my').'</h2>';
-    $str .= $OUTPUT->box_end();
-    $str .= $OUTPUT->box_end();
-
-    $str .= $OUTPUT->box_start('content');
+    $template = new StdClass;
+    $template->mycoursesstr = get_string('mycourses', 'local_my');
 
     if (empty($mycourses)) {
-        $str .= $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
-        $str .= '<table width="100%">';
-        $str .= '<tr valign="top"><td>';
+        $template->hascourses = true;
         if (count($mycourses) < (0 + @$config->maxoverviewedlistsize)) {
-            $str .= local_print_course_overview($mycourses, array('gaugewidth' => 150, 'gaugeheight' => 20));
+            $template->overviewedcourses = $renderer->course_overview($mycourses, array('gaugewidth' => 150, 'gaugeheight' => 20));
         } else {
             if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
                 // Solve a performance issue for people having wide access to courses.
@@ -92,25 +86,21 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
             } else {
                 $options = array('noheading' => true, 'withcats' => true, 'gaugewidth' => 150, 'gaugeheight' => 20);
             }
-            $str .= local_my_print_courses('mycourses', $mycourses, $options);
+            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
         }
-        $str .= '</td></tr>';
 
         if ($debug) {
+            $debuginfo = '';
             foreach ($mycourses as $ac) {
-                echo "exclude authored $ac->id as mine <br/>";
+                $debuginfo .= "exclude authored $ac->id as mine <br/>";
             }
+            $template->debuginfo = $debuginfo;
         }
 
         $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
-        $str .= '</table>';
     }
 
-    $str .= $OUTPUT->box_end(); // Content.
-
-    $str .= $OUTPUT->box_end();
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/my_courses', $template);
 }
 
 /**
@@ -119,7 +109,9 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses) {
-    global $DB, $USER, $PAGE;
+    global $DB, $USER, $PAGE, $OUTPUT;
+
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $renderer = $PAGE->get_renderer('local_my');
 
@@ -128,20 +120,20 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $cid) {
-            if (!empty($cid)) {
-                unset($mycourses[$cid]);
+        foreach ($excludedcourses as $id => $c) {
+            if ($debug) {
+                echo "reject $id as excluded \n";
             }
+            unset($mycourses[$id]);
         }
     }
 
-    $debug = optional_param('debug', false, PARAM_BOOL);
-
+    $debuginfo = '';
     foreach ($mycourses as $id => $c) {
         if (!empty($config->skipmymetas)) {
             if (local_my_is_meta_for_user($c->id, $USER->id)) {
                 if ($debug) {
-                    echo "reject meta $id as meta disabled";
+                    $debuginfo .= "reject meta $id as meta disabled<br/>";
                 }
                 unset($mycourses[$id]);
                 continue;
@@ -150,33 +142,24 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
         $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
     }
 
-    $str = '';
+    $template = new StdClass;
+    $template->widgetname = 'my_courses_slider';
 
-    $str .= '<div class="block block_my_courses">';
-    $str .= '<div class="header">';
-    $str .= '<div class="title">';
-    $str .= '<h2>'.get_string('mycourses', 'local_my').'</h2>';
-    $str .= '</div>';
-    $str .= '</div>';
-    $str .= '<div class="content">';
-
-    if (empty($mycourses)) {
-        $str .= '<table id="mycourselist" width="100%" class="courselist">';
-        $str .= '<tr valign="top">';
-        $str .= '<td>';
-        $str .= get_string('nocourses', 'local_my');
-        $str .= '</td>';
-        $str .= '</tr>';
-        $str .= '</table>';
-    } else {
-        $str .= $renderer->courses_slider(array_keys($mycourses));
-        $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
-    $str .= '</div>';
-    $str .= '</div>';
+    $template->courselisttitlestr = get_string('mycourses', 'local_my');
+    $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
 
-    return $str;
+    if (empty($mycourses)) {
+        $template->hascourses = false;
+    } else {
+        $template->hascourses = true;
+        $template->courseslider = $renderer->courses_slider(array_keys($mycourses));
+        $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
+    }
+    return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
 }
 
 /**
@@ -187,18 +170,22 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
 function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $CFG, $DB, $PAGE;
 
-    $debug = 0;
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $renderer = $PAGE->get_renderer('local_my');
-
     $myauthcourses = local_get_my_authoring_courses();
+    $template = new StdClass;
 
     if (!empty($excludedcourses)) {
+        $debuginfo = '';
         foreach ($excludedcourses as $cid) {
             if ($debug) {
-                echo "rejected authored $cid as excluded</br/>";
+                $debuginfo .= "rejected authored $cid as excluded</br/>";
             }
             unset($myauthcourses[$cid]);
+        }
+        if ($debug) {
+            $template->debuginfo = $debuginfo;
         }
     }
 
@@ -206,27 +193,20 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
     include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $mycatlist = coursecat::make_categories_list('moodle/course:create');
 
-    $str = '';
+    $template->myauthoringcoursesstr = get_string('myauthoringcourses', 'local_my');
 
-    $hascontent = false;
+    $template->hascontent = false;
     if (!empty($mycatlist) || !empty($myauthcourses)) {
-        $str .= '<div class="block block_my_authored_courses">';
-        $str .= '<div class="header">';
-        $str .= '<div class="title">';
-        $str .= '<h2>'.get_string('myauthoringcourses', 'local_my').'</h2>';
-        $str .= '</div>';
-        $str .= '</div>';
-        $str .= '<div class="content">';
-        $hascontent = true;
+        $template->hascontent = true;
     }
 
-    $str .= $renderer->course_creator_buttons($mycatlist);
+    $template->buttons = $renderer->course_creator_buttons($mycatlist);
 
     if (!empty($myauthcourses)) {
-        $str .= '<table id="myauthoredcourselist" width="100%" class="generaltable courselist">';
-        $str .= '<tr valign="top"><td>';
+        $template->hascourses = true;
         if (count($myauthcourses) < 0 + @$config->maxoverviewedlistsize) {
-            $str .= local_print_course_overview($myauthcourses, true, array('gaugewidth' => 0, 'gaugeheight' => 0));
+            $attrs = array('gaugewidth' => 0, 'gaugeheight' => 0);
+            $template->overviewedcourses = $renderer->course_overview($myauthcourses, true, $attrs);
         } else {
             if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize)) {
                 // Solve a performance issue for people having wide access to courses.
@@ -243,29 +223,26 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
                                  'gaugewidth' => 0,
                                  'gaugeheight' => 0);
             }
-            $str .= local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
+            $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
         }
-        $str .= '</td></tr>';
-        $str .= '</table>';
 
         if (!empty($myauthcourses)) {
             foreach ($myauthcourses as $ac) {
                 if ($debug) {
-                    echo "exclude authored $ac->id as authored <br/>";
+                    $debuginfo .= "exclude authored $ac->id as authored <br/>";
                 }
                 if (!in_array($ac->id, $excludedcourses)) {
                     $excludedcourses[] = $ac->id;
                 }
             }
+            if ($debug) {
+                // Update debug info if necessary.
+                $template->debuginfo = $debuginfo;
+            }
         }
     }
 
-    if ($hascontent) {
-        $str .= '</div>';
-        $str .= '</div>';
-    }
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/authored_courses_module', $template);
 }
 
 /**
@@ -279,24 +256,27 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     $renderer = $PAGE->get_renderer('local_my');
 
     $config = get_config('local_my');
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $mycourses = local_get_my_authoring_courses();
 
+    $debuginfo = '';
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $c) {
             if (!empty($id)) {
+                if ($debug) {
+                    $debuginfo .= "rejected authored $cid as excluded</br/>";
+                }
                 unset($mycourses[$id]);
             }
         }
     }
 
-    $debug = optional_param('debug', false, PARAM_BOOL);
-
     foreach ($mycourses as $id => $c) {
         if (!empty($config->skipmymetas)) {
             if (local_my_is_meta_for_user($c->id, $USER->id)) {
                 if ($debug) {
-                    echo "reject meta $id as meta disabled";
+                    $debuginfo .= "reject meta $id as meta disabled";
                 }
                 unset($mycourses[$id]);
                 continue;
@@ -305,39 +285,30 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
         $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
     }
 
-    $str = '';
-
-    $str .= '<div class="block block_my_courses">';
-    $str .= '<div class="header">';
-    $str .= '<div class="title">';
-    $str .= '<h2>'.get_string('myteachings', 'local_my').'</h2>';
-    $str .= '</div>';
-    $str .= '</div>';
-    $str .= '<div class="content">';
+    $template = new StdClass;
+    $template->widgetname = 'my_authored_courses_slider';
+    $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
     include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $mycatlist = coursecat::make_categories_list('moodle/course:create');
     if (!empty($mycatlist)) {
-        $str .= $renderer->course_creator_buttons($mycatlist);
+        $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
 
     if (empty($mycourses)) {
-        $str .= '<table id="mycourselist" width="100%" class="courselist">';
-        $str .= '<tr valign="top">';
-        $str .= '<td>';
-        $str .= get_string('nocourses', 'local_my');
-        $str .= '</td>';
-        $str .= '</tr>';
-        $str .= '</table>';
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
-        $str .= $renderer->courses_slider(array_keys($mycourses));
+        $template->hascourses = true;
+        $template->courseslider = $renderer->courses_slider(array_keys($mycourses));
         $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
     }
 
-    $str .= '</div>';
-    $str .= '</div>';
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
 
-    return $str;
+    return $OUTPUT->render_from_module('local_my/courses_slider_module', $template);
 }
 
 /**
@@ -350,7 +321,7 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
 function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $CFG, $DB, $USER, $PAGE;
 
-    $debug = 0;
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $renderer = $PAGE->get_renderer('local_my');
 
@@ -364,10 +335,11 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
         }
     }
 
+    $debuginfo = '';
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $cid) {
             if ($debug) {
-                echo "rejected teached $cid as excluded</br/>";
+                $debuginfo .= "rejected teached $cid as excluded</br/>";
             }
             unset($myteachercourses[$cid]);
         }
@@ -377,29 +349,21 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
     include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $mycatlist = coursecat::make_categories_list('moodle/course:create');
 
-    $str = '';
+    $template = new StdClass;
 
-    $hascontent = false;
+    $template->hascontent = false;
     if (!empty($mycatlist) || !empty($myteachercourses)) {
-        $str .= $OUTPUT->box_start('block block_my_teacher_courses');
-
-        $str .= $OUTPUT->box_start('header');
-        $str .= $OUTPUT->box_start('title');
-        $str .= '<h2>'.get_string('myteachercourses', 'local_my').'</h2>';
-        $str .= $OUTPUT->box_end();
-        $str .= $OUTPUT->box_end();
-
-        $str .= $OUTPUT->box_start('content');
-        $hascontent = true;
+        $template->myteachercoursesstr = get_string('myteachercourses', 'local_my');
+        $template->hascontent = true;
     }
 
-    $str .= $renderer->course_creator_buttons($mycatlist);
+    $template->buttons = $renderer->course_creator_buttons($mycatlist);
 
     if (!empty($myteachercourses)) {
-        $str .= '<table id="myteachercourselist" width="100%" class="generaltable courselist">';
-        $str .= '<tr valign="top"><td>';
+        $template->hascourses = true;
         if (count($myteachercourses) < 0 + @$config->maxoverviewedlistsize) {
-            $str .= local_print_course_overview($myteachercourses, true, array('gaugewidth' => 0, 'gaugeheight' => 0, 'asteacher' => true));
+            $attrs = array('gaugewidth' => 0, 'gaugeheight' => 0, 'asteacher' => true);
+            $template->overviewedcourses = $renderer->course_overview($myteachercourses, true, $attrs);
         } else {
             if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize)) {
                 // Solve a performance issue for people having wide access to courses.
@@ -416,25 +380,22 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
                                  'gaugewidth' => 0,
                                  'gaugeheight' => 0);
             }
-            $str .= local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
+            $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
         }
-        $str .= '</td></tr>';
-        $str .= '</table>';
 
         if ($debug) {
             foreach ($myteachercourses as $ac) {
-                echo "exclude course $ac->id as teaching course <br/>";
+                $debuginfo .= "exclude course $ac->id as teaching course <br/>";
             }
         }
         $excludedcourses = array_merge($excludedcourses, array_keys($myteachercourses));
     }
 
-    if ($hascontent) {
-        $str .= $OUTPUT->box_end();
-        $str .= $OUTPUT->box_end();
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
-    return $str;
+    return $OUTPUT->render_from_template('local_my/my_teacher_courses_module', $template);
 }
 
 /**
@@ -469,11 +430,12 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
 
     $debug = optional_param('debug', false, PARAM_BOOL);
 
+    $debuginfo = '';
     foreach ($myteachercourses as $id => $c) {
         if (!empty($config->skipmymetas)) {
             if (local_my_is_meta_for_user($c->id, $USER->id)) {
                 if ($debug) {
-                    echo "reject meta $id as meta disabled";
+                    $debuginfo .=  "reject meta $id as meta disabled";
                 }
                 unset($myteachercourses[$id]);
                 continue;
@@ -482,45 +444,29 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
         $myteachercourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
     }
 
-    $str = '';
+    $template = new Stdclass;
+    $template->widgetname = 'teacher_courses_slider';
 
-    $str .= '<div class="block block_my_courses">';
-    $str .= '<div class="header">';
-    $str .= '<div class="title">';
-    $str .= '<h2>'.get_string('myteachings', 'local_my').'</h2>';
-    $str .= '</div>';
-    $str .= '</div>';
-    $str .= '<div class="content">';
+    $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
     include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $mycatlist = coursecat::make_categories_list('moodle/course:create');
     if (!empty($mycatlist)) {
-        $str .= $renderer->course_creator_buttons($mycatlist);
+        $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
 
     if (empty($myteachercourses)) {
-        $str .= '<table id="mycourselist" width="100%" class="courselist">';
-        $str .= '<tr valign="top">';
-        $str .= '<td>';
-        $str .= get_string('nocourses', 'local_my');
-        $str .= '</td>';
-        $str .= '</tr>';
-        $str .= '</table>';
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
-        $str .= $renderer->courses_slider(array_keys($myteachercourses));
+        $template->courseslider = $renderer->courses_slider(array_keys($myteachercourses));
         $excludedcourses = array_merge($excludedcourses, array_keys($myteachercourses));
     }
 
-    $str .= '</div>';
-    $str .= '</div>';
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/course_slider_module', $template);
 }
 
 /**
  * Print a course list of 5(hardcoded) last visited courses.
- * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
- * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_recent_courses() {
     global $DB, $USER, $PAGE;
@@ -554,28 +500,39 @@ function local_my_print_recent_courses() {
 
     $recentcourses = $DB->get_records_sql($sql, array($USER->id));
 
+    $template = new StdClass;
+    $template->widgetname = 'recent_courses';
+
+    $fs = get_file_storage();
+
     if (!empty($recentcourses)) {
-        $str = '';
+        $template->courselisttitlestr = get_string('recentcourses', 'local_my');
 
-        $str .= '<div class="block block_recent_courses">';
-
-        $str .= '<div class="header">';
-        $str .= '<div class="title">';
-        $str .= '<h2>'.get_string('recentcourses', 'local_my').'</h2>';
-        $str .= '</div>';
-        $str .= '</div>';
-
-        $str .= '<div class="content constainer-fluid">';
-        $str .= '<div id="mycourselist" width="100%" class="courselist row-fluid clearfix">';
         foreach ($recentcourses as $c) {
-            $str .= $renderer->course_as_box($c);
-        }
-        $str .= '</div>';
-        $str .= '</div>';
 
-        $str .= '</div>';
+            $context = context_course::instance($c->id);
 
-        return $str;
+            $coursetpl = new Stdclass;
+            $coursetpl->courseurl = new moodle_url('/course/view.php?id='.$c->id);
+
+            $coursetpl->css = $c->visible ? '' : 'dimmed';
+            $coursetpl->fullname = format_string($fullname);
+            $coursetpl->shortname = $shortname;
+
+            $coursetpl->editingicon = $this->editing_icon($course);
+
+            $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
+            if ($image = array_pop($images)) {
+                $coursefileurl = moodle_url::make_pluginfile_url($context->id, 'course', 'overviewfiles', '',
+                                                                 $image->get_filepath(), $image->get_filename());
+                $coursetpl->coursefileurl = $coursefileurl;
+            } else {
+                $coursetpl->summary = shorten_text(format_string($c->summary), 80);
+            }
+            $template->courses[] = $coursetpl;
+       }
+
+        return $OUTPUT->render_from_template('local_my/recent_courses_module', $template);
     }
 }
 
@@ -634,33 +591,25 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         }
     }
 
-    $str = '';
+    $template = new StdClass;
 
-    $str .= '<div class="block block_my_templates">';
-    $str .= '<div class="header">';
-    $str .= '<div class="title">';
-    $str .= '<h2>'.get_string('mytemplates', 'local_my').'</h2>';
-    $str .= '</div>';
-    $str .= '</div>';
-    $str .= '<div class="content">';
+    $template->mytemplatesstr = get_string('mytemplates', 'local_my');
 
-    $button1 = '';
     if (is_dir($CFG->dirroot.'/local/coursetemplates')) {
         $config = get_config('local_coursetemplates');
         if ($config->enabled && $config->templatecategory) {
             if ($DB->count_records('course', array('category' => $config->templatecategory, 'visible' => 1))) {
                 $params = array('category' => $config->templatecategory, 'forceediting' => true);
                 $buttonurl = new moodle_url('/local/coursetemplates/index.php', $params);
-                $button1 = $OUTPUT->single_button($buttonurl, get_string('newtemplate', 'local_my'));
+                $template->button1 = $OUTPUT->single_button($buttonurl, get_string('newtemplate', 'local_my'));
             } else {
-                $button1 = get_string('templateinitialisationadvice', 'local_my');
+                $template->button1 = get_string('templateinitialisationadvice', 'local_my');
             }
         }
     }
-    $str .= '<div class="right-button">'.$button1.'</div>';
 
     if (!empty($mytemplates)) {
-        $str .= local_my_print_courses('mytemplates', $mytemplates, array('noheading' => 1, 'nocompletion' => 1));
+        $template->templates = local_my_print_courses('mytemplates', $mytemplates, array('noheading' => 1, 'nocompletion' => 1));
 
         // Add templates to exclusions.
         foreach (array_keys($mytemplates) as $tplid) {
@@ -670,10 +619,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         }
     }
 
-    $str .= '</div>';
-    $str .= '</div>';
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/my_templates_module', $template);
 }
 
 /**
@@ -682,43 +628,45 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $DB;
+    global $OUTPUT, $DB, $PAGE, $USER;
 
+    // Get all courses i am in.
     $allcourses = enrol_get_my_courses('id, shortname, fullname');
+
     $config = get_config('local_my');
+    $renderer = $PAGE->get_renderer('local_my');
 
     $options = array();
     $options['withcats'] = 0;
 
+    // Ensure we have last access
     foreach ($allcourses as $id => $c) {
-        $allcourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
+        $params = array('userid' => $USER->id, 'courseid' => $id);
+        $allcourses[$id]->lastaccess = $DB->get_field('user_lastaccess', 'timeaccess', $params);
     }
 
     if (empty($config->courseareas)) {
-        // Performance quick trap.
+        // Performance quick trap if no areas defined at all.
         return;
     }
 
-    $str = '';
-
-    $str .= '<table id="mycourseareas" width="100%">';
-    $str .= '<tr valign="top">';
+    $template = new StdClass;
 
     $reali = 1;
     for ($i = 0; $i < $config->courseareas; $i++) {
 
-        $coursearea = 'coursearea'.$i;
-        if (empty($config->$coursearea)) {
+        $key = 'coursearea'.$i;
+
+        if (empty($config->$key)) {
             continue;
         }
 
-        $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
+        $categoryid = $config->$key;
+
+        $mastercategory = $DB->get_record('course_categories', array('id' => $categoryid));
         if (!$mastercategory) {
             continue;
         }
-
-        $key = 'coursearea'.$i;
-        $categoryid = $config->$key;
 
         // Filter courses of this area.
         $retainedcategories = local_get_cat_branch_ids_rec($categoryid);
@@ -755,35 +703,30 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         }
 
         if (!empty($areacourses)) {
-            if ($reali % 3 == 0) {
-                $str .= '</tr></tr valign="top">';
-            }
-            $str .= '<td width="'.$colwidth.'%">';
 
-            $str .= $OUTPUT->heading(format_string($mastercategory->name), 2, 'headingblock header');
-            $str .= '<div class="block">';
-            $str .= '<table id="courselistarea'.$reali.'" width="100%" class="courselist generaltable">';
-            $str .= '<tr valign="top"><td>';
+            $courseareatpl = new StdClass;
+
+            if ($reali % 3 == 0) {
+                $courseareatpl->coljump = true;
+            }
+            $courseareatpl->colwidth = $colwidth;
+            $courseareatpl->catname = $mastercategory->name;
+            $courseareatpl->i = $reali;
+
             if (count($areacourses) < $config->maxoverviewedlistsize) {
-                $str .= local_print_course_overview($areacourses, array('gaugewidth' => 80, 'gaugeheight' => 15));
+                $courseareatpl->courseoverview = $renderer->course_overview($areacourses, array('gaugewidth' => 50, 'gaugeheight' => 12));
             } else {
                 // Solve a performance issue for people having wide access to courses.
-                $str .= local_print_courses_by_cats($areacourses, $options);
+                $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas');
             }
-            $str .= '</td></tr>';
-            $str .= '</table>';
-            $str .= '</div>';
 
-            $str .= '</td>';
+            $template->courseareas[] = $courseareatpl;
 
             $reali++;
         }
     }
 
-    $str .= '</tr>';
-    $str .= '</table>';
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/courseareas_module', $template);
 }
 
 /**
@@ -793,14 +736,16 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_course_areas_and_availables(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $DB;
+    global $OUTPUT, $DB, $PAGE;
 
     $debug = 0;
 
     $mycourses = enrol_get_my_courses('id,shortname,fullname');
     $availablecourses = local_get_enrollable_courses();
-
     $config = get_config('local_my');
+
+    $renderer = $PAGE->get_renderer('local_my');
+
     if (!$config->courseareas) {
         // Performance quick trap.
         return;
@@ -842,10 +787,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
         $mycourses[$cid]->lastaccess = $DB->get_field('logstore_standard_log', 'max(timecreated)', array('courseid' => $cid));
     }
 
-    $str = '';
-
-    $str .= '<table id="mycourseareas" width="100%">';
-    $str .= '<tr valign="top">';
+    $template = new StdClass;
 
     $options['noheading'] = 1;
     $options['nooverview'] = 1;
@@ -864,100 +806,61 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
         $key = 'coursearea'.$i;
         $categoryid = $config->$key;
 
-        if ($debug) {
-            echo " > coursearea $i <br/>";
-        }
         // Filter courses of this area.
         $retainedcategories = local_get_cat_branch_ids_rec($categoryid);
         $myareacourses = array();
         foreach ($mycourses as $c) {
-            if ($debug) {
-                echo " checking enrolled $c->id ... ";
-            }
             if (in_array($c->category, $retainedcategories)) {
-                if ($debug) {
-                    echo " accept enrolled $c->id <br/>";
-                }
                 $myareacourses[$c->id] = $c;
                 if (!in_array($c->id, $excludedcourses)) {
                     $excludedcourses[] = $c->id;
-                }
-            } else {
-                if ($debug) {
-                    echo " reject enrolled $c->id not in cat <br/>";
                 }
             }
         }
 
         $availableareacourses = array();
         foreach ($availablecourses as $c) {
-            if ($debug) {
-                echo " checking available $c->id ... ";
-            }
             if (!isset($c->summary)) {
                 $c->summary = $DB->get_field('course', 'summary', array('id' => $id));
             }
             if (in_array($c->category, $retainedcategories)) {
-                if ($debug) {
-                    echo " accept available $c->id ... ";
-                }
                 $availableareacourses[$c->id] = $c;
                 if (!in_array($c->id, $excludedcourses)) {
                     $excludedcourses[] = $c->id;
-                }
-            } else {
-                if ($debug) {
-                    echo " reject enrollable $c->id not in cat <br/>";
                 }
             }
         }
 
         if (!empty($myareacourses) || !empty($availableareacourses)) {
+            $courseareatpl = new StdClass;
             if ($reali % 3 == 0) {
-                $str .= '</tr><tr valign="top">';
+                $courseareatpl->coljump = true;
             }
-            $str .= '<td width="33%">';
+            $courseareatpl->catname = format_string($mastercategory->name);
+            $courseareatpl->i = $reali;
 
-            $str .= '<div class="block block_coursearea_courses">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= $OUTPUT->heading(format_string($mastercategory->name), 2, 'headingblock header');
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
-            $str .= '<table id="courselistarea'.$reali.'" width="100%" class="courselist">';
-            $str .= '<tr valign="top">';
-            $str .= '<td>';
             if (empty($options['nooverview'])) {
                 if (count($myareacourses) < $config->maxoverviewedlistsize) {
-                    $str .= local_print_course_overview($myareacourses, $options);
+                    $courseareatpl->courseoverview = $renderer->course_overview($myareacourses, $options);
                 } else {
                     // Solve a performance issue for people having wide access to courses.
-                    $str .= local_print_courses_by_cats($myareacourses, $options);
+                    $courseareatpl->coursesbycats = local_print_courses_by_cats($myareacourses, $options);
                 }
             } else {
                 // Aggregate my courses with the available and print in one unique list.
-                $availableareacourses = $myareacourses + $availableareacourses;
+                $availableareacourses = array_merge($myareacourses, $availableareacourses);
             }
             if (!empty($availableareacourses)) {
-                $str .= local_my_print_courses('available', $availableareacourses, $options);
+                $courseareatpl->availables = local_my_print_courses('available', $availableareacourses, $options);
             }
-            $str .= '</td>';
-            $str .= '</tr>';
-            $str .= '</table>';
-            $str .= '</div>';
-            $str .= '</div>';
 
-            $str .= '</td>';
+            $template->courseareas[] = $courseareatpl;
 
             $reali++;
         }
     }
 
-    $str .= '</tr>';
-    $str .= '</table>';
-
-    return $str;
+    return $OUTPUT->render_from_template('local_my/courseareas_module', $template);
 }
 
 /**
@@ -967,8 +870,6 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
  */
 function local_my_print_available_courses(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT;
-
-    $str = '';
 
     $config = get_config('local_my');
 
@@ -985,14 +886,8 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
         }
     }
 
-    if (!empty($excludedcourses)) {
-        $excludedids = array_keys($excludedcourses);
-    } else {
-        $excludedids = array();
-    }
-
     foreach ($courses as $cid => $foo) {
-        if (in_array($cid, $excludedids)) {
+        if (in_array($cid, $excludedcourses)) {
             unset($courses[$cid]);
         }
     }
@@ -1006,16 +901,16 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
     $options['withcats'] = 2;
     $options['nocompletion'] = 1;
 
-    $str .= $OUTPUT->box_start('block block_my_available_courses');
-    $str .= local_my_print_courses('availablecourses', $courses, $options);
-    if ($overcount) {
-        $allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');
-        $link = '<a href="'.$allcoursesurl.'">'.get_string('seealllist', 'local_my').'</a>';
-        $str .= $OUTPUT->box($link, 'local-my-overcount');
-    }
-    $str .= $OUTPUT->box_end();
+    $template = new StdClass;
 
-    return $str;
+    $template->availablecourses = local_my_print_courses('availablecourses', $courses, $options);
+    if ($overcount) {
+        $template->hastoomany = true;
+        $template->allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');
+        $template->seeallliststr = get_string('seealllist', 'local_my');
+    }
+
+    return $OUTPUT->render_from_template('local_my/available_courses_module', $template);
 }
 
 /**
@@ -1024,7 +919,6 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
 function local_my_print_latestnews_full() {
     global $SITE, $CFG, $SESSION, $USER;
 
-    $str = '';
     if ($SITE->newsitems) {
         // Print forums only when needed.
         require_once($CFG->dirroot.'/mod/forum/lib.php');
@@ -1037,49 +931,32 @@ function local_my_print_latestnews_full() {
         $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
         $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
 
-        $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
-        $attrs = array('href' => '#skipsitenews', 'class' => 'skip-block');
-        echo html_writer::tag('a', get_string('skipa', 'access', core_text::strtolower(strip_tags($forumname))), $attrs);
+        $template = new StdClass;
+
+        $template->forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
 
         if (isloggedin()) {
             $SESSION->fromdiscussion = $CFG->wwwroot;
-            $subtext = '';
             if (forum_is_subscribed($USER->id, $newsforum)) {
                 if (!forum_is_forcesubscribed($newsforum)) {
-                    $subtext = get_string('unsubscribe', 'forum');
+                    $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
-                $subtext = get_string('subscribe', 'forum');
+                $template->subscribestr = get_string('subscribe', 'forum');
             }
-            $str .= '<div class="block block_my_news">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= '<h2>'.$forumname.'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
-            $suburl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
-            $str .= html_writer::tag('div', html_writer::link($suburl, $subtext), array('class' => 'subscribelink'));
-            $str .= '</div>';
-        } else {
-            $str .= '<div class="block block_my_news">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= '<h2>'.$forumname.'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
-            $str .= '</div>';
+            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
+            $template->isloggedin = true;
         }
 
+        // Need capture HTML raw output.
         ob_start();
         forum_print_latest_discussions($SITE, $newsforum, $SITE->newsitems, 'plain', 'p.modified DESC');
-        $str .= ob_get_clean();
-        $str .= '</div>';
-        $str .= html_writer::tag('span', '', array('class' => 'skip-block-to', 'id' => 'skipsitenews'));
+        $template->lastdiscussions .= ob_get_clean();
+
+        return $OUTPUT->render_from_template('local_my/latest_news_module', $template);
     }
 
-    return $str;
+    return '';
 }
 
 /**
@@ -1087,8 +964,6 @@ function local_my_print_latestnews_full() {
  */
 function local_my_print_latestnews_headers() {
     global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $SESSION;
-
-    $str = '';
 
     if ($SITE->newsitems) {
         // Print forums only when needed.
@@ -1098,58 +973,49 @@ function local_my_print_latestnews_headers() {
             print_error('cannotfindorcreateforum', 'forum');
         }
 
-        $renderer = $PAGE->get_renderer('local_my');
-        $str .= $renderer->print_forum_link($newsforum, $forumname);
+        // Fetch news forum context for proper filtering to happen.
+        $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
+        $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
+
+        $template = new StdClass;
+
+        $template->forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
 
         if (isloggedin()) {
             if (!isset($SESSION)) {
                 $SESSION = new StdClass();
             }
             $SESSION->fromdiscussion = $CFG->wwwroot;
-            $subtext = '';
+
+            // Convert name to link.
+            $renderer = $PAGE->get_renderer('local_my');
+            $template->forumname = $renderer->print_forum_link($newsforum, $forumname);
+
             if (forum_is_subscribed($USER->id, $newsforum)) {
                 if (!forum_is_forcesubscribed($newsforum)) {
-                    $subtext = get_string('unsubscribe', 'forum');
+                    $template->subscribestr = get_string('unsubscribe', 'forum');
                 }
             } else {
-                $subtext = get_string('subscribe', 'forum');
+                $template->subscribestr = get_string('subscribe', 'forum');
             }
-            $str .= '<div class="block block_my_newsheads">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= '<h2>'.$forumname.'</h2>';
-            $str .= '</div>';
-            $str .= '</div>';
-            $str .= '<div class="content">';
-            $suburl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
-            $str .= html_writer::tag('div', html_writer::link($suburl, $subtext), array('class' => 'subscribelink'));
-            $str .= '</div>';
-        } else {
-            $str .= '<div class="block block_my_newsheads">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= $OUTPUT->heading($forumname, 2, 'headingblock header');
-            $str .= '</div>';
-            $str .= '</div>';
+            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
         }
 
         ob_start();
         forum_print_latest_discussions($SITE, $newsforum, $SITE->newsitems, 'header', 'p.modified DESC');
-        $str .= ob_get_clean();
-        $str .= '</div>';
-        $str .= html_writer::tag('span', '', array('class' => 'skip-block-to', 'id' => 'skipsitenews'));
+        $template->lastdiscussions = ob_get_clean();
+
+        return $OUTPUT->render_from_template('local_my/latest_news_module', $template);
     }
 
     return $str;
 }
 
 /**
- * Same as "full", but removes all subscription or any discussion commandes.
+ * Same as "full", but removes all subscription or any discussion controls.
  */
 function local_my_print_latestnews_simple() {
     global $PAGE, $SITE, $CFG, $OUTPUT, $DB, $SESSION;
-
-    $str = '';
 
     if ($SITE->newsitems) {
         // Print forums only when needed.
@@ -1161,44 +1027,24 @@ function local_my_print_latestnews_simple() {
 
         $renderer = $PAGE->get_renderer('local_my');
 
-        if (isloggedin()) {
-            $SESSION->fromdiscussion = $CFG->wwwroot;
-            $subtext = '';
-            $str .= '<div class="block">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= '<h2>'.$newsforum->name.'</h2>';
-            $str .= '</div></div>';
-        } else {
-            $str .= '<div class="block">';
-            $str .= '<div class="header">';
-            $str .= '<div class="title">';
-            $str .= '<h2>'.$newsforum->name.'</h2>';
-            $str .= '</div></div>';
-        }
+        $template = new StdClass;
+        $template->forumname = format_string($newsforum->name);
+        $template->simple = true;
 
-        $str .= '<div class="content">';
-        $str .= '<table width="100%" class="newstable">';
         $newsdiscussions = $DB->get_records('forum_discussions', array('forum' => $newsforum->id), 'timemodified DESC');
         foreach ($newsdiscussions as $news) {
-            $str .= '<tr valign="top">';
-            $str .= '<td width="80%">';
-            $forumurl = new moodle_url('/mod/forum/discuss.php', array('d' => $news->id));
-            $str .= '<a href="'.$forumurl.'">'.$news->name.'</a>';
-            $str .= '</td>';
-            $str .= '<td align="right" width="20%">';
-            $str .= '('.userdate($news->timemodified).')';
-            $str .= '</td>';
-            $str .= '</tr>';
+            $discussiontpl = new StdClass;
+            $discussiontpl->discussionurl = new moodle_url('/mod/forum/discuss.php', array('d' => $news->id));
+            $discussiontpl->newstitle = format_string($news->name);
+            $discussiontpl->timemodified = userdate($news->timemodified);
+            $template->discussions[] = $discussiontpl;
         }
-        $str .= '</table>';
-        $str .= $renderer->print_forum_link($newsforum, $newsforum->name);
-        $str .= '</div>';
+        $template->forumlink = $renderer->print_forum_link($newsforum, $newsforum->name);
 
-        $str .= '</div>';
+        return $OUTPUT->render_from_template('local_my/latest_news_module', $template);
     }
 
-    return $str;
+    return '';
 }
 
 /**
@@ -1209,8 +1055,12 @@ function local_my_print_latestnews_simple() {
 function local_my_print_static($index) {
     global $CFG, $DB, $USER, $OUTPUT;
 
+    if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
+        return $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'static'));
+    }
+
     $context = context_system::instance();
-    $str = '';
+    $template = new StdClass;
 
     if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
         return $OUTPUT->notification(get_string('staticguitextsnotinstalled', 'local_my'));
@@ -1249,15 +1099,17 @@ function local_my_print_static($index) {
         }
 
         // Normal user, one sees his own.
-        $str .= '<div id="custommystaticarea_'.$index.'" class="local-my-statictext '.$class.'">';
+        $template->staticindex = $index;
+        $template->staticclass = $class;
+
         if ($class == 'adminview') {
             $e = new StdClass;
             $e->field = $field->name;
             $e->value = $profileexpectedvalue;
-            $str .= get_string('adminview', 'local_my', $e).'<br/>';
+            $template->adminviewstr = get_string('adminview', 'local_my', $e);
+            $template->hasadminview = true;
         }
-        $str .= local_print_static_text('custommystaticarea_'.$index, $CFG->wwwroot.'/my/index.php', '', true);
-        $str .= '</div>';
+        $template->statictext = local_print_static_text('custommystaticarea_'.$index, $CFG->wwwroot.'/my/index.php', '', true);
 
     } else if (preg_match('/profile_field_(.*)$/', $index, $matches)) {
 
@@ -1272,7 +1124,7 @@ function local_my_print_static($index) {
             if ($field) {
                 $fieldid = $field->id;
             } else {
-                $str = $OUTPUT->notification(get_string('fieldnotfound', 'local_my', $fieldname));
+                return $OUTPUT->notification(get_string('fieldnotfound', 'local_my', $fieldname));
             }
         }
 
@@ -1292,6 +1144,8 @@ function local_my_print_static($index) {
         // This is a global match catching all values.
         if (has_capability('moodle/site:config', $context)) {
 
+            $template->hasadminview = true;
+
             // I'm administrator, so i can see all modalities and edit them.
             if (!isset($modalities)) {
                 $sql = "
@@ -1308,10 +1162,13 @@ function local_my_print_static($index) {
 
             if ($modalities) {
 
-                $modstrs = array();
                 $modoptions = array();
 
+                $visibilityclass = '';
+
                 foreach ($modalities as $modality) {
+
+                    $modaltpl = new StdClass;
 
                     // Reformat key for token integrity.
                     if (is_object($modality)) {
@@ -1320,49 +1177,41 @@ function local_my_print_static($index) {
                         $modality = core_text::strtolower($modality);
                     }
                     $modality = trim($modality);
-                    $modality = str_replace(' ', '_', $modality);
-                    $modalindex = $index.'_'.$modality;
+                    $modality = str_replace(' ', '-', $modality);
+                    $modalindex = $index.'-'.$modality;
 
-                    $tmp = '<div id="custommystaticarea_'.$modalindex.'" class="editing local-my-statictext">';
-                    $tmp .= '<div class="staticareaname">';
+                    $modaltpl->index = $modalindex;
                     $a = new StdClass;
                     $a->profile = $field->shortname;
                     $a->data = $modality;
-                    $tmp .= get_string('contentfor', 'local_my', $a);
-                    $tmp .= '</div>';
-                    $tmp .= '<div class="content" id="">';
-                    $tmp .= local_print_static_text('custommystaticarea_'.$modalindex, $CFG->wwwroot.'/my/index.php', '', true);
-                    $tmp .= '</div>';
-                    $tmp .= '</div>';
-                    $modstrs[] = $tmp;
+                    $modaltpl->contentforstr = get_string('contentfor', 'local_my', $a);
+                    $return = new moodle_url('/my/index.php');
+                    $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modalindex, $return, '', true);
+                    $modaltpl->visibilityclass = $visibilityclass;
+                    $template->modalities[] = $modaltpl;
+
+                    $visibilityclass = 'local-my-hide';
 
                     $modoptions[$modality] = $modality;
                 }
 
-                /*
-                $str .= '<div id="custommystaticarea_ctl_'.$index.'" class="editing local-my-statictext-ctl">';
-                $str .= html_writer::select($modoptions, 'modalities');
-                $str .= '</div>';
-                */
+                // Choose first as active.
+                $template->modalitiesselect = html_writer::select($modoptions, 'modalities', array_keys($modoptions)[0]);
 
-                $str .= implode("\n", $modstrs);
             }
-            return $str;
         } else {
             // Normal user, one sees his own.
 
-            $modalindex = $index.'_'.$profilevalue;
-            $str .= '<div id="custommystaticarea_'.$modalindex.'" class="local-my-statictext">';
-            $str .= local_print_static_text('custommystaticarea_'.$modalindex, $CFG->wwwroot.'/my/index.php', '', true);
-            $str .= '</div>';
+            $modaltpl =new StdClass;
+            $modaltpl->modalindex = $index.'-'.$profilevalue;
+
+            $return = new moodle_url('/my/index.php');
+            $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$index, $return, '', true);
+            $template->modalities[] = $modaltpl;
         }
-
-        $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
-        $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
-
     }
 
-    return $str;
+    return $OUTPUT->render_from_template('local_my/static_module', $template);
 }
 
 /**
