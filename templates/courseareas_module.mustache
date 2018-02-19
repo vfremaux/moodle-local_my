@@ -1,0 +1,38 @@
+
+
+<!-- courseareas_module -->
+<table id="mycourseareas" width="100%">
+    <tr valign="top">
+
+    {{#courseareas}}
+
+    {{#coljump}}
+    </tr></tr valign="top">
+    {{/coljump}}
+
+        <td width="{{colwidth}}%">
+
+            <div class="headingblock header">
+                <h2>{{catname}}</h2>
+            </div>
+
+            <div class="block">
+                <table id="courselistarea{{i}}" width="100%" class="courselist generaltable">
+                    <tr valign="top">
+                        <td>
+                            {{{courseoverview}}}
+
+                            {{{coursesbycats}}}
+
+                            {{{availables}}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </td>
+    {{/courseareas}}
+
+    </tr>
+</table>
+<!-- /courseareas_module -->
