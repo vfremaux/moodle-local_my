@@ -42,7 +42,7 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
     $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
     $ADMIN->add('localplugins', $settings);
-    if ($config->enable) {
+    if (!empty($config->enable)) {
         $ADMIN->add('appearance', $displaysettings);
     }
 
