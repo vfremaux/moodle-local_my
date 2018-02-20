@@ -573,7 +573,7 @@ function local_prefetch_course_areas(&$excludedcourses) {
 
             // Filter courses of this area.
             $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
-            foreach ($allcourses as $c) {
+            foreach ($allmycourses as $c) {
                 if (in_array($c->category, $retainedcategories)) {
                     $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
                     $prefetchareacourses[$c->id] = $c;
