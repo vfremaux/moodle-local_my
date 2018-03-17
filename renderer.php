@@ -109,8 +109,8 @@ class local_my_renderer extends plugin_renderer_base {
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
-            $pixurl = $this->output->pix_url('editing', 'local_my');
-            return $this->output->box('<img src="'.$pixurl.'" title="'.get_string('editing', 'local_my').'">', 'editing-icon pull-right');
+            $pix = $this->output->pix_icon('editing', get_string('editing', 'local_my'), 'local_my');
+            return $this->output->box($pix, 'editing-icon pull-right');
         }
     }
 
@@ -298,9 +298,9 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         if ($PAGE->theme->resolve_image_location($imgname, 'theme', true)) {
-            $imgurl = $this->output->pix_url($imgname, 'theme');
+            $imgurl = $this->output->image_url($imgname, 'theme');
         } else {
-            return $this->output->pix_url($imgname, 'local_my');
+            return $this->output->image_url($imgname, 'local_my');
         }
 
         return $imgurl;
@@ -351,9 +351,9 @@ class local_my_renderer extends plugin_renderer_base {
             }
 
             if (!empty($cattpl->collapseclass)) {
-                $cattpl->collapseiconurl = $OUTPUT->pix_url('collapsed', 'local_my');
+                $cattpl->collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
             } else {
-                $cattpl->collapseiconurl = $OUTPUT->pix_url('expanded', 'local_my');
+                $cattpl->collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
             }
 
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {

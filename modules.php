@@ -1471,6 +1471,11 @@ function local_my_print_my_heatmap($userid = 0) {
 function local_my_print_my_network() {
 
     $blockinstance = block_instance('user_mnet_hosts');
+    if (empty($blockinstance)) {
+        // If user mnet hosts even not installed.
+        return;
+    }
+
     $content = $blockinstance->get_content();
 
     $str = '';
