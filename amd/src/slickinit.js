@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript controller for controlling the sections.
+ * Javascript for initializong the slick slider.
  *
- * @module     block_multicourse_navigation/collapse_control
- * @package    block_multicourse_navigation
+ * @module     local_my/slickinit
+ * @package    local
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // jshint unused: true, undef:true
@@ -62,6 +62,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('AMD Local my Slickinit initialized');
 
-        },
+        }
     };
 });
