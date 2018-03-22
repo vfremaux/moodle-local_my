@@ -8,6 +8,13 @@
     <licenseversion></licenseversion>
   </library>
   <library>
+    <location>amd/src</location>
+    <name>Slick</name>
+    <license></license>
+    <version></version>
+    <licenseversion></licenseversion>
+  </library>
+  <library>
     <location>js/d3</location>
     <name>D3 Heatmaps</name>
     <license>MIT</license>
