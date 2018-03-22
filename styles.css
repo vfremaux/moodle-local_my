@@ -374,3 +374,8 @@ div.course-box .title {
     width: 20px;
     height: 20px;
 }
+
+.local-my-carousel {
+    width: 100%;
+    oerflow-x: hidden;
+}
