@@ -58,10 +58,12 @@ class local_my_renderer extends plugin_renderer_base {
 
             if ($type == 'gauge') {
                 $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
-                $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id, array($ratio), $properties);
+                $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id,
+                                                                           array($ratio), $properties);
             } else {
                 $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
-                $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id, $ratio, $properties);
+                $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
+                                                                        $ratio, $properties);
             }
         } else {
             $template->progression = '';
@@ -99,7 +101,8 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($options['nocompletion'])) {
             if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
                 // Only non teachers can see progression.
-                $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'], 'progressbar', $template);
+                $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'],
+                                               'progressbar', $template);
             }
         }
 
@@ -309,7 +312,7 @@ class local_my_renderer extends plugin_renderer_base {
     /**
      * Print a simple list of coures with first level category caption
      */
-    function courses_by_cats($courselist, $options = array(), $area) {
+    public function courses_by_cats($courselist, $options = array(), $area = '') {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
         $renderer = $PAGE->get_renderer('local_my');
@@ -402,7 +405,7 @@ class local_my_renderer extends plugin_renderer_base {
      * @param boolean $return if true returns the string
      * @return the rendered view if return is true
      */
-    function course_overview($courses, $options = array()) {
+    public function course_overview($courses, $options = array()) {
         global $PAGE, $OUTPUT;
 
         $renderer = $PAGE->get_renderer('local_my');
@@ -506,13 +509,13 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($statsraw)) {
             $compile = optional_param('compile', false, PARAM_BOOL);
             if ($compile) {
-                // Avoid DoD attack by compiling continuously.
+                // Avoid DoS attack by compiling continuously.
                 require_sesskey();
                 $task = new \local_my\task\compile_stats_task();
                 $task->execute();
                 $statsraw = get_config('local_my', 'sitestats');
             } else {
-                $params = array('view' =>'asadmin', 'compile' => 1, 'sesskey' => sesskey());
+                $params = array('view' => 'asadmin', 'compile' => 1, 'sesskey' => sesskey());
                 $forceurl = new moodle_url('/my/index.php', $params);
                 return $OUTPUT->notification(get_string('notcompiledyet', 'local_my', ''.$forceurl));
             }
@@ -537,7 +540,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $template = new StdClass;
         $template->label = get_string('enabledusers', 'local_my');
-        $template->value =  0 + $stats->usercounters->active;
+        $template->value = 0 + $stats->usercounters->active;
         $template->faicon = 'fa-users';
         $template->facolor = 'text-blue';
         $str .= $this->render_from_template('local_my/admin_overview_element', $template);
