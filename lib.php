@@ -462,7 +462,7 @@ function local_my_is_meta(&$c, $userid = 0) {
     return false;
 }
 
-function local_my_print_courses($area = 'mycourses', $courses, $options = array()) {
+function local_my_print_courses($title = 'mycourses', $courses, $options = array()) {
     global $OUTPUT, $DB, $PAGE;
 
     $config = get_config('local_my');
@@ -479,7 +479,7 @@ function local_my_print_courses($area = 'mycourses', $courses, $options = array(
         if (!empty($options['printifempty']) && empty($options['noheading'])) {
             $str .= $OUTPUT->box_start('header');
             $str .= $OUTPUT->box_start('title');
-            $str .= '<h2>'.get_string($area, 'local_my').'</h2>';
+            $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
@@ -488,7 +488,7 @@ function local_my_print_courses($area = 'mycourses', $courses, $options = array(
         if (empty($options['noheading'])) {
             $str .= $OUTPUT->box_start('header');
             $str .= $OUTPUT->box_start('title');
-            $str .= '<h2>'.get_string($area, 'local_my').'</h2>';
+            $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_end();
             $str .= $OUTPUT->box_start('content');
@@ -498,7 +498,7 @@ function local_my_print_courses($area = 'mycourses', $courses, $options = array(
         if (!empty($options['withoverview'])) {
             $str .= $renderer->course_overview($courses, $options);
         } else if (!empty($options['withcats'])) {
-            $str .= $renderer->courses_by_cats($courses, $options, $area);
+            $str .= $renderer->courses_by_cats($courses, $options);
         } else {
             foreach ($courses as $c) {
                 $str .= $renderer->course_table_row($c, $options);
@@ -629,14 +629,6 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
         }
     }
     if ($orderby) {
-        $fields = explode(',', $orderby);
-        $orderby = '';
-        foreach ($fields as $field) {
-            if ($orderby) {
-                $orderby .= ',';
-            }
-            $orderby .= $field;
-        }
         $orderby = 'ORDER BY '.$orderby;
     }
 

@@ -160,22 +160,24 @@ $notificationspass = array();
 $notificationsfail = array();
 
 if ($action !== false && confirm_sesskey()) {
-    // Actions:
-    // - resortcategories : Resort the courses in the given category.
-    // - resortcourses : Resort courses
-    // - showcourse : make a course visible.
-    // - hidecourse : make a course hidden.
-    // - movecourseup : move the selected course up one.
-    // - movecoursedown : move the selected course down.
-    // - showcategory : make a category visible.
-    // - hidecategory : make a category hidden.
-    // - movecategoryup : move category up.
-    // - movecategorydown : move category down.
-    // - deletecategory : delete the category either in full, or moving contents.
-    // - bulkaction : performs bulk actions:
-    //    - bulkmovecourses.
-    //    - bulkmovecategories.
-    //    - bulkresortcategories.
+    /*
+     * Actions:
+     * - resortcategories : Resort the courses in the given category.
+     * - resortcourses : Resort courses
+     * - showcourse : make a course visible.
+     * - hidecourse : make a course hidden.
+     * - movecourseup : move the selected course up one.
+     * - movecoursedown : move the selected course down.
+     * - showcategory : make a category visible.
+     * - hidecategory : make a category hidden.
+     * - movecategoryup : move category up.
+     * - movecategorydown : move category down.
+     * - deletecategory : delete the category either in full, or moving contents.
+     * - bulkaction : performs bulk actions:
+     *    - bulkmovecourses.
+     *    - bulkmovecategories.
+     *    - bulkresortcategories.
+     */
     $redirectback = false;
     $redirectmessage = false;
     switch ($action) {
@@ -239,7 +241,6 @@ if ($action !== false && confirm_sesskey()) {
                 redirect($PAGE->url);
             }
             // Start output.
-            /* @var core_course_management_renderer|core_renderer $renderer */
             $renderer = $PAGE->get_renderer('local_my', 'management');
             echo $renderer->header();
             echo $renderer->heading(get_string('deletecategory', 'moodle', $category->get_formatted_name()));
@@ -499,8 +500,9 @@ if ($displaycourselisting) {
     if (!$issearching) {
         echo $renderer->course_listing($category, $course, $page, $perpage);
     } else {
-        list($courses, $coursescount, $coursestotal) =
-            \core_course\management\helper::search_courses($search, $blocklist, $modulelist, $page, $perpage);
+        list($courses, $coursescount, $coursestotal) = \core_course\management\helper::search_courses($search, $blocklist,
+                                                                                                      $modulelist, $page,
+                                                                                                      $perpage);
         echo $renderer->search_listing($courses, $coursestotal, $course, $page, $perpage, $search);
     }
     echo $renderer->grid_column_end();
