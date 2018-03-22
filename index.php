@@ -98,7 +98,8 @@ $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
-$PAGE->requires->js_call_amd('local_my/local_my', 'init');
+// $PAGE->requires->jquery_plugin('slick', 'local_my');
+$PAGE->requires->js_call_amd('local_my/collapse_control', 'init');
 $PAGE->requires->js_call_amd('local_my/slick', 'init');
 $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 $PAGE->requires->css('/local/my/css/slick.css');
@@ -179,7 +180,9 @@ $excludedcourses = explode(',', @$config->excludedcourses);
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
 $teachercap = 'local/my:isteacher';
-$isteacher = local_my_has_capability_somewhere($teachercap);
+$authorcap = 'local/my:isauthor';
+$isteacher = local_my_has_capability_somewhere($teachercap) ||
+        local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
 
 // Get and clean modules names.
 
@@ -206,7 +209,6 @@ if (in_array('my_caption', $mymodules)) {
 }
 
 echo $tabs;
-
 echo $OUTPUT->box_start('', 'my-content');
 
 $fooarray = null;

@@ -309,7 +309,7 @@ class local_my_renderer extends plugin_renderer_base {
     /**
      * Print a simple list of coures with first level category caption
      */
-    function courses_by_cats($courselist, $options = array(), $area) {
+    function courses_by_cats($courselist, $options = array(), $area = '') {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
         $renderer = $PAGE->get_renderer('local_my');
