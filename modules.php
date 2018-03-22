@@ -437,7 +437,7 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
         if (!empty($config->skipmymetas)) {
             if (local_my_is_meta_for_user($c->id, $USER->id)) {
                 if ($debug) {
-                    $debuginfo .=  "reject meta $id as meta disabled";
+                    $debuginfo .= "reject meta $id as meta disabled";
                 }
                 unset($myteachercourses[$id]);
                 continue;
@@ -532,7 +532,7 @@ function local_my_print_recent_courses() {
                 $coursetpl->summary = shorten_text(format_string($c->summary), 80);
             }
             $template->courses[] = $coursetpl;
-       }
+        }
 
         return $OUTPUT->render_from_template('local_my/recent_courses_module', $template);
     }
@@ -641,7 +641,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     $options = array();
     $options['withcats'] = 0;
 
-    // Ensure we have last access
+    // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
         $params = array('userid' => $USER->id, 'courseid' => $id);
         $allcourses[$id]->lastaccess = $DB->get_field('user_lastaccess', 'timeaccess', $params);
@@ -716,7 +716,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->i = $reali;
 
             if (count($areacourses) < $config->maxoverviewedlistsize) {
-                $courseareatpl->courseoverview = $renderer->course_overview($areacourses, array('gaugewidth' => 50, 'gaugeheight' => 12));
+                $params = array('gaugewidth' => 50, 'gaugeheight' => 12);
+                $courseareatpl->courseoverview = $renderer->course_overview($areacourses, $params);
             } else {
                 // Solve a performance issue for people having wide access to courses.
                 $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas');
@@ -946,7 +947,8 @@ function local_my_print_latestnews_full() {
             } else {
                 $template->subscribestr = get_string('subscribe', 'forum');
             }
-            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
+            $params = array('id' => $newsforum->id, 'sesskey' => sesskey());
+            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', $params);
             $template->isloggedin = true;
         }
 
@@ -1000,7 +1002,8 @@ function local_my_print_latestnews_headers() {
             } else {
                 $template->subscribestr = get_string('subscribe', 'forum');
             }
-            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
+            $params = array('id' => $newsforum->id, 'sesskey' => sesskey());
+            $template->subscribeurl = new moodle_url('/mod/forum/subscribe.php', $params);
         }
 
         ob_start();
@@ -1204,7 +1207,7 @@ function local_my_print_static($index) {
         } else {
             // Normal user, one sees his own.
 
-            $modaltpl =new StdClass;
+            $modaltpl = new StdClass;
             $modaltpl->modalindex = $index.'-'.$profilevalue;
 
             $return = new moodle_url('/my/index.php');

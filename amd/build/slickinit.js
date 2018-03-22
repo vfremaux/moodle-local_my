@@ -62,6 +62,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('AMD Local my Slickinit initialized');
 
-        }
+        },
     };
 });

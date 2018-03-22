@@ -1,6 +1,5 @@
 /* Slider */
-.slick-loading .slick-list
-{
+.slick-loading .slick-list {
     background: #fff;
 }
 
@@ -98,7 +97,7 @@
 }
 
 .slick-dots {
-    bottom: -35px;
+    bottom: -25px;
     display: block;
     list-style: none;
     margin: 0;
@@ -134,8 +133,8 @@
 
 .slick-dots li button:hover,
 .slick-dots li button:focus {
+    color: white;
     outline: none;
-    color:white;
 }
 
 .slick-dots li button:hover:before,

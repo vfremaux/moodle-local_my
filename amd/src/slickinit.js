@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript for initializong the slick slider.
+ * Javascript controller for controlling the sections.
  *
  * @module     local_my/slickinit
  * @package    local
@@ -62,6 +62,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('AMD Local my Slickinit initialized');
 
-        }
+        },
     };
 });
