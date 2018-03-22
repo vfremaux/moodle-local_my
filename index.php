@@ -179,7 +179,9 @@ $excludedcourses = explode(',', @$config->excludedcourses);
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
 $teachercap = 'local/my:isteacher';
-$isteacher = local_my_has_capability_somewhere($teachercap);
+$authorcap = 'local/my:isauthor';
+$isteacher = local_my_has_capability_somewhere($teachercap) ||
+        local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
 
 // Get and clean modules names.
 
@@ -206,7 +208,6 @@ if (in_array('my_caption', $mymodules)) {
 }
 
 echo $tabs;
-
 echo $OUTPUT->box_start('', 'my-content');
 
 $fooarray = null;
