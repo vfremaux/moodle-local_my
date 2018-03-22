@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 $plugin->version  = 2017072100;   // The (date) version of this plugin.
 $plugin->requires = 2016120500;   // Requires this Moodle version.
 $plugin->component = 'local_my';
@@ -36,9 +37,12 @@ $plugin->maturity = MATURITY_STABLE;
 $plugin->codeincrement = '3.2.0003';
 =======
 $plugin->version  = 2017082200;   // The (date) version of this plugin.
+=======
+$plugin->version  = 2017111402;   // The (date) version of this plugin.
+>>>>>>> MOODLE_34_STABLE
 $plugin->requires = 2017110800;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '3.4.0 (Build 2017082200)';
+$plugin->release = '3.4.0 (Build 2017111402)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
