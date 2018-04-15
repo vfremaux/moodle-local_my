@@ -50,11 +50,11 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
-                echo "reject $id as excluded \n";
+                echo "reject $cid as excluded \n";
             }
-            unset($mycourses[$id]);
+            unset($mycourses[$cid]);
         }
     }
 
@@ -122,11 +122,11 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
-                echo "reject $id as excluded \n";
+                echo "reject $cid as excluded \n";
             }
-            unset($mycourses[$id]);
+            unset($mycourses[$cid]);
         }
     }
 
@@ -264,12 +264,12 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
 
     $debuginfo = '';
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
-            if (!empty($id)) {
+        foreach ($excludedcourses as $cid) {
+            if (!empty($cid)) {
                 if ($debug) {
                     $debuginfo .= "rejected authored $cid as excluded</br/>";
                 }
-                unset($mycourses[$id]);
+                unset($mycourses[$cid]);
             }
         }
     }
@@ -339,7 +339,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
 
     $debuginfo = '';
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $cid) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
                 $debuginfo .= "rejected teached $cid as excluded</br/>";
             }
@@ -423,9 +423,9 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     }
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
-            if (!empty($id)) {
-                unset($myteachercourses[$id]);
+        foreach ($excludedcourses as $cid) {
+            if (!empty($cid)) {
+                unset($myteachercourses[$cid]);
             }
         }
     }
@@ -889,8 +889,8 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
         }
     }
 
-    foreach ($courses as $cid => $foo) {
-        if (in_array($cid, $excludedcourses)) {
+    foreach ($excludedcourses as $cid) {
+        if (in_array($cid, array_keys($courses))) {
             unset($courses[$cid]);
         }
     }
@@ -1112,7 +1112,7 @@ function local_my_print_static($index) {
             $e->field = $field->name;
             $e->value = $profileexpectedvalue;
             $template->adminviewstr = get_string('adminview', 'local_my', $e);
-            $template->hasadminview = true;
+            $template->isadminview = true;
         }
         $template->statictext = local_print_static_text('custommystaticarea_'.$index, $CFG->wwwroot.'/my/index.php', '', true);
 
@@ -1144,12 +1144,13 @@ function local_my_print_static($index) {
         $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
         $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
         $profilevalue = trim($profilevalue);
-        $profilevalue = str_replace(' ', '_', $profilevalue);
+        $profilevalue = str_replace(' ', '-', $profilevalue);
+        $profilevalue = preg_replace("/[^0-9a-zA-Z_-]/", '', $profilevalue);
 
         // This is a global match catching all values.
         if (has_capability('moodle/site:config', $context)) {
 
-            $template->hasadminview = true;
+            $template->isadminview = true;
 
             // I'm administrator, so i can see all modalities and edit them.
             if (!isset($modalities)) {
@@ -1174,48 +1175,47 @@ function local_my_print_static($index) {
                 foreach ($modalities as $modality) {
 
                     $modaltpl = new StdClass;
-
                     // Reformat key for token integrity.
                     if (is_object($modality)) {
                         $modality = core_text::strtolower($modality->data);
                     } else {
                         $modality = core_text::strtolower($modality);
                     }
-                    $modality = trim($modality);
-                    $modality = str_replace(' ', '-', $modality);
-                    $modalindex = $index.'-'.$modality;
+                    $unfilteredmodality = trim($modality);
+                    $modality = str_replace(' ', '-', $unfilteredmodality);
+                    $modality = preg_replace("/[^0-9a-zA-Z_-]/", '', $modality);
 
-                    $modaltpl->index = $modalindex;
+                    $modaltpl->modalindex = $index.'-'.$modality;
                     $a = new StdClass;
                     $a->profile = $field->shortname;
                     $a->data = $modality;
                     $modaltpl->contentforstr = get_string('contentfor', 'local_my', $a);
                     $return = new moodle_url('/my/index.php');
-                    $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modalindex, $return, '', true);
+                    $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modaltpl->modalindex, $return, '', true);
                     $modaltpl->visibilityclass = $visibilityclass;
                     $template->modalities[] = $modaltpl;
-
                     $visibilityclass = 'local-my-hide';
 
-                    $modoptions[$modality] = $modality;
+                    $modoptions[$modality] = $unfilteredmodality;
                 }
 
                 // Choose first as active.
-                $template->modalitiesselect = html_writer::select($modoptions, 'modalities', array_keys($modoptions)[0]);
+                $attrs = array('id' => 'local-my-static-select-'.$index, 'class' => 'local-my-modality-chooser');
+                $template->modalitiesselect = html_writer::select($modoptions, 'modalities', array_keys($modoptions)[0], null, $attrs);
 
             }
-        } else {
-            // Normal user, one sees his own.
+        }
 
+        // Normal user, one sees his own.
+        if (!empty($profilevalue)) {
             $modaltpl = new StdClass;
             $modaltpl->modalindex = $index.'-'.$profilevalue;
 
             $return = new moodle_url('/my/index.php');
-            $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$index, $return, '', true);
+            $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modaltpl->modalindex, $return, '', true);
             $template->modalities[] = $modaltpl;
         }
     }
-
     return $OUTPUT->render_from_template('local_my/static_module', $template);
 }
 
