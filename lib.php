@@ -498,7 +498,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
         if (!empty($options['withoverview'])) {
             $str .= $renderer->course_overview($courses, $options);
         } else if (!empty($options['withcats'])) {
-            $str .= $renderer->courses_by_cats($courses, $options);
+            $str .= $renderer->courses_by_cats($courses, $options, $title);
         } else {
             foreach ($courses as $c) {
                 $str .= $renderer->course_table_row($c, $options);
@@ -570,13 +570,14 @@ function local_prefetch_course_areas(&$excludedcourses) {
         $coursearea = 'coursearea'.$i;
         if (!empty($config->$coursearea)) {
             $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
-
-            // Filter courses of this area.
-            $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
-            foreach ($allmycourses as $c) {
-                if (in_array($c->category, $retainedcategories)) {
-                    $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
-                    $prefetchareacourses[$c->id] = $c;
+            if ($mastercategory) {
+                // Filter courses of this area.
+                $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
+                foreach ($allmycourses as $c) {
+                    if (in_array($c->category, $retainedcategories)) {
+                        $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
+                        $prefetchareacourses[$c->id] = $c;
+                    }
                 }
             }
         }
