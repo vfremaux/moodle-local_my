@@ -30,11 +30,6 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
 require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
 
 /**
- * this fixes the limit where courses can display overview.
- */
-define('MAX_COURSE_OVERVIEWED_LIST', 20);
-
-/**
  * Prints the "classical" "My Courses" area, course for students that are not displayed elsewhere.
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
@@ -58,11 +53,11 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
-                echo "reject $id as excluded \n";
+                echo "reject $cid as excluded \n";
             }
-            unset($mycourses[$id]);
+            unset($mycourses[$cid]);
         }
     }
 
@@ -87,17 +82,13 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
         $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
         $template->hascourses = true;
-        if (count($mycourses) < (0 + @$config->maxoverviewedlistsize)) {
-            $template->overviewedcourses = $renderer->course_overview($mycourses, array('gaugewidth' => 150, 'gaugeheight' => 20));
+        if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
+            // Solve a performance issue for people having wide access to courses.
+            $options = array('noheading' => true, 'withcats' => false, 'gaugewidth' => 150, 'gaugeheight' => 20);
         } else {
-            if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true, 'withcats' => false, 'gaugewidth' => 150, 'gaugeheight' => 20);
-            } else {
-                $options = array('noheading' => true, 'withcats' => true, 'gaugewidth' => 150, 'gaugeheight' => 20);
-            }
-            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
+            $options = array('noheading' => true, 'withcats' => true, 'gaugewidth' => 150, 'gaugeheight' => 20);
         }
+        $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
 
         if ($debug) {
             $debuginfo = '';
@@ -130,11 +121,11 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
-                echo "reject $id as excluded \n";
+                echo "reject $cid as excluded \n";
             }
-            unset($mycourses[$id]);
+            unset($mycourses[$cid]);
         }
     }
 
@@ -281,27 +272,22 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
 
     if (!empty($myauthcourses)) {
         $template->hascourses = true;
-        if (count($myauthcourses) < 0 + @$config->maxoverviewedlistsize) {
-            $attrs = array('gaugewidth' => 0, 'gaugeheight' => 0);
-            $template->overviewedcourses = $renderer->course_overview($myauthcourses, true, $attrs);
+        if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize)) {
+            // Solve a performance issue for people having wide access to courses.
+            $options = array('noheading' => true,
+                             'withcats' => false,
+                             'nocompletion' => true,
+                             'gaugewidth' => 0,
+                             'gaugeheight' => 0);
         } else {
-            if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => false,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-            } else {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => true,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-            }
-            $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
+            // Solve a performance issue for people having wide access to courses.
+            $options = array('noheading' => true,
+                             'withcats' => true,
+                             'nocompletion' => true,
+                             'gaugewidth' => 0,
+                             'gaugeheight' => 0);
         }
+        $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
 
         if (!empty($myauthcourses)) {
             foreach ($myauthcourses as $ac) {
@@ -350,12 +336,12 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
 
     $debuginfo = '';
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
-            if (!empty($id)) {
+        foreach ($excludedcourses as $cid) {
+            if (!empty($cid)) {
                 if ($debug) {
                     $debuginfo .= "rejected authored $cid as excluded</br/>";
                 }
-                unset($mycourses[$id]);
+                unset($mycourses[$cid]);
             }
         }
     }
@@ -586,7 +572,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
 
     $debuginfo = '';
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $cid) {
+        foreach ($excludedcourses as $cid) {
             if ($debug) {
                 $debuginfo .= "rejected teached $cid as excluded</br/>";
             }
@@ -614,27 +600,22 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
 
     if (!empty($myteachercourses)) {
         $template->hascourses = true;
-        if (count($myteachercourses) < 0 + @$config->maxoverviewedlistsize) {
-            $attrs = array('gaugewidth' => 0, 'gaugeheight' => 0, 'asteacher' => true);
-            $template->overviewedcourses = $renderer->course_overview($myteachercourses, true, $attrs);
+        if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize)) {
+            // Solve a performance issue for people having wide access to courses.
+            $options = array('noheading' => true,
+                             'withcats' => false,
+                             'nocompletion' => true,
+                             'gaugewidth' => 0,
+                             'gaugeheight' => 0);
         } else {
-            if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => false,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-            } else {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => true,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-            }
-            $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
+            // Solve a performance issue for people having wide access to courses.
+            $options = array('noheading' => true,
+                             'withcats' => true,
+                             'nocompletion' => true,
+                             'gaugewidth' => 0,
+                             'gaugeheight' => 0);
         }
+        $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
 
         if ($debug) {
             foreach ($myteachercourses as $ac) {
@@ -674,9 +655,9 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     }
 
     if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $id => $c) {
-            if (!empty($id)) {
-                unset($myteachercourses[$id]);
+        foreach ($excludedcourses as $cid) {
+            if (!empty($cid)) {
+                unset($myteachercourses[$cid]);
             }
         }
     }
@@ -970,13 +951,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->catname = $mastercategory->name;
             $courseareatpl->i = $reali;
 
-            if (count($areacourses) < $config->maxoverviewedlistsize) {
-                $params = array('gaugewidth' => 50, 'gaugeheight' => 12);
-                $courseareatpl->courseoverview = $renderer->course_overview($areacourses, $params);
-            } else {
-                // Solve a performance issue for people having wide access to courses.
-                $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas');
-            }
+            // Solve a performance issue for people having wide access to courses.
+            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas');
 
             $template->courseareas[] = $courseareatpl;
 
@@ -1102,12 +1078,8 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
             $courseareatpl->i = $reali;
 
             if (empty($options['nooverview'])) {
-                if (count($myareacourses) < $config->maxoverviewedlistsize) {
-                    $courseareatpl->courseoverview = $renderer->course_overview($myareacourses, $options);
-                } else {
-                    // Solve a performance issue for people having wide access to courses.
-                    $courseareatpl->coursesbycats = local_print_courses_by_cats($myareacourses, $options);
-                }
+                // Solve a performance issue for people having wide access to courses.
+                $courseareatpl->coursesbycats = local_print_courses_by_cats($myareacourses, $options);
             } else {
                 // Aggregate my courses with the available and print in one unique list.
                 $availableareacourses = array_merge($myareacourses, $availableareacourses);
@@ -1148,8 +1120,8 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
         }
     }
 
-    foreach ($courses as $cid => $foo) {
-        if (in_array($cid, $excludedcourses)) {
+    foreach ($excludedcourses as $cid) {
+        if (in_array($cid, array_keys($courses))) {
             unset($courses[$cid]);
         }
     }
@@ -1371,7 +1343,7 @@ function local_my_print_static($index) {
             $e->field = $field->name;
             $e->value = $profileexpectedvalue;
             $template->adminviewstr = get_string('adminview', 'local_my', $e);
-            $template->hasadminview = true;
+            $template->isadminview = true;
         }
         $template->statictext = local_print_static_text('custommystaticarea_'.$index, $CFG->wwwroot.'/my/index.php', '', true);
 
@@ -1403,12 +1375,13 @@ function local_my_print_static($index) {
         $params = array('userid' => $USER->id, 'fieldid' => $fieldid);
         $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
         $profilevalue = trim($profilevalue);
-        $profilevalue = str_replace(' ', '_', $profilevalue);
+        $profilevalue = str_replace(' ', '-', $profilevalue);
+        $profilevalue = preg_replace("/[^0-9a-zA-Z_-]/", '', $profilevalue);
 
         // This is a global match catching all values.
         if (has_capability('moodle/site:config', $context)) {
 
-            $template->hasadminview = true;
+            $template->isadminview = true;
 
             // I'm administrator, so i can see all modalities and edit them.
             if (!isset($modalities)) {
@@ -1433,48 +1406,47 @@ function local_my_print_static($index) {
                 foreach ($modalities as $modality) {
 
                     $modaltpl = new StdClass;
-
                     // Reformat key for token integrity.
                     if (is_object($modality)) {
                         $modality = core_text::strtolower($modality->data);
                     } else {
                         $modality = core_text::strtolower($modality);
                     }
-                    $modality = trim($modality);
-                    $modality = str_replace(' ', '-', $modality);
-                    $modalindex = $index.'-'.$modality;
+                    $unfilteredmodality = trim($modality);
+                    $modality = str_replace(' ', '-', $unfilteredmodality);
+                    $modality = preg_replace("/[^0-9a-zA-Z_-]/", '', $modality);
 
-                    $modaltpl->index = $modalindex;
+                    $modaltpl->modalindex = $index.'-'.$modality;
                     $a = new StdClass;
                     $a->profile = $field->shortname;
                     $a->data = $modality;
                     $modaltpl->contentforstr = get_string('contentfor', 'local_my', $a);
                     $return = new moodle_url('/my/index.php');
-                    $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modalindex, $return, '', true);
+                    $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modaltpl->modalindex, $return, '', true);
                     $modaltpl->visibilityclass = $visibilityclass;
                     $template->modalities[] = $modaltpl;
-
                     $visibilityclass = 'local-my-hide';
 
-                    $modoptions[$modality] = $modality;
+                    $modoptions[$modality] = $unfilteredmodality;
                 }
 
                 // Choose first as active.
-                $template->modalitiesselect = html_writer::select($modoptions, 'modalities', array_keys($modoptions)[0]);
+                $attrs = array('id' => 'local-my-static-select-'.$index, 'class' => 'local-my-modality-chooser');
+                $template->modalitiesselect = html_writer::select($modoptions, 'modalities', array_keys($modoptions)[0], null, $attrs);
 
             }
-        } else {
-            // Normal user, one sees his own.
+        }
 
+        // Normal user, one sees his own.
+        if (!empty($profilevalue)) {
             $modaltpl = new StdClass;
             $modaltpl->modalindex = $index.'-'.$profilevalue;
 
             $return = new moodle_url('/my/index.php');
-            $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$index, $return, '', true);
+            $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modaltpl->modalindex, $return, '', true);
             $template->modalities[] = $modaltpl;
         }
     }
-
     return $OUTPUT->render_from_template('local_my/static_module', $template);
 }
 

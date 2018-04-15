@@ -36,7 +36,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             // Attach togglestate handler to all handles in page.
             $('.local-my-cat-collapse').bind('click', this.toggle_cat_state);
-            $('#id-modalities-chooser').bind('change', this.toggle_modality);
+            $('.local-my-modality-chooser').bind('change', this.toggle_modality);
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
 
             log.debug('AMD Local my cat control initialized');
@@ -60,7 +60,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+            var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
             url += 'item=' + area;
             url += '&catid=' + catid;
 
@@ -90,21 +90,22 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
          * When administrator and using static text modules based on profile fields
          */
         toggle_modality: function() {
-            that = $(this);
 
-            modalityid = that.attr('id').replace('local-my-static-select-', 'local-my-static-modal-');
+            var that = $(this);
+
+            var modalityid = that.attr('id').replace('local-my-static-select-', 'local-my-static-modal-');
             $('.local-my-statictext-modals').addClass('local-my-hide');
-            $('#' + modalityid).removeClass('local-my-hide');
+            $('#' + modalityid + '-' + that.val()).removeClass('local-my-hide');
         },
 
         global_area_ctl: function(e) {
 
-            that = $(this);
+            var that = $(this);
             e.stopPropagation();
             e.preventDefault();
 
-            regexp = /local-my-cats-([^-]+)-([^-]+)$/;
-            matches = that.attr('id').match(regexp);
+            var regexp = /local-my-cats-([^-]+)-([^-]+)$/;
+            var matches = that.attr('id').match(regexp);
             if (!matches) {
                 return;
             }
