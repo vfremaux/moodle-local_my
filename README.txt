@@ -43,13 +43,9 @@ this requires local/my/lib.php being loaded earlier (f.e. in config.php)
 2017072100
 =========================================
 
-<<<<<<< HEAD
-Add capability local/my:ismanager to allow non siteadmins to have admin tab.
-=======
 Add capability local/my:ismanager to allow non siteadmins to have admin tab.
 
 2017082200
 =========================================
 
 Add manager as being an author when assigned in some context
->>>>>>> MOODLE_34_STABLE
