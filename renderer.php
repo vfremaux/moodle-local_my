@@ -400,46 +400,6 @@ class local_my_renderer extends plugin_renderer_base {
     }
 
     /**
-     * an adaptation of the standard print_course_overview()
-     * @param array $courses a course array to print
-     * @param boolean $return if true returns the string
-     * @return the rendered view if return is true
-     */
-    public function course_overview($courses, $options = array()) {
-        global $PAGE, $OUTPUT;
-
-        $renderer = $PAGE->get_renderer('local_my');
-
-        // Be sure we have something in lastaccess.
-        foreach ($courses as $cid => $c) {
-            $courses[$cid]->lastaccess = 0 + @$courses[$cid]->lastaccess;
-        }
-
-        $overviews = array();
-        if ($modules = get_plugin_list_with_function('mod', 'print_overview')) {
-            foreach ($modules as $fname) {
-                $fname($courses, $overviews);
-            }
-        }
-
-        $template = new StdClass;
-
-        foreach ($courses as $cid => $c) {
-            $coursetpl = new StdClass;
-            if (empty($options['nocompletion'])) {
-                $coursetpl->showprogression = true;
-                $w = $options['gaugewidth'];
-                $h = $options['gaugeheight'];
-                $renderer->course_completion_gauge($c, 'div', $w, $h, 'progressbar', $coursetpl);
-            }
-            $coursetpl->coursediv = $renderer->course_simple_div($c);
-            $template->course[] = $coursetpl;
-        }
-
-        return $this->output->render_from_template('local_my/course_overview', $template);
-    }
-
-    /**
      *
      *
      *
