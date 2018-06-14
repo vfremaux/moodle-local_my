@@ -81,6 +81,17 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
+    $defaultmodules = "my_caption\nme\ncourse_search\nmanaged_courses\n";
+    $defaultmodules .= "latestnews_simple\nmy_heatmap";
+    if (!isset($config->teachermodules)) {
+        set_config('coursemanagermodules', $defaultmodules, 'local_my');
+    }
+    $key = 'local_my/coursemanagermodules';
+    $label = get_string('localmycoursemanagermodules', 'local_my');
+    $desc = get_string('localmycoursemanagermodules_desc', 'local_my');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+    $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
+
     $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
@@ -123,7 +134,28 @@ if ($hassiteconfig) {
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas; $i++) {
         $key = 'local_my/coursearea'.$i;
-        $label = get_string('localmycoursearea', 'local_my').' '.$i;
+        $label = get_string('localmycoursearea', 'local_my').' A '.$i;
+        $settings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
+        $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
+    }
+
+    $options = array();
+    $options[0] = get_string('nocourseareas', 'local_my');
+    for ($i = 1; $i < 10; $i++) {
+        $options[$i] = $i;
+    }
+    $key = 'local_my/courseareas2';
+    $label = get_string('localmycourseareas', 'local_my').' 2';
+    $desc = get_string('localmycourseareas_desc', 'local_my').' 2';
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
+    $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
+
+    $categoryoptions = coursecat::make_categories_list();
+    $categoryoptions[0] = $SITE->fullname;
+    asort($categoryoptions);
+    for ($i = 0; $i < @$config->courseareas2; $i++) {
+        $key = 'local_my/coursearea2_'.$i;
+        $label = get_string('localmycoursearea', 'local_my'). ' 2 - A '.$i;
         $settings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
@@ -135,11 +167,23 @@ if ($hassiteconfig) {
     $desc = get_string('localmyprintcategories_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
+    $identifieroptions = ['' => get_string('none', 'local_my'),
+                          'shortname' => get_string('shortname'),
+                          'idnumber' => get_string('idnumber')];
+
+    $key = 'local_my/showcourseidentifier';
+    $label = get_string('localmyshowcourseidentifier', 'local_my');
+    $desc = get_string('localmyshowcourseidentifier_desc', 'local_my');
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $identifieroptions, PARAM_TEXT));
+
+    /*
+    // Obsolete in 3.5
     $overviewedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20);
     $key = 'local_my/maxoverviewedlistsize';
     $label = get_string('localmymaxoverviewedlistsize', 'local_my');
     $desc = get_string('localmymaxoverviewedlistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $overviewedoptions, PARAM_INT));
+    */
 
     $availableoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50);
     $key = 'local_my/maxavailablelistsize';

@@ -39,6 +39,14 @@ $capabilities = array(
         )
     ),
 
+    'local/my:iscoursemanager' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+        )
+    ),
+
     'local/my:isteacher' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,

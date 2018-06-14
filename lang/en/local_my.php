@@ -16,6 +16,7 @@
 
 $string['my:overridemy'] = 'Can override My routing';
 $string['my:ismanager'] = 'Has manager activity in site';
+$string['my:iscoursemanager'] = 'Has manager activity in courses';
 $string['my:isteacher'] = 'Has teacher activity in some courses';
 $string['my:isauthor'] = 'Has editing teacher activity in some courses';
 
@@ -25,6 +26,7 @@ $string['addnewsubcategory'] = 'Add new subcategory';
 $string['asadmin'] = 'Administrator';
 $string['asstudent'] = 'Student';
 $string['asteacher'] = 'Teacher';
+$string['ascoursemanager'] = 'Course manager';
 $string['available'] = 'Available';
 $string['availablecourses'] = 'Available courses for free enrol';
 $string['backtohome'] = 'Back to home page';
@@ -53,6 +55,7 @@ $string['futurecourses'] = 'Future courses';
 $string['heatmapsettings'] = 'Heatmap Settings';
 $string['inner'] = "Between {down} and {up}";
 $string['localmyadminmodules'] = 'Admin panel modules ';
+$string['localmycoursemanagermodules'] = 'Course manager panel modules ';
 $string['localmycoursearea'] = 'Course area ';
 $string['localmycourseareas'] = 'Specific course areas';
 $string['localmyenable'] = 'Enable customized my';
@@ -63,6 +66,8 @@ $string['localmylayout'] = 'Local my layout';
 $string['localmymaxavailablelistsize'] = 'Max size of available courses';
 $string['localmymaxoverviewedlistsize'] = 'Max size of course list with full overviewes';
 $string['localmymaxuncategorizedlistsize'] = 'Max size of course list with mention of category';
+$string['localmyshowcourseidentifier'] = 'Show course identifier';
+$string['localmyshowcourseidentifier_desc'] = 'If enabled, adds the course identifier to the course list output';
 $string['localmymodules'] = 'Student panel modules ';
 $string['localmyprintcategories'] = 'Print with categories (1 level)';
 $string['localmyteachermodules'] = 'Teacher panel modules ';
@@ -77,6 +82,7 @@ $string['mycategories'] = 'My authoring categories';
 $string['mycourses'] = 'My courses';
 $string['mynetwork'] = 'My network';
 $string['myteachercourses'] = 'My courses as a teacher';
+$string['mymanagedcourses'] = 'Courses i manage';
 $string['myteachings'] = 'My teaching';
 $string['mytemplates'] = 'My templates';
 $string['newcourse'] = 'Create new course';
@@ -85,6 +91,7 @@ $string['newtemplate'] = 'New template';
 $string['noavailablecourses'] = 'No course in free access.';
 $string['nocourseareas'] = 'No course areas';
 $string['nocourses'] = 'No courses.';
+$string['none'] = '(None)';
 $string['nostaticguitexts'] = 'You are requiring the {$a} dashboard module but local_staticguitexts is not installed in your system. Install it or remove the entry in the module lists.';
 $string['notcompiledyet'] = 'Stats were never compiled yet. you can wait the next stats task run, or <a href="{$a}">force compile now (it may take some time)</a>';
 $string['numberoffiles'] = 'Number of files';
@@ -129,6 +136,7 @@ if dual stack is enabled by adding the "left_edition_column" module in the list.
 <li>authored_courses</li>
 <li>available_courses</li>
 <li>course_areas: special dedicated course areas</li>
+<li>course_areas2: special dedicated course areas (second instance)</li>
 <p>Other modules can be used:</p>
 <li>latestnews_full</li>
 <li>latestnews_headers</li>
@@ -146,6 +154,10 @@ An optional module set that adds separate panel for teachers.
 
 $string['localmyadminmodules_desc'] = '
 An optional module set that adds separate panel for admins.
+';
+
+$string['localmycoursemanagermodules_desc'] = '
+An optional module set that adds separate panel for course managers.
 ';
 
 $string['rendererimages_desc'] = 'All images for renderer. We expect a "coursedefaultimage" image';

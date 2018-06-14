@@ -128,7 +128,6 @@ div.course-box .courseimage {
     height: 115px;
     margin-left: 5px;
     margin-right: 5px;
-    margin-top: 10px;
     padding: 8px;
 }
 
@@ -138,7 +137,16 @@ div.course-box .courseimage img {
 
 .local-my-fp-coursename a img,
 .local-my-fp-coursethumb a img {
-    height: 250px !important;
+    height: 150px !important;
+    width:auto;
+    margin:auto;
+}
+
+.local-my-fp-coursename.width50 a img,
+.local-my-fp-coursethumb.width50 a img {
+    height: 120px !important;
+    width:initial;
+    margin:auto;
 }
 
 div.course-box .title {
@@ -175,6 +183,7 @@ div.course-box .title {
 .local-my-fp-courseinfo {
     text-align: center;
     padding: 5px;
+    clear: both;
 }
 
 .local-my-fp-coursebox {
@@ -390,4 +399,11 @@ div.course-box .title {
 .editing-icon img {
     width: 20px;
     height: 20px;
+}
+
+.local-my-course-id:after {
+    content: '] ';
+}
+.local-my-course-id:before {
+    content: '[';
 }
