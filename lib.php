@@ -142,6 +142,10 @@ function local_my_fetch_modules($view) {
             $modgroup = 'teachermodules';
             break;
 
+        case 'ascoursemanager':
+            $modgroup = 'coursemanagermodules';
+            break;
+
         case 'asadmin':
             $modgroup = 'adminmodules';
             break;
@@ -246,9 +250,13 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
 function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
     global $USER, $DB;
 
+    $authoredcourses = array();
     if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+            $context = context_course::instance($a->id);
+            if (!has_capability('local/my:iscoursemanager', $context)) {
+                $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+            }
         }
         return $authoredcourses;
     }
@@ -256,7 +264,23 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
 }
 
 /**
- * get courses i am authoring in.
+ * get courses i am managing (or by capability).
+ *
+ */
+function local_get_my_managed_courses($fields = '*', $capability = 'local/my:iscoursemanager') {
+    global $USER, $DB;
+
+    if ($managed = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
+        foreach ($managed as $a) {
+            $managedcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+        }
+        return $managedcourses;
+    }
+    return array();
+}
+
+/**
+ * get courses templates i am authoring in.
  * @return an array of course records.
  */
 function local_get_my_templates() {

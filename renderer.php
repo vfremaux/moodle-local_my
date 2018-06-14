@@ -35,23 +35,12 @@ class local_my_renderer extends plugin_renderer_base {
      * @param string $progressbar type of gauge renderer.
      */
     public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar', &$template) {
-        global $USER, $PAGE;
+        global $USER, $PAGE, $DB;
 
-        $completion = new completion_info($course);
+        $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
+        $completion = new completion_info($courserec);
         if ($completion->is_enabled(null)) {
-            $alltracked = count($completion->get_activities());
-            $progressinfo = $completion->get_progress_all('u.id = :userid', array('userid' => $USER->id));
-            $completed = 0;
-            if (!empty($progressinfo)) {
-                if (!empty($progressinfo[$USER->id]->progress)) {
-                    foreach ($progressinfo[$USER->id]->progress as $progressrecord) {
-                        if ($progressrecord->completionstate) {
-                            $completed++;
-                        }
-                    }
-                }
-            }
-            $ratio = ($alltracked == 0) ? 0 : round($completed / $alltracked * 100);
+            $ratio = \core_completion\progress::get_course_progress_percentage($courserec);
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');
 
             $template->completionstr = get_string('completion', 'local_my', (0 + $ratio));
@@ -60,10 +49,26 @@ class local_my_renderer extends plugin_renderer_base {
                 $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
                 $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id,
                                                                            array($ratio), $properties);
-            } else {
+            } else if ($type == 'progressbar') {
                 $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
                 $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
                                                                         $ratio, $properties);
+            } else if ($type == 'jqplot') {
+                // Completion with a donut.
+                $completedstr = get_string('completion', 'local_my', $ratio);
+                $data = array(array($completedstr, round($ratio)), array('', round(100 - $ratio)));
+                $attrs = array('height' => $width, 'width' => $height);
+                $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
+            } else {
+                if ($ratio) {
+                    $comppercent = number_format($ratio, 0);
+                    $hasprogress = true;
+                } else {
+                    $comppercent = 0;
+                    $hasprogress = false;
+                }
+                $progresschartcontext = ['hasprogress' => $hasprogress, 'progress' => $comppercent];
+                $template->progression = $this->render_from_template('block_myoverview/progress-chart', $progresschartcontext);
             }
         } else {
             $template->progression = '';
@@ -82,6 +87,8 @@ class local_my_renderer extends plugin_renderer_base {
     public function course_table_row($course, $options) {
         global $DB, $USER;
 
+        $config = get_config('local_my');
+
         $template = new StdClass;
 
         $template->courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
@@ -92,6 +99,13 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         $template->editingicon = $this->editing_icon($course);
+        if (!empty($config->showcourseidentifier)) {
+            if ($config->showcourseidentifier == 'idnumber') {
+                $template->cid = $course->idnumber;
+            } else {
+                $template->cid = $course->shortname;
+            }
+        }
         $template->fullname = format_string($course->fullname);
         $template->summary = format_text($course->summary, @$course->summaryformat);
         if (!empty($options['withdescription'])) {
@@ -142,6 +156,10 @@ class local_my_renderer extends plugin_renderer_base {
             $template->summary = shorten_text(format_text($c->summary), 80);
         }
 
+        $this->course_completion_gauge($course, 'div', 
+                                       $options['gaugewidth'], $options['gaugeheight'],
+                                       'donut', $template);
+
         return $this->output->render_from_template('local_my/coursebox', $template);
     }
 
@@ -165,7 +183,7 @@ class local_my_renderer extends plugin_renderer_base {
     /**
      * Prints tabs if separated role screens
      */
-    public function tabs(&$view, $isteacher) {
+    public function tabs(&$view, $isteacher, $iscoursemanager) {
         global $SESSION;
 
         $config = get_config('local_my');
@@ -178,6 +196,13 @@ class local_my_renderer extends plugin_renderer_base {
             $params = array('view' => 'asadmin');
             $taburl = new moodle_url('/my', $params);
             $rows[0][] = new tabobject('asadmin', $taburl, $tabname);
+        }
+
+        if (!empty($config->coursemanagermodules) && $iscoursemanager) {
+            $tabname = get_string('ascoursemanager', 'local_my');
+            $params = array('view' => 'ascoursemanager');
+            $taburl = new moodle_url('/my', $params);
+            $rows[0][] = new tabobject('ascoursemanager', $taburl, $tabname);
         }
 
         if (empty($config->teachermodules)) {
@@ -254,6 +279,10 @@ class local_my_renderer extends plugin_renderer_base {
                 if (empty($coursetpl->imgurl)) {
                     $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
                 }
+
+                $this->course_completion_gauge($course, 'div', 
+                                       120, 120,
+                                       'donut', $coursetpl);
 
                 $template->courses[] = $coursetpl;
             }

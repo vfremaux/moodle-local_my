@@ -13,9 +13,26 @@
                     <div class="local-my-promowrap">
                         <div class="local-my-fp-coursebox">
                             <div class="local-my-fp-coursethumb">
+                                {{#progression}}
+                                <div>
+                                <div class="local-my-fp-coursename pull-left">
+                                    <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="50%" title="{{fullname}}">
+                                        <div class="course-overlay">
+                                            <i class="fa fa-arrow-circle-right" aria-hidden="true"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="local-my-fp-progression pull-right">
+                                    {{{progression}}}
+                                </div>
+                                </div>
+                                {{/progression}}
+
+                                {{^progression}}
                                 <div class="local-my-fp-coursename">
                                     <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="100%" height="125" title="{{fullname}}"></a>
                                 </div>
+                                {{/progression}}
                                 <div class="local-my-fp-courseinfo">
                                     <h5>
                                         <a href="{{{courseurl}}}"
