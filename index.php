@@ -54,10 +54,6 @@ $edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
 
 require_login();
 
-if (!isset($config->maxoverviewedlistsize)) {
-    set_config('maxoverviewedlistsize', MAX_COURSE_OVERVIEWED_LIST, 'local_my');
-}
-
 $strmymoodle = get_string('myhome');
 
 if (isguestuser()) {

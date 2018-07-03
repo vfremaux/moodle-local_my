@@ -143,7 +143,7 @@ class local_my_renderer extends plugin_renderer_base {
         $template->fullname = format_string($c->fullname);
         $template->shortname = $c->shortname;
 
-        $template->editingicon = $this->editing_icon($course);
+        $template->editingicon = $this->editing_icon($c);
 
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);

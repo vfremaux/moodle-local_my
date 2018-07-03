@@ -41,6 +41,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
         },
 
+        hide_home_nav: function() {
+            $('a[data-key="home"]').css('display', 'none');
+        },
+
         toggle_cat_state: function(e) {
 
             e.stopPropagation();
