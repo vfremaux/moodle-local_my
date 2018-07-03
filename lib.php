@@ -130,6 +130,12 @@ function local_has_myoverride_somewhere() {
     return false;
 }
 
+function local_my_before_footer() {
+    global $PAGE;
+
+    $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
+}
+
 function local_my_fetch_modules($view) {
 
     $config = get_config('local_my');
@@ -525,6 +531,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= $renderer->courses_by_cats($courses, $options, $title);
         } else {
             foreach ($courses as $c) {
+                $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
                 $str .= $renderer->course_table_row($c, $options);
             }
         }

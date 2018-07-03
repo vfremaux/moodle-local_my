@@ -407,3 +407,24 @@ div.course-box .title {
 .local-my-course-id:before {
     content: '[';
 }
+
+.local-my-fp-coursename .course-overlay {
+    -webkit-transition: 0.5s ease;
+    -o-transition: 0.5s ease;
+    transition: 0.5s ease;
+    opacity: 0;
+    position: relative;
+    left: 0;
+    top: -0.6rem;
+    font-size: 5rem;
+    margin-top: -8rem;
+    color: #212529;
+}
+
+.local-my-fp-coursename:hover .course-overlay {
+    opacity:1;
+}
+
+.local-my-fp-coursename:hover  img {
+    opacity:0.3;
+}

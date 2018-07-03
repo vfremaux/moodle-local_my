@@ -196,6 +196,11 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
 
     $template->buttons = $renderer->course_creator_buttons($mycatlist);
 
+    if (empty($myauthcourses) && empty($template->buttons)) {
+        // In case we cannot create and all courses where gone elsewhere.
+        return '';
+    }
+
     if (!empty($myauthcourses)) {
         $template->hascourses = true;
         if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
@@ -701,7 +706,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     $renderer = $PAGE->get_renderer('local_my');
 
     $options = array();
-    $options['withcats'] = 0;
+    $options['withcats'] = $config->printcategories;
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -714,6 +719,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         return;
     }
 
+    $view = optional_param('view', 'asstudent', PARAM_TEXT);
     $template = new StdClass;
 
     $reali = 1;
@@ -736,6 +742,20 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         $retainedcategories = local_get_cat_branch_ids_rec($categoryid);
         $areacourses = array();
         foreach ($allcourses as $c) {
+
+            $context = context_course::instance($c->id);
+            $editing = has_capability('moodle/course:manageactivities', $context);
+            // Filter out non editing.
+            if (($view == 'asteacher') || ($view == 'ascoursemanager')) {
+                if (!$editing) {
+                    continue;
+                }
+            } else {
+                if ($editing) {
+                    continue;
+                }
+            }
+
             if (in_array($c->category, $retainedcategories)) {
                 $areacourses[$c->id] = $c;
                 $excludedcourses[] = $c->id;
@@ -762,7 +782,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
                     $colwidth = 50;
                     break;
                 default:
-                    $colwidth = 33;
+                    $colwidth = 32;
             }
         }
 
@@ -804,7 +824,7 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
     $renderer = $PAGE->get_renderer('local_my');
 
     $options = array();
-    $options['withcats'] = 0;
+    $options['withcats'] = $config->printcategories;
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -1716,9 +1736,6 @@ function local_my_print_course_search() {
     $str .= $OUTPUT->box_start('box block');
 
     $str .= $OUTPUT->box_start('header');
-    $str .= $OUTPUT->box_start('title');
-    $str .= '<h2 class="headingblock header">'.get_string('coursesearch', 'local_my').'</h2>';
-    $str .= $OUTPUT->box_end();
     $str .= $OUTPUT->box_end();
 
     $str .= $OUTPUT->box_start('content');

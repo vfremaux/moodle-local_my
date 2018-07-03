@@ -205,6 +205,11 @@ if ($hassiteconfig) {
     $desc = get_string('localmyheatmaprange_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 6, $heatmapoptions, PARAM_INT));
 
+    $key = 'local_my/slick';
+    $label = get_string('localmyslick', 'local_my');
+    $desc = get_string('localmyslick_desc', 'local_my');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 1));
+
     $key = 'local_my/rendererimages';
     $label = get_string('rendererimages', 'local_my');
     $desc = get_string('rendererimages_desc', 'local_my');

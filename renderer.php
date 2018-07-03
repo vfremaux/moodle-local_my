@@ -40,7 +40,7 @@ class local_my_renderer extends plugin_renderer_base {
         $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
         $completion = new completion_info($courserec);
         if ($completion->is_enabled(null)) {
-            $ratio = \core_completion\progress::get_course_progress_percentage($course);
+            $ratio = \core_completion\progress::get_course_progress_percentage($courserec);
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');
 
             $template->completionstr = get_string('completion', 'local_my', (0 + $ratio));
@@ -143,7 +143,7 @@ class local_my_renderer extends plugin_renderer_base {
         $template->fullname = format_string($c->fullname);
         $template->shortname = $c->shortname;
 
-        $template->editingicon = $this->editing_icon($course);
+        $template->editingicon = $this->editing_icon($c);
 
         $context = context_course::instance($c->id);
         $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);

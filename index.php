@@ -54,10 +54,6 @@ $edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
 
 require_login();
 
-if (!isset($config->maxoverviewedlistsize)) {
-    set_config('maxoverviewedlistsize', MAX_COURSE_OVERVIEWED_LIST, 'local_my');
-}
-
 $strmymoodle = get_string('myhome');
 
 if (isguestuser()) {
@@ -102,8 +98,10 @@ $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 $PAGE->requires->js_call_amd('local_my/local_my', 'init');
-$PAGE->requires->js_call_amd('local_my/slick', 'init');
-$PAGE->requires->js_call_amd('local_my/slickinit', 'init');
+if (!empty($config->slick)) {
+    $PAGE->requires->js_call_amd('local_my/slick', 'init');
+    $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
+}
 $PAGE->requires->css('/local/my/css/slick.css');
 
 if (get_home_page() != HOMEPAGE_MY) {
