@@ -23,25 +23,26 @@
 // jshint unused: true, undef:true
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
-    var currentcourseid;
-
     /**
      * SectionControl class.
      *
      * @param {String} selector The selector for the page region containing the actions panel.
      */
-    return {
+    var localmy = {
 
-        init: function(args) {
+        init: function() {
 
             // Attach togglestate handler to all handles in page.
             $('.local-my-cat-collapse').bind('click', this.toggle_cat_state);
-            $('#id-modalities-chooser').bind('change', this.toggle_modality);
+            $('.local-my-modality-chooser').bind('change', this.toggle_modality);
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
 
             log.debug('AMD Local my cat control initialized');
 
-            currentcourseid = args;
+        },
+
+        hide_home_nav: function() {
+            $('a[data-key="home"]').css('display', 'none');
         },
 
         toggle_cat_state: function(e) {
@@ -50,21 +51,22 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             e.preventDefault();
             var that = $(this);
 
-            regex = /local-my-cathandle-([^-]+)-([0-9]+)/;
-            matchs = regex.exec(that.attr('id'));
+            var regex = /local-my-cathandle-([^-]+)-([0-9]+)/;
+            var matchs = regex.exec(that.attr('id'));
             if (!matchs) {
                 return;
             }
-            area = matchs[1];
-            catid = parseInt(matchs[2]);
+            var area = matchs[1];
+            var catid = parseInt(matchs[2]);
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+            var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
             url += 'item=' + area;
             url += '&catid=' + catid;
 
-            handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+            var handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+            var hide = 0;
 
             if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
@@ -80,7 +82,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             url += '&hide=' + hide;
 
-            $.get(url, function(data) {
+            $.get(url, function() {
             });
 
             return false;
@@ -90,27 +92,29 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
          * When administrator and using static text modules based on profile fields
          */
         toggle_modality: function() {
-            that = $(this);
 
-            modalityid = that.attr('id').replace('local-my-static-select-', 'local-my-static-modal-');
+            var that = $(this);
+
+            var modalityid = that.attr('id').replace('local-my-static-select-', 'local-my-static-modal-');
             $('.local-my-statictext-modals').addClass('local-my-hide');
-            $('#' + modalityid).removeClass('local-my-hide');
+            $('#' + modalityid + '-' + that.val()).removeClass('local-my-hide');
         },
 
         global_area_ctl: function(e) {
 
-            that = $(this);
+            var that = $(this);
             e.stopPropagation();
             e.preventDefault();
 
-            regexp = /local-my-cats-([^-]+)-([^-]+)$/;
-            matches = that.attr('id').match(regexp);
+            var regexp = /local-my-cats-([^-]+)-([^-]+)$/;
+            var matches = that.attr('id').match(regexp);
             if (!matches) {
                 return;
             }
 
             var mode = matches[1];
             var area = matches[2];
+            var url = '';
 
             if (mode == 'collapseall') {
                 $('.local-my-course-' + area).addClass('collapsed');
@@ -144,5 +148,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             return false;
         }
     };
+
+    return localmy;
 
 });

@@ -1,0 +1,56 @@
+
+
+<!-- local_my/my_courses_grid -->
+<div class="block block_my_courses">
+
+    <div class="header">
+        <div class=title">
+            <h2>{{mycoursesstr}}</h2>
+        </div>
+    </div>
+
+    <div class="content course-grid">
+
+{{^hascourses}}
+        {{{nocourses}}}
+{{/hascourses}}
+
+{{#hascourses}}
+    {{#coursegridelms}}
+        <div class="local-my-promowrap">
+            <div class="local-my-fp-coursebox">
+                <div class="local-my-fp-coursethumb">
+                    {{#progression}}
+                    <div>
+                    <div class="local-my-fp-coursename pull-left {{withopacityeffect}} {{withhaloeffect}}">
+                        <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="50%" title="{{fullname}}"></a>
+                    </div>
+                    <div class="local-my-fp-progression">
+                        {{{progression}}}
+                    </div>
+                    </div>
+                    {{/progression}}
+
+                    {{^progression}}
+                    <div class="local-my-fp-coursename {{withopacityeffect}} {{withhaloeffect}}">
+                        <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="100%" height="125" title="{{fullname}}"></a>
+                    </div>
+                    {{/progression}}
+                    <div class="local-my-fp-courseinfo">
+                        <h5>
+                            <a href="{{{courseurl}}}"
+                               id="button"
+                               data-toggle="tooltip"
+                               data-placement="bottom"
+                               title="{{fullname}}" >{{trimtitle}}</a>
+                        </h5>
+                    </div>
+                    <div class="local-my-fp-summary">{{{summary}}}</div>
+                </div>
+            </div>
+        </div>
+    {{/coursegridelms}}
+{{/hascourses}}
+    </div>
+</div>
+<!-- local_my/my_courses_grid -->

@@ -17,8 +17,8 @@
 /**
  * Javascript controller for controlling the sections.
  *
- * @module     block_multicourse_navigation/collapse_control
- * @package    block_multicourse_navigation
+ * @module     local_my/slickinit
+ * @package    local
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // jshint unused: true, undef:true

@@ -43,6 +43,9 @@ if (empty($config->enable)) {
 
 require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
+require_once($CFG->dirroot.'/local/vflibs/jqplotlib.php');
+
+local_vflibs_require_jqplot_libs();
 
 // TODO Add sesskey check to edit.
 $edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
@@ -98,8 +101,7 @@ $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
-// $PAGE->requires->jquery_plugin('slick', 'local_my');
-$PAGE->requires->js_call_amd('local_my/collapse_control', 'init');
+$PAGE->requires->js_call_amd('local_my/local_my', 'init');
 $PAGE->requires->js_call_amd('local_my/slick', 'init');
 $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 $PAGE->requires->css('/local/my/css/slick.css');
@@ -181,21 +183,29 @@ $excludedcourses = explode(',', @$config->excludedcourses);
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
 $teachercap = 'local/my:isteacher';
 $authorcap = 'local/my:isauthor';
+$coursemanagercap = 'local/my:iscoursemanager';
 $isteacher = local_my_has_capability_somewhere($teachercap) ||
         local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
+$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
 
 // Get and clean modules names.
 
 echo $OUTPUT->header();
 
 $view = optional_param('view', '', PARAM_TEXT);
-if (empty($view) && $isteacher) {
-    // Defaults for teachers.
-    $view = 'asteacher';
+if (empty($view)) {
+    if ($isteacher) {
+        // Defaults for teachers.
+        $view = 'asteacher';
+    }
+    if ($iscoursemanager) {
+        // Defaults for coursemanagers.
+        $view = 'ascoursemanager';
+    }
 }
 
 // We need prefetch tabs as it may resolve view.
-$tabs = $renderer->tabs($view, $isteacher);
+$tabs = $renderer->tabs($view, $isteacher, $iscoursemanager);
 
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
@@ -237,8 +247,8 @@ echo $OUTPUT->box_start('container-fluid', 'mydashboard'); // Table.
 echo $OUTPUT->box_start('row-fluid', 'mydashboard-row'); // Row.
 
 if (in_array('left_edition_column', $mymodules)) {
-    $spanclass = 'span6 md-col-6 xs-col-12';
-    echo $OUTPUT->box_start('span6 md-col-6 xs-col12', 'my-dashboard-left');
+    $spanclass = 'span6 col-md-6 col-xs-12';
+    echo $OUTPUT->box_start('span6 col-md-6 col-xs-12', 'my-dashboard-left');
 
     if (function_exists('local_print_static_text')) {
         // In case the local_staticguitexts is coming with.
@@ -253,7 +263,7 @@ if (in_array('left_edition_column', $mymodules)) {
 
     echo $OUTPUT->box_end();
 } else {
-    $spanclass = 'span12';
+    $spanclass = 'span12 col-xs-12';
 }
 
 // The main overview in the middle of the page.

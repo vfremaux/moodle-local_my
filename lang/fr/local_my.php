@@ -16,6 +16,7 @@
 
 $string['my:overridemy'] = 'Peut surpasser la page My';
 $string['my:ismanager'] = 'A une activité de gestionnaire dans le site';
+$string['my:iscoursemanager'] = 'A une activité de coordinateur dans un cours';
 $string['my:isteacher'] = 'A une activité d\'enseignement dans un cours';
 $string['my:isauthor'] = 'A une activité d\'auteur dans un cours';
 
@@ -23,9 +24,10 @@ $string['my:isauthor'] = 'A une activité d\'auteur dans un cours';
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
 $string['allcategories'] = 'Naviguer dans les catégories';
 $string['addnewsubcategory'] = 'Ajouter une nouvelle sous-catégorie';
-$string['asadmin'] = 'Administrateur';
-$string['asstudent'] = 'Etudiant';
-$string['asteacher'] = 'Enseignant';
+$string['asadmin'] = 'J\'administre';
+$string['ascoursemanager'] = 'Je coordonne';
+$string['asstudent'] = 'J\'apprends';
+$string['asteacher'] = 'J\'enseigne';
 $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';
@@ -54,6 +56,7 @@ $string['futurecourses'] = 'Cours futurs';
 $string['heatmapsettings'] = 'Réglages du HeatMap';
 $string['inner'] = 'Entre {down} et {up}';
 $string['localmyadminmodules'] = 'Modules actifs pour les administrateurs';
+$string['localmycoursemanagermodules'] = 'Modules actifs pour les coordinateurs de cours';
 $string['localmycoursearea'] = 'Aire de cours ';
 $string['localmycourseareas'] = 'Zones de cours specifiques';
 $string['localmyenable'] = 'Activer la customisation my';
@@ -68,6 +71,8 @@ $string['localmymodules'] = 'Modules actifs pour les étudiants';
 $string['localmyprintcategories'] = 'Afficher les catégories';
 $string['localmyteachermodules'] = 'Modules actifs pour les enseignants';
 $string['localmyuselefteditioncolumn'] = 'Utiliser la colonne éditoriale de gauche';
+$string['localmyshowcourseidentifier'] = 'Afficher l\'identifiant du cours';
+$string['localmyshowcourseidentifier_desc'] = 'Si activé, ajoute l\'identifiant sélectionné dans les affichages de liste des cours';
 $string['localskipmymetas'] = 'Ignorer les metacours';
 $string['lower'] = 'Moins que {min} {name}';
 $string['managemycourses'] = 'Gérer mes cours';
@@ -78,6 +83,7 @@ $string['mycategories'] = 'Mes catégories';
 $string['mycourses'] = 'Mes cours';
 $string['mynetwork'] = 'Mon réseau';
 $string['myteachercourses'] = 'Mes enseignements';
+$string['mymanagedcourses'] = 'Les cours que je coordonne';
 $string['myteachings'] = 'Mes enseignements';
 $string['mytemplates'] = 'Mes modèles';
 $string['newcourse'] = 'Créer un nouveau cours';
@@ -86,6 +92,7 @@ $string['newtemplate'] = 'Nouveau modèle';
 $string['noavailablecourses'] = 'Aucun cours en accès libre.';
 $string['nocourseareas'] = 'Pas de zones de cours spécifiques';
 $string['nocourses'] = 'Pas de cours.';
+$string['none'] = '(Aucun)';
 $string['nostaticguitexts'] = 'vous utilisez le module de tableau de bord {$a} mais le plugin local_staticguitexts n\'est pas installé sur votre moodle. Installez le ou éliminez ces entrée dans la configuration des modules.';
 $string['notcompiledyet'] = 'Les statistiques n\'ont pas encore été calculées. Vous pouvea attendre le passage de la tâche de calcul ou <a href="{$a}">forcer immédiatement le calcul (cela peut prendre du temps).</a>';
 $string['numberoffiles'] = 'Nombre de fichiers';
@@ -105,6 +112,9 @@ $string['task_compile_stats'] = 'Statistiques de site';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';
 $string['upper'] = 'Plus que {max} {name}';
+$string['visualsettings'] = "Réglages graphiques";
+$string['effectopacity'] = "Effet d'opacité";
+$string['effecthalo'] = "Effet de halo";
 
 $string['january'] = 'Janvier';
 $string['february'] = 'Février';
@@ -131,6 +141,7 @@ si celle-ci est activée par la présence du module "left_edition_column".</p>
 <li>authored_courses</li>
 <li>available_courses</li>
 <li>course_areas: aires de cours spécialisées</li>
+<li>course_areas: aires de cours spécialisées (deuxième instance)</li>
 <li>latestnews_full</li>
 <li>latestnews_headers</li>
 <li>my_network: voisinage réseau accessible pour l\'utilisateur</li>
@@ -139,6 +150,18 @@ si celle-ci est activée par la présence du module "left_edition_column".</p>
 <li>recent_courses</li>
 <li>my_templates (avec le plugin local course_templates)</li>
 <li>static<n></li>
+';
+
+$string['localmyteachermodules_desc'] = '
+Un ensemble de modules de tableau de bord à destination des enseignants.
+';
+
+$string['localmyadminmodules_desc'] = '
+Un ensemble de modules de tableau de bord à destination des administrateurq.
+';
+
+$string['localmycoursemanagermodules_desc'] = '
+Un ensemble de modules de tableau de bord à destination des coordinateurs de cours.
 ';
 
 $string['localmycourseareas_desc'] = 'Les zones de cours spécifiques sont des listes de cours prises dans une certaine
