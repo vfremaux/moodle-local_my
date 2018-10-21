@@ -112,7 +112,4 @@ class management_renderer extends \core_course_management_renderer implements \r
         return $html;
     }
 
-    public function export_for_template(renderer_base $output) {
-    }
-
 }

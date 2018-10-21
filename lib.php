@@ -142,6 +142,10 @@ function local_my_fetch_modules($view) {
             $modgroup = 'teachermodules';
             break;
 
+        case 'ascoursemanager':
+            $modgroup = 'coursemanagermodules';
+            break;
+
         case 'asadmin':
             $modgroup = 'adminmodules';
             break;
@@ -256,7 +260,23 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
 }
 
 /**
- * get courses i am authoring in.
+ * get courses i am managing (or by capability).
+ *
+ */
+function local_get_my_managed_courses($fields = '*', $capability = 'local/my:iscoursemanager') {
+    global $USER, $DB;
+
+    if ($managed = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
+        foreach ($managed as $a) {
+            $managedcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+        }
+        return $managedcourses;
+    }
+    return array();
+}
+
+/**
+ * get courses templates i am authoring in.
  * @return an array of course records.
  */
 function local_get_my_templates() {
@@ -501,6 +521,7 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
             $str .= $renderer->courses_by_cats($courses, $options, $title);
         } else {
             foreach ($courses as $c) {
+                $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
                 $str .= $renderer->course_table_row($c, $options);
             }
         }
@@ -630,6 +651,14 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
         }
     }
     if ($orderby) {
+        $fields = explode(',', $orderby);
+        $orderby = '';
+        foreach ($fields as $field) {
+            if ($orderby) {
+                $orderby .= ',';
+            }
+            $orderby .= $field;
+        }
         $orderby = 'ORDER BY '.$orderby;
     }
 

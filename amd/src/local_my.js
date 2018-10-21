@@ -23,16 +23,14 @@
 // jshint unused: true, undef:true
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
-    var currentcourseid;
-
     /**
      * SectionControl class.
      *
      * @param {String} selector The selector for the page region containing the actions panel.
      */
-    return {
+    var localmy = {
 
-        init: function(args) {
+        init: function() {
 
             // Attach togglestate handler to all handles in page.
             $('.local-my-cat-collapse').bind('click', this.toggle_cat_state);
@@ -41,7 +39,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('AMD Local my cat control initialized');
 
-            currentcourseid = args;
+        },
+
+        hide_home_nav: function() {
+            $('a[data-key="home"]').css('display', 'none');
         },
 
         toggle_cat_state: function(e) {
@@ -50,13 +51,13 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             e.preventDefault();
             var that = $(this);
 
-            regex = /local-my-cathandle-([^-]+)-([0-9]+)/;
-            matchs = regex.exec(that.attr('id'));
+            var regex = /local-my-cathandle-([^-]+)-([0-9]+)/;
+            var matchs = regex.exec(that.attr('id'));
             if (!matchs) {
                 return;
             }
-            area = matchs[1];
-            catid = parseInt(matchs[2]);
+            var area = matchs[1];
+            var catid = parseInt(matchs[2]);
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
@@ -64,7 +65,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             url += 'item=' + area;
             url += '&catid=' + catid;
 
-            handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+            var handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+            var hide = 0;
 
             if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
@@ -80,7 +82,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             url += '&hide=' + hide;
 
-            $.get(url, function(data) {
+            $.get(url, function() {
             });
 
             return false;
@@ -112,6 +114,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             var mode = matches[1];
             var area = matches[2];
+            var url = '';
 
             if (mode == 'collapseall') {
                 $('.local-my-course-' + area).addClass('collapsed');
@@ -145,5 +148,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             return false;
         }
     };
+
+    return localmy;
 
 });

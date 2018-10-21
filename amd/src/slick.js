@@ -14,7 +14,8 @@
   Issues: http://github.com/kenwheeler/slick/issues
 
  */
-/* global window, document, define, jQuery, setInterval, clearInterval */
+/* eslint-disable */
+// jshint ignore: start
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
     var Slick = window.Slick || {};

@@ -128,7 +128,6 @@ div.course-box .courseimage {
     height: 115px;
     margin-left: 5px;
     margin-right: 5px;
-    margin-top: 10px;
     padding: 8px;
 }
 
@@ -139,6 +138,18 @@ div.course-box .courseimage img {
 .local-my-fp-coursename a img,
 .local-my-fp-coursethumb a img {
     height: 250px !important;
+    width:fit-content;
+    width:-moz-fit-content;
+    width:-webkit-fit-content;
+    max-width:100%;
+    margin:auto;
+}
+
+.local-my-fp-coursename.width50 a img,
+.local-my-fp-coursethumb.width50 a img {
+    height: 120px !important;
+    width:initial;
+    margin:auto;
 }
 
 div.course-box .title {
@@ -169,12 +180,12 @@ div.course-box .title {
 
 .local-my-fp-coursename {
     text-align: center;
-    padding: 5px;
 }
 
 .local-my-fp-courseinfo {
     text-align: center;
     padding: 5px;
+    clear: both;
 }
 
 .local-my-fp-coursebox {
@@ -390,4 +401,98 @@ div.course-box .title {
 .editing-icon img {
     width: 20px;
     height: 20px;
+}
+
+.local-my-course-id:after {
+    content: '] ';
+}
+
+.local-my-course-id:before {
+    content: '[';
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns : 33% 33% 33%;
+}
+
+#mydashboard .jqplot-grid-canvas {
+    display: none;
+}
+
+#mydashboard .jqplot-donut-series.jqplot-data-label {
+    background-color: white;
+    opacity:0.6;
+    -moz-opacity:0.6;
+}
+
+/* Some effects on boxes */
+
+.local-my-fp-coursename.with-opacity-effect {
+    background: #eeccff;
+}
+
+.local-my-fp-coursename.with-opacity-effect a img {
+    opacity: .5;
+    -webkit-transition: .1s ease-out;
+    transition: .1s ease-out;
+}
+
+.local-my-fp-coursename.with-opacity-effect a:hover img {
+    opacity: 1;
+}
+
+/* Halo effect */
+/* Halo lumineux */
+.local-my-fp-coursename.with-halo-effect {
+    position: relative;
+}
+
+.local-my-fp-coursename.with-halo-effect::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    display: block;
+    content: '';
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,.2);
+    border-radius: 100%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.local-my-fp-coursename.with-halo-effect:hover::before {
+    -webkit-animation: local-my-circle .75s;
+    animation: local-my-circle .75s;
+}
+
+@-webkit-keyframes local-my-circle {
+    0% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 1;
+    }
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+    }
+}
+
+@keyframes local-my-circle {
+    0% {
+        opacity: 1;
+    }
+        40% {
+        opacity: 1;
+    }
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+    }
 }

@@ -11,12 +11,16 @@
 {{/isadminview}}
 
 {{^modalities}}
-{{{statictext}}}
+<div class="content" id="local-my-static-content-{{index}}">
+    {{{statictext}}}
+</div>
 {{/modalities}}
 
 {{#isadminview}}
 <div id="local-my-static-ctl-{{index}}" class="editing local-my-statictext-ctl">
+{{#hasmodalities}}
     {{{modalitiesselect}}}
+{{/hasmodalities}}
 </div>
 {{/isadminview}}
 
