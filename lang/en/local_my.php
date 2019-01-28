@@ -17,7 +17,8 @@
 $string['my:overridemy'] = 'Can override My routing';
 $string['my:ismanager'] = 'Has manager activity in site';
 $string['my:iscoursemanager'] = 'Has manager activity in courses';
-$string['my:isteacher'] = 'Has teacher activity in some courses';
+$string['my:isteacher'] = 'Has teacher activity in some courses or some contexts';
+$string['my:isteaching'] = 'Is actually teacher in the course context';
 $string['my:isauthor'] = 'Has editing teacher activity in some courses';
 
 $string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
@@ -63,6 +64,8 @@ $string['localmyexcludedcourses'] = 'Course to exclude';
 $string['localmyforce'] = 'Force my page to users';
 $string['localmyheatmaprange'] = 'HeatMap Range';
 $string['localmylayout'] = 'Local my layout';
+$string['localmyslick'] = 'Slick slider';
+$string['localmyslick_desc'] = 'Enables slick slider in slider widgets';
 $string['localmymaxavailablelistsize'] = 'Max size of available courses';
 $string['localmymaxoverviewedlistsize'] = 'Max size of course list with full overviewes';
 $string['localmymaxuncategorizedlistsize'] = 'Max size of course list with mention of category';

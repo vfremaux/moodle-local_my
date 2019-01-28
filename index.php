@@ -49,6 +49,7 @@ local_vflibs_require_jqplot_libs();
 
 // TODO Add sesskey check to edit.
 $edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
+$showresolve = optional_param('showresolve', null, PARAM_BOOL);    // Turn check of how courses are dispatched.
 
 // Security.
 
@@ -224,14 +225,24 @@ echo $OUTPUT->box_start('', 'my-content');
 $fooarray = null;
 $courseareacourses = array();
 
+$courseareaskeys = array();
 // Calculate course areas content for exclusions.
 if ((in_array('course_areas', $modules) ||
-        in_array('course_areas_and_availables', $modules)) &&
+        in_array('course_areas_and_availables', $modules) ||
+        in_array('course_areas2', $modules)) &&
                 @$config->courseareas > 0) {
     $courseareacourses = local_prefetch_course_areas($fooarray);
 
     $courseareaskeys = array_keys($courseareacourses);
     local_my_scalar_array_merge($excludedcourses, $courseareaskeys);
+}
+if ($showresolve) {
+    $OUTPUT->box_start();
+    echo "Excluded:";
+    print_object($excludedcourses);
+    echo "Courseareakeys:";
+    print_object($courseareaskeys);
+    $OUTPUT->box_end();
 }
 
 if ($view == 'asstudent' && $isteacher) {

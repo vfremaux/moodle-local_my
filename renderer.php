@@ -65,22 +65,12 @@ class local_my_renderer extends plugin_renderer_base {
                 $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
                 $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
                                                                         $ratio, $properties);
-            } else if ($type == 'jqplot') {
+            } else {
                 // Completion with a donut.
                 $completedstr = get_string('completion', 'local_my', $ratio);
                 $data = array(array($completedstr, round($ratio)), array('', round(100 - $ratio)));
                 $attrs = array('height' => $width, 'width' => $height);
                 $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
-            } else {
-                if ($ratio) {
-                    $comppercent = number_format($ratio, 0);
-                    $hasprogress = true;
-                } else {
-                    $comppercent = 0;
-                    $hasprogress = false;
-                }
-                $progresschartcontext = ['hasprogress' => $hasprogress, 'progress' => $comppercent];
-                $template->progression = $this->render_from_template('block_myoverview/progress-chart', $progresschartcontext);
             }
         } else {
             $template->progression = '';
@@ -131,6 +121,10 @@ class local_my_renderer extends plugin_renderer_base {
                                                'progressbar', $template);
             }
         }
+
+        $template->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
+        $template->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
+        $template->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
 
         return $this->output->render_from_template('local_my/coursetablerow', $template);
     }
@@ -217,33 +211,30 @@ class local_my_renderer extends plugin_renderer_base {
             $rows[0][] = new tabobject('ascoursemanager', $taburl, $tabname);
         }
 
-        if (empty($config->teachermodules)) {
-            return;
+        if (!empty($config->teachermodules) && $isteacher) {
+            $tabname = get_string('asteacher', 'local_my');
+            $params = array('view' => 'asteacher');
+            $taburl = new moodle_url('/my/index.php', $params);
+            $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
         }
 
         if (empty($view)) {
             $view = @$SESSION->localmyview;
 
             if ($isadmin) {
-                if (empty($view)) {
-                    $view = 'asadmin';
-                }
+                $view = 'asadmin';
             } else if ($isteacher) {
-                if (empty($view)) {
-                    $view = 'asteacher';
-                }
+                $view = 'asteacher';
+            } else if ($iscoursemanager) {
+                $view = 'ascoursemanager';
             } else {
+                // If only student.
                 // Force anyway the student view only, including forcing session.
                 // Do NOT print any tabs.
                 $view = 'asstudent';
                 return;
             }
         }
-
-        $tabname = get_string('asteacher', 'local_my');
-        $params = array('view' => 'asteacher');
-        $taburl = new moodle_url('/my/index.php', $params);
-        $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
 
         $tabname = get_string('asstudent', 'local_my');
         $params = array('view' => 'asstudent');
@@ -288,6 +279,10 @@ class local_my_renderer extends plugin_renderer_base {
 
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
         $coursetpl->courseurl = ''.$courseurl;
+
+        $coursetpl->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
+        $coursetpl->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
+        $coursetpl->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
 
         if ($course instanceof stdClass) {
             require_once($CFG->libdir. '/coursecatlib.php');

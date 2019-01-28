@@ -130,6 +130,17 @@ function local_has_myoverride_somewhere() {
     return false;
 }
 
+function local_my_before_footer() {
+    global $PAGE, $USER;
+
+    $config = get_config('local_my');
+
+    $systemcontext = context_system::instance();
+    if (!empty($config->force) && !has_capability('local/my:overridemy', $systemcontext, $USER, false)) {
+        $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
+    }
+}
+
 function local_my_fetch_modules($view) {
 
     $config = get_config('local_my');
@@ -250,9 +261,14 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
 function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
     global $USER, $DB;
 
+    $authoredcourses = array();
     if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
         foreach ($authored as $a) {
-            $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+            $context = context_course::instance($a->id);
+            if (!has_capability('local/my:iscoursemanager', $context, $USER, false)) {
+                // doanything not considered here.
+                $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+            }
         }
         return $authoredcourses;
     }
@@ -579,16 +595,36 @@ function local_prefetch_course_areas(&$excludedcourses) {
         }
     }
 
-    if (empty($config->courseareas)) {
+    if (empty($config->courseareas) && empty($config->courseareas2)) {
         // Performance quick trap.
         return array();
     }
 
     $prefetchareacourses = array();
 
+    // Get the first coursearea zone exclusions.
     for ($i = 0; $i < $config->courseareas; $i++) {
 
         $coursearea = 'coursearea'.$i;
+        if (!empty($config->$coursearea)) {
+            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
+            if ($mastercategory) {
+                // Filter courses of this area.
+                $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
+                foreach ($allmycourses as $c) {
+                    if (in_array($c->category, $retainedcategories)) {
+                        $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
+                        $prefetchareacourses[$c->id] = $c;
+                    }
+                }
+            }
+        }
+    }
+
+    // Add the second coursearea zone exclusions.
+    for ($i = 0; $i < $config->courseareas2; $i++) {
+
+        $coursearea = 'coursearea2_'.$i;
         if (!empty($config->$coursearea)) {
             $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
             if ($mastercategory) {
@@ -906,4 +942,49 @@ function local_my_scalar_array_merge(&$arr1, &$arr2) {
         }
         sort($arr1);
     }
+}
+
+function local_my_is_visible_course(&$course) {
+    global $DB;
+
+    if (!$course->visible) {
+        return false;
+    }
+
+    if (!$course->category) {
+        return true; // this is the SITE course.
+    }
+
+    $cat = $DB->get_record('course_categories', array('id' => $course->category));
+    if (empty($cat->visible)) {
+        return false;
+    }
+
+    while ($cat->parent) {
+        $cat = $DB->get_record('course_categories', array('id' => $cat->parent));
+        if (!$cat->visible) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function local_my_is_selfenrolable_course($course) {
+    global $DB;
+
+    $params = array('courseid' => $course->id, 'enrol' => 'self', 'status' => 0);
+    if ($DB->count_records('enrol', $params)) {
+        return true;
+    }
+    return false;
+}
+
+function local_my_is_guestenrolable_course($course) {
+    global $DB;
+
+    $params = array('courseid' => $course->id, 'enrol' => 'guest', 'status' => 0);
+    if ($DB->count_records('enrol', $params)) {
+        return true;
+    }
+    return false;
 }

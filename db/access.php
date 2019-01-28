@@ -31,6 +31,9 @@ $capabilities = array(
         )
     ),
 
+    /*
+     * Tells who has site wide management capabilities
+     */
     'local/my:ismanager' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
@@ -47,6 +50,9 @@ $capabilities = array(
         )
     ),
 
+    /*
+     * Tells who is teacher in course
+     */
     'local/my:isteacher' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -57,6 +63,21 @@ $capabilities = array(
         )
     ),
 
+    /*
+     * Tells who is actually teaching in context. This will exclude higher role and context assignations
+     */
+    'local/my:isteaching' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
+
+    /*
+     * Tells who is editingeacher in course
+     */
     'local/my:isauthor' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
