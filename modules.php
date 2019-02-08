@@ -34,7 +34,7 @@ require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
+function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $DB, $USER, $OUTPUT, $PAGE, $CFG;
 
     $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
@@ -44,30 +44,23 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
 
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
-    if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $cid) {
-            if ($debug) {
-                echo "reject $cid as excluded \n";
-            }
-            unset($mycourses[$cid]);
-        }
-    }
-
-    foreach ($mycourses as $id => $c) {
-        if (!empty($config->skipmymetas)) {
-            if (local_my_is_meta_for_user($c->id, $USER->id)) {
-                if ($debug) {
-                    echo "reject meta $id as meta disabled";
-                }
-                unset($mycourses[$id]);
-                continue;
-            }
-        }
-        $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
-    }
+    $debuginfo = '';
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
+    $debuginfo .= local_my_process_metas($mycourses);
 
     $template = new StdClass;
     $template->mycoursesstr = get_string('mycourses', 'local_my');
+    $options = array();
+    $options['gaugewidth'] = 60;
+    $options['gaugeheight'] = 15;
+
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
+    }
+
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
+    }
 
     if (empty($mycourses)) {
         $template->hascourses = false;
@@ -77,10 +70,24 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
         if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
             // Solve a performance issue for people having wide access to courses.
             $options = array('noheading' => true, 'withcats' => false, 'gaugewidth' => 150, 'gaugeheight' => 20);
-        } else {
-            $options = array('noheading' => true, 'withcats' => true, 'gaugewidth' => 150, 'gaugeheight' => 20);
         }
-        $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
+        if ($alttemplate == 'my_courses_grid') {
+            foreach ($mycourses as $cid => $c) {
+                $coursetpl = $renderer->coursebox($c);
+                $template->coursegridelms[] = $coursetpl;
+            }
+            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
+        } else {
+            $options = array('noheading' => true,
+                             'withcats' => true,
+                             'gaugewidth' => 150,
+                             'gaugeheight' => 20);
+            if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
+                // Solve a performance issue for people having wide access to courses.
+                $options['withcats'] = false;
+            }
+            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
+        }
 
         if ($debug) {
             $debuginfo = '';
@@ -93,7 +100,17 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses) {
         $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
     }
 
-    return $OUTPUT->render_from_template('local_my/my_courses', $template);
+    if (!empty($alttemplate)) {
+        $templatename = $alttemplate;
+    } else {
+        $templatename = 'my_courses';
+    }
+
+    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+}
+
+function local_my_print_my_courses_grid(&$excludedcourses, &$courseareacourses) {
+    return local_my_print_my_courses($excludedcourses, $courseareacourses, 'my_courses_grid');
 }
 
 /**
@@ -112,30 +129,12 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
 
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
 
-    if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $cid) {
-            if ($debug) {
-                echo "reject $cid as excluded \n";
-            }
-            unset($mycourses[$cid]);
-        }
-    }
 
     $debuginfo = '';
-    foreach ($mycourses as $id => $c) {
-        if (!empty($config->skipmymetas)) {
-            if (local_my_is_meta_for_user($c->id, $USER->id)) {
-                if ($debug) {
-                    $debuginfo .= "reject meta $id as meta disabled<br/>";
-                }
-                unset($mycourses[$id]);
-                continue;
-            }
-        }
-        $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
-    }
+    $debuginfo .= local_my_process_metas($mycourses);
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
 
-    $template = new StdClass;
+    $template = new StdClass();
     $template->widgetname = 'my_courses_slider';
 
     if ($debug) {
@@ -160,7 +159,7 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses) {
+function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $OUTPUT, $CFG, $DB, $PAGE;
 
     $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
@@ -168,19 +167,31 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
 
     $renderer = $PAGE->get_renderer('local_my');
     $myauthcourses = local_get_my_authoring_courses();
-    $template = new StdClass;
+    $template = new StdClass();
 
-    if (!empty($excludedcourses)) {
-        $debuginfo = '';
-        foreach ($excludedcourses as $cid) {
-            if ($debug) {
-                $debuginfo .= "rejected authored $cid as excluded</br/>";
-            }
-            unset($myauthcourses[$cid]);
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
+    }
+
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
+    }
+
+    $debuginfo = '';
+    if ($debug) {
+        foreach(array_keys($myauthcourses) as $cid) {
+            $debuginfo .= "Pre accepting authored $cid \n";
         }
-        if ($debug) {
-            $template->debuginfo = $debuginfo;
+    }
+
+    $debuginfo .= local_my_process_excluded($excludedcourses, $myauthcourses);
+    $debuginfo .= local_my_process_metas($myauthcourses);
+
+    if ($debug) {
+        foreach(array_keys($myauthcourses) as $cid) {
+            $debuginfo .= "Accepting authored $cid \n";
         }
+        $template->debuginfo = $debuginfo;
     }
 
     // Post 2.5.
@@ -203,22 +214,32 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
 
     if (!empty($myauthcourses)) {
         $template->hascourses = true;
-        if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => false,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
+        if ($alttemplate == 'authored_courses_grid') {
+            foreach ($mycourses as $cid => $c) {
+                $coursetpl = $renderer->coursebox($c);
+                $coursetpl->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
+                $coursetpl->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
+                $template->coursegridelms[] = $coursetpl;
+            }
+            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
         } else {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => true,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
+            if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
+                // Solve a performance issue for people having wide access to courses.
+                $options = array('noheading' => true,
+                                 'withcats' => false,
+                                 'nocompletion' => true,
+                                 'gaugewidth' => 0,
+                                 'gaugeheight' => 0);
+            } else {
+                // Solve a performance issue for people having wide access to courses.
+                $options = array('noheading' => true,
+                                 'withcats' => true,
+                                 'nocompletion' => true,
+                                 'gaugewidth' => 0,
+                                 'gaugeheight' => 0);
+            }
+            $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
         }
-        $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
 
         if (!empty($myauthcourses)) {
             foreach ($myauthcourses as $ac) {
@@ -236,7 +257,17 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses)
         }
     }
 
-    return $OUTPUT->render_from_template('local_my/authored_courses_module', $template);
+    if (!empty($alttemplate)) {
+        $templatename = $alttemplate;
+    } else {
+        $templatename = 'authored_courses_module';
+    }
+
+    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+}
+
+function local_my_print_authored_courses_grid(&$excludedcourses, &$courseareacourses) {
+    return local_my_print_authored_courses($excludedcourses, $courseareacourses, 'authored_courses_grid_module');
 }
 
 /**
@@ -254,17 +285,20 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
     $mymanagedcourses = local_get_my_managed_courses();
     $template = new StdClass;
 
-    if (!empty($excludedcourses)) {
-        $debuginfo = '';
-        foreach ($excludedcourses as $cid) {
-            if ($debug) {
-                $debuginfo .= "rejected authored $cid as excluded</br/>";
-            }
-            unset($mymanagedcourses[$cid]);
-        }
-        if ($debug) {
-            $template->debuginfo = $debuginfo;
-        }
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
+    }
+
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
+    }
+
+    $debuginfo = '';
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
+    $debuginfo .= local_my_process_metas($mymanagedcourses);
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
     // Post 2.5.
@@ -334,31 +368,10 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     $mycourses = local_get_my_authoring_courses();
 
     $debuginfo = '';
-    if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $cid) {
-            if (!empty($cid)) {
-                if ($debug) {
-                    $debuginfo .= "rejected authored $cid as excluded</br/>";
-                }
-                unset($mycourses[$cid]);
-            }
-        }
-    }
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
+    $debuginfo .= local_my_process_metas($mycourses);
 
-    foreach ($mycourses as $id => $c) {
-        if (!empty($config->skipmymetas)) {
-            if (local_my_is_meta_for_user($c->id, $USER->id)) {
-                if ($debug) {
-                    $debuginfo .= "reject meta $id as meta disabled";
-                }
-                unset($mycourses[$id]);
-                continue;
-            }
-        }
-        $mycourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
-    }
-
-    $template = new StdClass;
+    $template = new StdClass();
     $template->widgetname = 'my_authored_courses_slider';
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
@@ -385,13 +398,58 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
 }
 
 /**
+ * Prints the slider form of the managed course
+ * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
+ * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
+ */
+function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareacourses) {
+    global $DB, $USER, $PAGE, $CFG, $OUTPUT;
+
+    $renderer = $PAGE->get_renderer('local_my');
+
+    $config = get_config('local_my');
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+
+    $mymanagedcourses = local_get_my_managed_courses();
+
+    $debuginfo = '';
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
+    $debuginfo .= local_my_process_metas($mymanagedcourses);
+
+    $template = new StdClass;
+    $template->widgetname = 'my_managed_courses_slider';
+    $template->courselisttitlestr = get_string('mymanagedcourses', 'local_my');
+
+    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
+    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    if (!empty($mycatlist)) {
+        $template->buttons = $renderer->course_creator_buttons($mycatlist);
+    }
+
+    if (empty($mymanagedcourses)) {
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+    } else {
+        $template->hascourses = true;
+        $template->courseslider = $renderer->courses_slider(array_keys($mymanagedcourses));
+        $excludedcourses = array_merge($excludedcourses, array_keys($mymanagedcourses));
+    }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
+    return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
+}
+
+/**
  * Prints a courses area for all teachers (editors and non editors).
  * This will print a row of edition buttons if the treacher has capability to create course "somewhere" and
  * a list of courses with an edition/non edition signal.
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) {
+function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $OUTPUT, $CFG, $DB, $USER, $PAGE;
 
     $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
@@ -403,27 +461,30 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
     $teachercourses = get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields);
     $myteachercourses = array();
     if (!empty($teachercourses)) {
-        // Key eahc course with id.
+        // Key each course with id.
         foreach ($teachercourses as $c) {
             $myteachercourses[$c->id] = $c;
         }
     }
 
+    // Process exclusions
     $debuginfo = '';
-    if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $cid) {
-            if ($debug) {
-                $debuginfo .= "rejected teached $cid as excluded</br/>";
-            }
-            unset($myteachercourses[$cid]);
-        }
-    }
+    $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
+    $debuginfo .= local_my_process_metas($myteachercourses);
 
     // Post 2.5.
     include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $mycatlist = coursecat::make_categories_list('moodle/course:create');
 
-    $template = new StdClass;
+    $template = new StdClass();
+
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
+    }
+
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
+    }
 
     $template->hascontent = false;
     if (!empty($mycatlist) || !empty($myteachercourses)) {
@@ -435,22 +496,29 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
 
     if (!empty($myteachercourses)) {
         $template->hascourses = true;
-        if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => false,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
+        if ($alttemplate == 'teacher_courses_grid_module') {
+            foreach ($myteachercourses as $cid => $c) {
+                $coursetpl = $renderer->coursebox($c);
+                $template->coursegridelms[] = $coursetpl;
+            }
         } else {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => true,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
+            if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
+                // Solve a performance issue for people having wide access to courses.
+                $options = array('noheading' => true,
+                                 'withcats' => false,
+                                 'nocompletion' => true,
+                                 'gaugewidth' => 0,
+                                 'gaugeheight' => 0);
+            } else {
+                // Solve a performance issue for people having wide access to courses.
+                $options = array('noheading' => true,
+                                 'withcats' => true,
+                                 'nocompletion' => true,
+                                 'gaugewidth' => 0,
+                                 'gaugeheight' => 0);
+            }
+            $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
         }
-        $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
 
         if ($debug) {
             foreach ($myteachercourses as $ac) {
@@ -464,7 +532,17 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses) 
         $template->debuginfo = $debuginfo;
     }
 
-    return $OUTPUT->render_from_template('local_my/my_teacher_courses_module', $template);
+    if (!empty($alttemplate)) {
+        $templatename = $alttemplate;
+    } else {
+        $templatename = 'teacher_courses_module';
+    }
+
+    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+}
+
+function local_my_print_teacher_courses_grid(&$excludedcourses, &$courseareacourses) {
+    return local_my_print_teacher_courses($excludedcourses, $courseareacourses, 'teacher_courses_grid_module');
 }
 
 /**
@@ -480,7 +558,7 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     $config = get_config('local_my');
 
     $coursefields = 'shortname, fullname, category, visible';
-    $teachercourses = get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields, 'sortorder ASC');
+    $teachercourses = local_get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields, 'c.sortorder ASC');
     $myteachercourses = array();
     if (!empty($teachercourses)) {
         // Key eahc course with id.
@@ -489,31 +567,14 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
         }
     }
 
-    if (!empty($excludedcourses)) {
-        foreach ($excludedcourses as $cid) {
-            if (!empty($cid)) {
-                unset($myteachercourses[$cid]);
-            }
-        }
-    }
-
     $debug = optional_param('debug', false, PARAM_BOOL);
 
     $debuginfo = '';
-    foreach ($myteachercourses as $id => $c) {
-        if (!empty($config->skipmymetas)) {
-            if (local_my_is_meta_for_user($c->id, $USER->id)) {
-                if ($debug) {
-                    $debuginfo .= "reject meta $id as meta disabled";
-                }
-                unset($myteachercourses[$id]);
-                continue;
-            }
-        }
-        $myteachercourses[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
-    }
 
-    $template = new Stdclass;
+    $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
+    $debuginfo .= local_my_process_metas($myteachercourses);
+
+    $template = new Stdclass();
     $template->widgetname = 'teacher_courses_slider';
 
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
@@ -525,8 +586,10 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     }
 
     if (empty($myteachercourses)) {
+        $template->hascourses = false;
         $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
+        $template->hascourses = true;
         $template->courseslider = $renderer->courses_slider(array_keys($myteachercourses));
         $excludedcourses = array_merge($excludedcourses, array_keys($myteachercourses));
     }
@@ -569,7 +632,7 @@ function local_my_print_recent_courses() {
 
     $recentcourses = $DB->get_records_sql($sql, array($USER->id));
 
-    $template = new StdClass;
+    $template = new StdClass();
     $template->widgetname = 'recent_courses';
 
     $fs = get_file_storage();
@@ -581,14 +644,14 @@ function local_my_print_recent_courses() {
 
             $context = context_course::instance($c->id);
 
-            $coursetpl = new Stdclass;
+            $coursetpl = new Stdclass();
             $coursetpl->courseurl = new moodle_url('/course/view.php?id='.$c->id);
 
             $coursetpl->css = $c->visible ? '' : 'dimmed';
-            $coursetpl->fullname = format_string($fullname);
-            $coursetpl->shortname = $shortname;
+            $coursetpl->fullname = format_string($c->fullname);
+            $coursetpl->shortname = $c->shortname;
 
-            $coursetpl->editingicon = $this->editing_icon($course);
+            $coursetpl->editingicon = $renderer->editing_icon($c);
 
             $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
             if ($image = array_pop($images)) {
@@ -660,7 +723,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         }
     }
 
-    $template = new StdClass;
+    $template = new StdClass();
 
     $template->mytemplatesstr = get_string('mytemplates', 'local_my');
 
@@ -707,6 +770,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 
     $options = array();
     $options['withcats'] = $config->printcategories;
+    $options['gaugewidth'] = 60;
+    $options['gaugeheight'] = 15;
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -720,7 +785,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     }
 
     $view = optional_param('view', 'asstudent', PARAM_TEXT);
-    $template = new StdClass;
+    $template = new StdClass();
 
     $reali = 1;
     for ($i = 0; $i < $config->courseareas; $i++) {
@@ -744,7 +809,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         foreach ($allcourses as $c) {
 
             $context = context_course::instance($c->id);
-            $editing = has_capability('moodle/course:manageactivities', $context);
+            // Treat site admins as standard users.
+            $editing = has_capability('moodle/course:manageactivities', $context, $USER, false);
             // Filter out non editing.
             if (($view == 'asteacher') || ($view == 'ascoursemanager')) {
                 if (!$editing) {
@@ -788,7 +854,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 
         if (!empty($areacourses)) {
 
-            $courseareatpl = new StdClass;
+            $courseareatpl = new StdClass();
 
             if ($reali % 3 == 0) {
                 $courseareatpl->coljump = true;
@@ -798,7 +864,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->i = $reali;
 
             // Solve a performance issue for people having wide access to courses.
-            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas');
+            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas_'.$i);
 
             $template->courseareas[] = $courseareatpl;
 
@@ -825,6 +891,8 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
 
     $options = array();
     $options['withcats'] = $config->printcategories;
+    $options['gaugewidth'] = 60;
+    $options['gaugeheight'] = 15;
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -891,7 +959,7 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
 
         if (!empty($areacourses)) {
 
-            $courseareatpl = new StdClass;
+            $courseareatpl = new StdClass();
 
             if ($reali % 3 == 0) {
                 $courseareatpl->coljump = true;
@@ -901,7 +969,7 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->i = $reali;
 
             // Solve a performance issue for people having wide access to courses.
-            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas2');
+            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas2_'.$i);
 
             $template->courseareas[] = $courseareatpl;
 
@@ -970,7 +1038,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
         $mycourses[$cid]->lastaccess = $DB->get_field('logstore_standard_log', 'max(timecreated)', array('courseid' => $cid));
     }
 
-    $template = new StdClass;
+    $template = new StdClass();
 
     $options['noheading'] = 1;
     $options['nooverview'] = 1;
@@ -985,6 +1053,12 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
 
         $coursearea = 'coursearea'.$i;
         $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
+        if (!$mastercategory) {
+            if (debugging()) {
+                $template->courseareas[] = $OUTPUT->notification('Course master area is not valid '.$coursearea);
+            }
+            continue;
+        }
 
         $key = 'coursearea'.$i;
         $categoryid = $config->$key;
@@ -1015,7 +1089,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
         }
 
         if (!empty($myareacourses) || !empty($availableareacourses)) {
-            $courseareatpl = new StdClass;
+            $courseareatpl = new StdClass();
             if ($reali % 3 == 0) {
                 $courseareatpl->coljump = true;
             }
@@ -1080,7 +1154,7 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
     $options['withcats'] = 2;
     $options['nocompletion'] = 1;
 
-    $template = new StdClass;
+    $template = new StdClass();
 
     $template->availablecourses = local_my_print_courses('availablecourses', $courses, $options);
     if ($overcount) {
@@ -1110,7 +1184,7 @@ function local_my_print_latestnews_full() {
         $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
         $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
 
-        $template = new StdClass;
+        $template = new StdClass();
 
         $template->forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
 
@@ -1157,7 +1231,7 @@ function local_my_print_latestnews_headers() {
         $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
         $newsforumcontext = context_module::instance($newsforumcm->id, MUST_EXIST);
 
-        $template = new StdClass;
+        $template = new StdClass();
 
         $template->forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
 
@@ -1208,13 +1282,13 @@ function local_my_print_latestnews_simple() {
 
         $renderer = $PAGE->get_renderer('local_my');
 
-        $template = new StdClass;
+        $template = new StdClass();
         $template->forumname = format_string($newsforum->name);
         $template->simple = true;
 
         $newsdiscussions = $DB->get_records('forum_discussions', array('forum' => $newsforum->id), 'timemodified DESC');
         foreach ($newsdiscussions as $news) {
-            $discussiontpl = new StdClass;
+            $discussiontpl = new StdClass();
             $discussiontpl->discussionurl = new moodle_url('/mod/forum/discuss.php', array('d' => $news->id));
             $discussiontpl->newstitle = format_string($news->name);
             $discussiontpl->timemodified = userdate($news->timemodified);
@@ -1236,8 +1310,12 @@ function local_my_print_latestnews_simple() {
 function local_my_print_static($index) {
     global $CFG, $DB, $USER, $OUTPUT;
 
+    if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
+        return $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'static'));
+    }
+
     $context = context_system::instance();
-    $template = new StdClass;
+    $template = new StdClass();
 
     if (!file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
         return $OUTPUT->notification(get_string('staticguitextsnotinstalled', 'local_my'));
@@ -1280,7 +1358,7 @@ function local_my_print_static($index) {
         $template->staticclass = $class;
 
         if ($class == 'adminview') {
-            $e = new StdClass;
+            $e = new StdClass();
             $e->field = $field->name;
             $e->value = $profileexpectedvalue;
             $template->adminviewstr = get_string('adminview', 'local_my', $e);
@@ -1317,7 +1395,8 @@ function local_my_print_static($index) {
         $profilevalue = core_text::strtolower($DB->get_field('user_info_data', 'data', $params));
         $profilevalue = trim($profilevalue);
         $profilevalue = str_replace(' ', '-', $profilevalue);
-        $profilevalue = preg_replace("/[^0-9a-zA-Z_-]/", '', $profilevalue);
+        $profilevalue = str_replace('_', '-', $profilevalue);
+        $profilevalue = preg_replace("/[^0-9a-zA-Z-]/", '', $profilevalue);
 
         // This is a global match catching all values.
         if (has_capability('moodle/site:config', $context)) {
@@ -1346,7 +1425,7 @@ function local_my_print_static($index) {
 
                 foreach ($modalities as $modality) {
 
-                    $modaltpl = new StdClass;
+                    $modaltpl = new StdClass();
                     // Reformat key for token integrity.
                     if (is_object($modality)) {
                         $modality = core_text::strtolower($modality->data);
@@ -1355,13 +1434,14 @@ function local_my_print_static($index) {
                     }
                     $unfilteredmodality = trim($modality);
                     $modality = str_replace(' ', '-', $unfilteredmodality);
-                    $modality = preg_replace("/[^0-9a-zA-Z_-]/", '', $modality);
+                    $modality = str_replace('_', '-', $unfilteredmodality);
+                    $modality = preg_replace("/[^0-9a-zA-Z-]/", '', $modality);
 
                     $modaltpl->modalindex = $index.'-'.$modality;
                     $a = new StdClass;
                     $a->profile = $field->shortname;
                     $a->data = $modality;
-                    $modaltpl->contentforstr = get_string('contentfor', 'local_my', $a);
+                    $modaltpl->contentforstr = '<span class="shadow">('.get_string('contentfor', 'local_my', $a).')</span>';
                     $return = new moodle_url('/my/index.php');
                     $modaltpl->statictext = local_print_static_text('custommystaticarea-'.$modaltpl->modalindex, $return, '', true);
                     $modaltpl->visibilityclass = $visibilityclass;
@@ -1370,6 +1450,7 @@ function local_my_print_static($index) {
 
                     $modoptions[$modality] = $unfilteredmodality;
                 }
+                $template->hasmodalities = count($template->modalities);
 
                 // Choose first as active.
                 $attrs = array('id' => 'local-my-static-select-'.$index, 'class' => 'local-my-modality-chooser');
@@ -1380,7 +1461,7 @@ function local_my_print_static($index) {
 
         // Normal user, one sees his own.
         if (!empty($profilevalue)) {
-            $modaltpl = new StdClass;
+            $modaltpl = new StdClass();
             $modaltpl->modalindex = $index.'-'.$profilevalue;
 
             $return = new moodle_url('/my/index.php');
@@ -1390,7 +1471,7 @@ function local_my_print_static($index) {
     } else if (is_numeric($index)) {
         // Simple indexed.
 
-        $template = new StdClass;
+        $template = new StdClass();
         $template->index = $index;
 
         $return = new moodle_url('/my/index.php');
@@ -1731,7 +1812,7 @@ function local_my_print_course_search() {
 
     $search = optional_param('search', '', PARAM_TEXT);
 
-    $str .= $OUTPUT->box_start('my-modules admin-stats');
+    $str .= $OUTPUT->box_start('my-modules course-search');
 
     $str .= $OUTPUT->box_start('box block');
 
@@ -1773,4 +1854,9 @@ function local_my_print_admin_stats() {
     $str .= $OUTPUT->box_end();
 
     return $str;
+}
+
+// Let integrators add additional non generic modules.
+if (file_exists($CFG->dirroot.'/local/my/local_modules.php')) {
+    require_once($CFG->dirroot.'/local/my/local_modules.php');
 }

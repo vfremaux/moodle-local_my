@@ -11,7 +11,7 @@
 
 {{#courses}}
                     <div class="local-my-promowrap">
-                        <div class="local-my-fp-coursebox">
+                        <div class="local-my-fp-coursebox {{hiddenclass}} {{selfenrolclass}} {{guestenrolclass}} {{editingclass}}">
                             <div class="local-my-fp-coursethumb">
                                 {{#progression}}
                                 <div>
@@ -29,7 +29,7 @@
                                 {{/progression}}
 
                                 {{^progression}}
-                                <div class="local-my-fp-coursename">
+                                <div class="local-my-fp-coursename pull-left">
                                     <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="100%" height="125" title="{{fullname}}"></a>
                                 </div>
                                 {{/progression}}
@@ -43,6 +43,17 @@
                                     </h5>
                                 </div>
                                 <div class="local-my-fp-summary">{{{summary}}}</div>
+                                {{#hasattributes}}
+                                <div class="attributes-container">
+                                    <div class="local-my-fp-attributes">
+                                        {{{hiddenattribute}}}
+                                        {{{selfattribute}}}
+                                        {{{guestattribute}}}
+                                        {{{futureattribute}}}
+                                        {{{editingattribute}}}
+                                    </div>
+                                </div>
+                                {{/hasattributes}}
                             </div>
                         </div>
                     </div>
