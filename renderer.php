@@ -217,11 +217,7 @@ class local_my_renderer extends plugin_renderer_base {
         if (!empty($config->coursemanagermodules) && $iscoursemanager) {
             $tabname = get_string('ascoursemanager', 'local_my');
             $params = array('view' => 'ascoursemanager');
-<<<<<<< HEAD
-            $taburl = new moodle_url('/my', $params);
-=======
             $taburl = new moodle_url('/my/index.php', $params);
->>>>>>> MOODLE_36_STABLE
             $rows[0][] = new tabobject('ascoursemanager', $taburl, $tabname);
         }
 
@@ -344,13 +340,6 @@ class local_my_renderer extends plugin_renderer_base {
             $course = new \core_course_list_element($course);
         }
 
-<<<<<<< HEAD
-                $this->course_completion_gauge($course, 'div', 
-                                       120, 120,
-                                       'donut', $coursetpl);
-
-                $template->courses[] = $coursetpl;
-=======
         $context = context_course::instance($course->id);
 
         foreach ($course->get_course_overviewfiles() as $file) {
@@ -359,7 +348,6 @@ class local_my_renderer extends plugin_renderer_base {
                 $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
                 $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
                 break;
->>>>>>> MOODLE_36_STABLE
             }
         }
         if (empty($coursetpl->imgurl)) {

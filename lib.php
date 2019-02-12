@@ -131,11 +131,6 @@ function local_has_myoverride_somewhere() {
 }
 
 function local_my_before_footer() {
-<<<<<<< HEAD
-    global $PAGE;
-
-    $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
-=======
     global $PAGE, $USER;
 
     $config = get_config('local_my');
@@ -144,11 +139,9 @@ function local_my_before_footer() {
     if (!empty($config->force) && !has_capability('local/my:overridemy', $systemcontext, $USER, false)) {
         $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
     }
->>>>>>> MOODLE_36_STABLE
 }
 
 function local_my_fetch_modules($view) {
-
     $config = get_config('local_my');
 
     $mymodules = array();
@@ -270,13 +263,6 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
     $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $authoredcourses = array();
-<<<<<<< HEAD
-    if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
-        foreach ($authored as $a) {
-            $context = context_course::instance($a->id);
-            if (!has_capability('local/my:iscoursemanager', $context)) {
-                $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
-=======
     $authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder');
     if ($authored) {
         foreach ($authored as $a) {
@@ -291,7 +277,6 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
                 if ($debug) {
                     echo "Reject {$a->id} because coursemanager<br/>\n";
                 }
->>>>>>> MOODLE_36_STABLE
             }
         }
         return $authoredcourses;

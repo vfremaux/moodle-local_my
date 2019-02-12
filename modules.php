@@ -213,9 +213,6 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
 
     if (!empty($myauthcourses)) {
         $template->hascourses = true;
-<<<<<<< HEAD
-        if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-=======
         if ($alttemplate == 'authored_courses_grid') {
             foreach ($mycourses as $cid => $c) {
                 $coursetpl = $renderer->coursebox($c);
@@ -318,7 +315,6 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
     if (!empty($mymanagedcourses)) {
         $template->hascourses = true;
         if (count($mymanagedcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
->>>>>>> MOODLE_36_STABLE
             // Solve a performance issue for people having wide access to courses.
             $options = array('noheading' => true,
                              'withcats' => false,
@@ -475,8 +471,7 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     }
 
     return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
-<<<<<<< HEAD
-=======
+
 }
 
 /**
@@ -521,7 +516,6 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
     }
 
     return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
->>>>>>> MOODLE_36_STABLE
 }
 
 /**
@@ -577,21 +571,11 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
 
     if (!empty($myteachercourses)) {
         $template->hascourses = true;
-<<<<<<< HEAD
-        if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => false,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
-=======
         if ($alttemplate == 'teacher_courses_grid_module') {
             foreach ($myteachercourses as $cid => $c) {
                 $coursetpl = $renderer->coursebox($c);
                 $template->coursegridelms[] = $coursetpl;
             }
->>>>>>> MOODLE_36_STABLE
         } else {
             if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
                 // Solve a performance issue for people having wide access to courses.
@@ -859,11 +843,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 
     $options = array();
     $options['withcats'] = $config->printcategories;
-<<<<<<< HEAD
-=======
     $options['gaugewidth'] = 60;
     $options['gaugeheight'] = 15;
->>>>>>> MOODLE_36_STABLE
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -877,11 +858,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     }
 
     $view = optional_param('view', 'asstudent', PARAM_TEXT);
-<<<<<<< HEAD
-    $template = new StdClass;
-=======
     $template = new StdClass();
->>>>>>> MOODLE_36_STABLE
 
     $reali = 1;
     for ($i = 0; $i < $config->courseareas; $i++) {
@@ -905,12 +882,8 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         foreach ($allcourses as $c) {
 
             $context = context_course::instance($c->id);
-<<<<<<< HEAD
-            $editing = has_capability('moodle/course:manageactivities', $context);
-=======
             // Treat site admins as standard users.
             $editing = has_capability('moodle/course:manageactivities', $context, $USER, false);
->>>>>>> MOODLE_36_STABLE
             // Filter out non editing.
             if (($view == 'asteacher') || ($view == 'ascoursemanager')) {
                 if (!$editing) {
@@ -949,8 +922,6 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
                     break;
                 default:
                     $colwidth = 32;
-<<<<<<< HEAD
-=======
             }
         }
 
@@ -1056,7 +1027,6 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
                     break;
                 default:
                     $colwidth = 33;
->>>>>>> MOODLE_36_STABLE
             }
         }
 
@@ -1673,11 +1643,7 @@ function local_my_print_static($index) {
     } else if (is_numeric($index)) {
         // Simple indexed.
 
-<<<<<<< HEAD
-        $template = new StdClass;
-=======
         $template = new StdClass();
->>>>>>> MOODLE_36_STABLE
         $template->index = $index;
 
         $return = new moodle_url('/my/index.php');

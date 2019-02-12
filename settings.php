@@ -90,11 +90,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
-<<<<<<< HEAD
-    $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
-=======
     $defaultmodules = "my_caption\nme\ncourse_search\nteacher_courses\n";
->>>>>>> MOODLE_36_STABLE
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
@@ -152,11 +148,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
-<<<<<<< HEAD
-    $categoryoptions = coursecat::make_categories_list();
-=======
     $categoryoptions = \core_course_category::make_categories_list();
->>>>>>> MOODLE_36_STABLE
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas2; $i++) {
