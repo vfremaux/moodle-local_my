@@ -76,11 +76,18 @@ class local_my_renderer extends plugin_renderer_base {
         // Just let data in incoming template.
     }
 
+    /**
+     * Deprecated : Used by no one.
+     */
     public function course_simple_div($course, $classes = '') {
+
+        return "Is deprecated";
+
         $str = '';
         $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
         $link = '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
         $str .= '<div class="courseinfo '.$classes.'">'.$link.'</div>';
+
         return $str;
     }
 
@@ -107,7 +114,9 @@ class local_my_renderer extends plugin_renderer_base {
             }
         }
         $template->fullname = format_string($course->fullname);
-        $template->summary = format_text($course->summary, @$course->summaryformat);
+        $context = context_course::instance($course->id);
+        $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
+        $template->summary = format_text($summary);
         if (!empty($options['withdescription'])) {
             $template->hasdescription = true;
         }
@@ -115,10 +124,17 @@ class local_my_renderer extends plugin_renderer_base {
         if (empty($options['nocompletion'])) {
             if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
                 // Only non teachers can see progression.
+                if (!array_key_exists('gaugewidth', $options)) {
+                    debugging('Missing option');
+                }
                 $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'],
                                                'progressbar', $template);
             }
         }
+
+        $template->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
+        $template->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
+        $template->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
 
         return $this->output->render_from_template('local_my/coursetablerow', $template);
     }
@@ -194,14 +210,18 @@ class local_my_renderer extends plugin_renderer_base {
         if (!empty($config->adminmodules) && $isadmin) {
             $tabname = get_string('asadmin', 'local_my');
             $params = array('view' => 'asadmin');
-            $taburl = new moodle_url('/my', $params);
+            $taburl = new moodle_url('/my/index.php', $params);
             $rows[0][] = new tabobject('asadmin', $taburl, $tabname);
         }
 
         if (!empty($config->coursemanagermodules) && $iscoursemanager) {
             $tabname = get_string('ascoursemanager', 'local_my');
             $params = array('view' => 'ascoursemanager');
+<<<<<<< HEAD
             $taburl = new moodle_url('/my', $params);
+=======
+            $taburl = new moodle_url('/my/index.php', $params);
+>>>>>>> MOODLE_36_STABLE
             $rows[0][] = new tabobject('ascoursemanager', $taburl, $tabname);
         }
 
@@ -230,12 +250,12 @@ class local_my_renderer extends plugin_renderer_base {
 
         $tabname = get_string('asteacher', 'local_my');
         $params = array('view' => 'asteacher');
-        $taburl = new moodle_url('/my', $params);
+        $taburl = new moodle_url('/my/index.php', $params);
         $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
 
         $tabname = get_string('asstudent', 'local_my');
         $params = array('view' => 'asstudent');
-        $taburl = new moodle_url('/my', $params);
+        $taburl = new moodle_url('/my/index.php', $params);
         $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
 
         return print_tabs($rows, $view, null, null, true);
@@ -250,45 +270,105 @@ class local_my_renderer extends plugin_renderer_base {
 
         if (!empty($courseids)) {
             foreach ($courseids as $courseid) {
-
-                $coursetpl = new StdClass;
-                $course = get_course($courseid);
-                $summary = local_my_strip_html_tags($course->summary);
-                $coursetpl->summary = local_my_course_trim_char($summary, 250);
-                $coursetpl->fullname = format_string($course->fullname);
-                $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), 40);
-
-                $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
-                $coursetpl->courseurl = ''.$courseurl;
-
-                if ($course instanceof stdClass) {
-                    require_once($CFG->libdir. '/coursecatlib.php');
-                    $course = new course_in_list($course);
-                }
-
-                $context = context_course::instance($course->id);
-
-                foreach ($course->get_course_overviewfiles() as $file) {
-                    if ($isimage = $file->is_valid_image()) {
-                        $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
-                        $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
-                        $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
-                        break;
-                    }
-                }
-                if (empty($coursetpl->imgurl)) {
-                    $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
-                }
-
-                $this->course_completion_gauge($course, 'div', 
-                                       120, 120,
-                                       'donut', $coursetpl);
-
+                $coursetpl = $this->coursebox($courseid);
                 $template->courses[] = $coursetpl;
             }
         }
 
         return $this->output->render_from_template('local_my/course_slider', $template);
+    }
+
+    public function coursebox($courseorid) {
+        global $CFG, $USER;
+
+        if (is_object($courseorid)) {
+            $courseid = $courseorid->id;
+        } else {
+            $courseid = $courseorid;
+        }
+
+        $coursetpl = new StdClass;
+        $course = get_course($courseid);
+        $context = context_course::instance($course->id);
+        $summary = local_my_strip_html_tags($course->summary);
+        $coursetpl->summary = local_my_course_trim_char($summary, 250);
+        $coursetpl->fullname = format_string($course->fullname);
+        $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), 80);
+
+        $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
+        $coursetpl->courseurl = ''.$courseurl;
+
+        $coursetpl->hasattributes = false;
+        if (local_my_is_visible_course($course)) {
+            $coursetpl->hiddenclass = '';
+            $coursetpl->hiddenattribute = '';
+        } else {
+            $coursetpl->hasattributes = true;
+            $coursetpl->hiddenattribute = $this->output->pix_icon('hidden', get_string('ishidden', 'local_my'), 'local_my');
+            $coursetpl->hiddenclass = 'dimmed';
+        }
+        if (has_capability('moodle/course:manageactivities', $context, $USER, false)) {
+            $coursetpl->hasattributes = true;
+            $coursetpl->editingclass = 'can-edit';
+            $coursetpl->editingattribute = $this->output->pix_icon('editing', get_string('canedit', 'local_my'), 'local_my');
+        } else {
+            $coursetpl->editingclass = '';
+            $coursetpl->editingattribute = '';
+        }
+        if (local_my_is_selfenrolable_course($course)) {
+            $coursetpl->hasattributes = true;
+            $coursetpl->selfenrolclass = 'selfenrol';
+            $coursetpl->selfattribute = $this->output->pix_icon('unlocked', get_string('selfenrol', 'local_my'), 'local_my');
+        } else {
+            $coursetpl->selfenrolclass = '';
+            $coursetpl->selfattribute = '';
+        }
+        if (local_my_is_guestenrolable_course($course)) {
+            $coursetpl->hasattributes = true;
+            $coursetpl->guestenrolclass = 'guestenrol';
+            $coursetpl->guestattribute = $this->output->pix_icon('guest', get_string('guestenrol', 'local_my'), 'local_my');
+        } else {
+            $coursetpl->guestenrolclass = '';
+            $coursetpl->guestattirbute = '';
+        }
+        if ($course->startdate > time()) {
+            $coursetpl->hasattributes = true;
+            $coursetpl->futureclass = 'future';
+            $coursetpl->futureattribute = $this->output->pix_icon('future', get_string('future', 'local_my'), 'local_my');
+        } else {
+            $coursetpl->futureclass = '';
+            $coursetpl->futureattribute = '';
+        }
+
+        if ($course instanceof stdClass) {
+            $course = new \core_course_list_element($course);
+        }
+
+<<<<<<< HEAD
+                $this->course_completion_gauge($course, 'div', 
+                                       120, 120,
+                                       'donut', $coursetpl);
+
+                $template->courses[] = $coursetpl;
+=======
+        $context = context_course::instance($course->id);
+
+        foreach ($course->get_course_overviewfiles() as $file) {
+            if ($isimage = $file->is_valid_image()) {
+                $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
+                $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
+                $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
+                break;
+>>>>>>> MOODLE_36_STABLE
+            }
+        }
+        if (empty($coursetpl->imgurl)) {
+            $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
+        }
+
+        $this->course_completion_gauge($course, 'div', 120, 120, 'donut', $coursetpl);
+
+        return $coursetpl;
     }
 
     protected function get_image_url($imgname) {
@@ -390,7 +470,7 @@ class local_my_renderer extends plugin_renderer_base {
 
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
 
-                $cattpl->catstyle = ($cat->category->visible) ? '' : 'shadow';
+                $cattpl->catstyle = ($cat->category->visible) ? '' : 'dimmed';
 
                 if ($options['withcats'] == 1) {
                     $cattpl->catname = format_string($cat->category->name);
@@ -414,7 +494,7 @@ class local_my_renderer extends plugin_renderer_base {
                     $coursecontext = context_course::instance($c->id);
                     if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                         $coursetpl->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-                        $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'shadow';
+                        $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'dimmed';
                         $coursetpl->fullname = format_string($c->fullname);
                         $coursetpl->editingicon = $renderer->editing_icon($c);
                         $cattpl->courses[] = $coursetpl;

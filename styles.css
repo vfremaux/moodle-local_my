@@ -137,8 +137,16 @@ div.course-box .courseimage img {
 
 .local-my-fp-coursename a img,
 .local-my-fp-coursethumb a img {
+<<<<<<< HEAD
     height: 150px !important;
     width:auto;
+=======
+    height: 250px !important;
+    width:fit-content;
+    width:-moz-fit-content;
+    width:-webkit-fit-content;
+    max-width:100%;
+>>>>>>> MOODLE_36_STABLE
     margin:auto;
 }
 
@@ -177,7 +185,6 @@ div.course-box .title {
 
 .local-my-fp-coursename {
     text-align: center;
-    padding: 5px;
 }
 
 .local-my-fp-courseinfo {
@@ -404,10 +411,15 @@ div.course-box .title {
 .local-my-course-id:after {
     content: '] ';
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> MOODLE_36_STABLE
 .local-my-course-id:before {
     content: '[';
 }
 
+<<<<<<< HEAD
 .local-my-fp-coursename .course-overlay {
     -webkit-transition: 0.5s ease;
     -o-transition: 0.5s ease;
@@ -427,4 +439,125 @@ div.course-box .title {
 
 .local-my-fp-coursename:hover  img {
     opacity:0.3;
+=======
+@media all and (min-width: 1200px) {
+    .course-grid {
+        display: grid;
+        grid-template-columns : 25% 25% 25% auto;
+        grid-row-gap: 20px;
+    }
+}
+
+@media all and (min-width: 985px) and (max-width: 1200px) {
+    .course-grid {
+        display: grid;
+        grid-template-columns : 33% 33% auto;
+        grid-row-gap: 20px;
+    }
+}
+
+@media all and (min-width: 712px) and (max-width: 985px) {
+    .course-grid {
+        display: grid;
+        grid-template-columns : 50% auto;
+        grid-row-gap: 20px;
+    }
+}
+
+@media all and (max-width: 712px) {
+    .course-grid {
+        display: grid;
+        grid-template-columns : 100%;
+        grid-row-gap: 20px;
+    }
+}
+
+#mydashboard .jqplot-grid-canvas {
+    display: none;
+}
+
+#mydashboard .jqplot-donut-series.jqplot-data-label {
+    background-color: white;
+    opacity:0.6;
+    -moz-opacity:0.6;
+}
+
+/* Some effects on boxes */
+
+.local-my-fp-coursename.with-opacity-effect {
+    background: #eeccff;
+}
+
+.local-my-fp-coursename.with-opacity-effect a img {
+    opacity: .5;
+    -webkit-transition: .1s ease-out;
+    transition: .1s ease-out;
+}
+
+.local-my-fp-coursename.with-opacity-effect a:hover img {
+    opacity: 1;
+}
+
+/* Halo effect */
+/* Halo lumineux */
+.local-my-fp-coursename.with-halo-effect {
+    position: relative;
+}
+
+.local-my-fp-coursename.with-halo-effect::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    display: block;
+    content: '';
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,.2);
+    border-radius: 100%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.local-my-fp-coursename.with-halo-effect:hover::before {
+    -webkit-animation: local-my-circle .75s;
+    animation: local-my-circle .75s;
+}
+
+@-webkit-keyframes local-my-circle {
+    0% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 1;
+    }
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+    }
+}
+
+@keyframes local-my-circle {
+    0% {
+        opacity: 1;
+    }
+        40% {
+        opacity: 1;
+    }
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+    }
+}
+
+.local-my-fp-attributes {
+    margin: auto;
+}
+
+.local-my-fp-attributes img {
+    display: inline !important;
+>>>>>>> MOODLE_36_STABLE
 }

@@ -131,9 +131,20 @@ function local_has_myoverride_somewhere() {
 }
 
 function local_my_before_footer() {
+<<<<<<< HEAD
     global $PAGE;
 
     $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
+=======
+    global $PAGE, $USER;
+
+    $config = get_config('local_my');
+
+    $systemcontext = context_system::instance();
+    if (!empty($config->force) && !has_capability('local/my:overridemy', $systemcontext, $USER, false)) {
+        $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
+    }
+>>>>>>> MOODLE_36_STABLE
 }
 
 function local_my_fetch_modules($view) {
@@ -254,14 +265,33 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
  *
  */
 function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
-    global $USER, $DB;
+    global $USER, $DB, $CFG;
+
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     $authoredcourses = array();
+<<<<<<< HEAD
     if ($authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
         foreach ($authored as $a) {
             $context = context_course::instance($a->id);
             if (!has_capability('local/my:iscoursemanager', $context)) {
                 $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+=======
+    $authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder');
+    if ($authored) {
+        foreach ($authored as $a) {
+            $context = context_course::instance($a->id);
+            if (!has_capability('local/my:iscoursemanager', $context, $USER, false)) {
+                // doanything not considered here.
+                $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+                if ($debug) {
+                    echo "Accept {$a->id} by capability $capability<br/>\n";
+                }
+            } else {
+                if ($debug) {
+                    echo "Reject {$a->id} because coursemanager<br/>\n";
+                }
+>>>>>>> MOODLE_36_STABLE
             }
         }
         return $authoredcourses;
@@ -589,16 +619,36 @@ function local_prefetch_course_areas(&$excludedcourses) {
         }
     }
 
-    if (empty($config->courseareas)) {
+    if (empty($config->courseareas) && empty($config->courseareas2)) {
         // Performance quick trap.
         return array();
     }
 
     $prefetchareacourses = array();
 
+    // Get the first coursearea zone exclusions.
     for ($i = 0; $i < $config->courseareas; $i++) {
 
         $coursearea = 'coursearea'.$i;
+        if (!empty($config->$coursearea)) {
+            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
+            if ($mastercategory) {
+                // Filter courses of this area.
+                $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
+                foreach ($allmycourses as $c) {
+                    if (in_array($c->category, $retainedcategories)) {
+                        $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
+                        $prefetchareacourses[$c->id] = $c;
+                    }
+                }
+            }
+        }
+    }
+
+    // Add the second coursearea zone exclusions.
+    for ($i = 0; $i < $config->courseareas2; $i++) {
+
+        $coursearea = 'coursearea2_'.$i;
         if (!empty($config->$coursearea)) {
             $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
             if ($mastercategory) {
@@ -650,7 +700,9 @@ function local_my_hide_home() {
  */
 function local_get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '',
                                           $orderby = '') {
-    global $DB;
+    global $DB, $CFG;
+
+    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
     // Convert fields list and ordering.
     $fieldlist = '';
@@ -661,6 +713,14 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
         }
     }
     if ($orderby) {
+        $fields = explode(',', $orderby);
+        $orderby = '';
+        foreach ($fields as $field) {
+            if ($orderby) {
+                $orderby .= ',';
+            }
+            $orderby .= $field;
+        }
         $orderby = 'ORDER BY '.$orderby;
     }
 
@@ -708,11 +768,18 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
              * We've got the capability. Make the record look like a course record
              * and store it
              */
-            $courses[] = $course;
+            $courses[$course->id] = $course;
+            if ($debug) {
+                echo "Catched {$course->id} by query on $capability<br/>\n";
+            }
+        } else {
+            if ($debug) {
+                echo "Rejected {$course->id} by capability $capability<br/>\n";
+            }
         }
     }
     $rs->close();
-    return empty($courses) ? false : $courses;
+    return $courses;
 }
 
 function local_my_is_meta_for_user($courseid, $userid) {
@@ -806,7 +873,7 @@ function local_my_strip_html_tags($text) {
  * @param $end_char
  * @return string
  */
-function local_my_course_trim_char($str, $n = 500, $endchar = '&#8230;') {
+function local_my_course_trim_char($str, $n = 500, $endchar = '...') {
     if (strlen($str) < $n) {
         return $str;
     }
@@ -908,4 +975,91 @@ function local_my_scalar_array_merge(&$arr1, &$arr2) {
         }
         sort($arr1);
     }
+}
+
+function local_my_is_visible_course(&$course) {
+    global $DB;
+
+    if (!$course->visible) {
+        return false;
+    }
+
+    if (!$course->category) {
+        return true; // this is the SITE course.
+    }
+
+    $cat = $DB->get_record('course_categories', array('id' => $course->category));
+    if (empty($cat->visible)) {
+        return false;
+    }
+
+    while ($cat->parent) {
+        $cat = $DB->get_record('course_categories', array('id' => $cat->parent));
+        if (!$cat->visible) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function local_my_is_selfenrolable_course($course) {
+    global $DB;
+
+    $params = array('courseid' => $course->id, 'enrol' => 'self', 'status' => 0);
+    if ($DB->count_records('enrol', $params)) {
+        return true;
+    }
+    return false;
+}
+
+function local_my_is_guestenrolable_course($course) {
+    global $DB;
+
+    $params = array('courseid' => $course->id, 'enrol' => 'guest', 'status' => 0);
+    if ($DB->count_records('enrol', $params)) {
+        return true;
+    }
+    return false;
+}
+
+function local_my_process_metas(&$courselist) {
+    global $USER, $DB;
+
+    $config = get_config('local_my');
+    $debug = optional_param('debug', false, PARAM_BOOL);
+    $debuginfo = '';
+
+    foreach ($courselist as $id => $c) {
+        if (!empty($config->skipmymetas)) {
+            if (local_my_is_meta_for_user($c->id, $USER->id)) {
+                if ($debug) {
+                    $debuginfo .= "reject meta $id as meta disabled";
+                }
+                unset($courselist[$id]);
+                continue;
+            }
+        }
+        $courselist[$id]->lastaccess = $DB->get_field('log', 'max(time)', array('course' => $id));
+    }
+
+    return $debuginfo;
+}
+
+function local_my_process_excluded($excludedcourses, &$courselist) {
+
+    $debug = optional_param('debug', false, PARAM_BOOL);
+
+    $debuginfo = '';
+    if (!empty($excludedcourses)) {
+        foreach ($excludedcourses as $cid) {
+            if (!empty($cid)) {
+                if ($debug) {
+                    $debuginfo .= "rejected $cid as excluded</br/>";
+                }
+                unset($courselist[$cid]);
+            }
+        }
+    }
+
+    return $debuginfo;
 }

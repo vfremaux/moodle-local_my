@@ -20,6 +20,9 @@ $string['my:iscoursemanager'] = 'Has manager activity in courses';
 $string['my:isteacher'] = 'Has teacher activity in some courses';
 $string['my:isauthor'] = 'Has editing teacher activity in some courses';
 
+// Privacy.
+$string['privacy:metadata'] = 'The Local My plugin does not directly store any personal data about any user.';
+
 $string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
 $string['allcategories'] = 'All categories';
 $string['addnewsubcategory'] = 'Add new subcategory';
@@ -113,6 +116,14 @@ $string['task_compile_stats'] = 'Site wide stats';
 $string['templateinitialisationadvice'] = 'No templates. Administrator should create first template before all other users can create their own.';
 $string['unknownmodule'] = 'Unknown output module {$a}';
 $string['upper'] = "More than {max} {name}";
+$string['visualsettings'] = "Visual settings";
+$string['effectopacity'] = "Opacity effect";
+$string['effecthalo'] = "Halo effect";
+$string['ishidden'] = "Is hidden";
+$string['canedit'] = "Can edit";
+$string['selfenrol'] = "Self enrollable";
+$string['guestenrol'] = "Open to guests";
+$string['future'] = "Future course (not opened)";
 
 $string['january'] = 'January';
 $string['february'] = 'February';

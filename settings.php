@@ -22,8 +22,6 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/lib/coursecatlib.php');
-
 // Settings default init.
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
     // Integration driven code.
@@ -92,7 +90,11 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
+<<<<<<< HEAD
     $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
+=======
+    $defaultmodules = "my_caption\nme\ncourse_search\nteacher_courses\n";
+>>>>>>> MOODLE_36_STABLE
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
@@ -129,7 +131,7 @@ if ($hassiteconfig) {
 
     global $SITE;
 
-    $categoryoptions = coursecat::make_categories_list();
+    $categoryoptions = \core_course_category::make_categories_list();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas; $i++) {
@@ -150,7 +152,11 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
+<<<<<<< HEAD
     $categoryoptions = coursecat::make_categories_list();
+=======
+    $categoryoptions = \core_course_category::make_categories_list();
+>>>>>>> MOODLE_36_STABLE
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas2; $i++) {
@@ -215,4 +221,16 @@ if ($hassiteconfig) {
     $desc = get_string('rendererimages_desc', 'local_my');
     $options = array('subdirs' => false, 'maxfiles' => 20);
     $settings->add(new admin_setting_configstoredfile($key, $label, $desc, 'rendererimages', 0, $options));
+
+    $settings->add(new admin_setting_heading('header5', get_string('visualsettings', 'local_my'), ''));
+
+    $key = 'local_my/effect_opacity';
+    $label = get_string('effectopacity', 'local_my');
+    $desc = '';
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
+    $key = 'local_my/effect_halo';
+    $label = get_string('effecthalo', 'local_my');
+    $desc = '';
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 }
