@@ -1,13 +1,19 @@
 
 
-<!-- authored_courses_module -->
+<!-- local_my/authored_courses_module -->
 {{^hideifempty}}
 <div class="block block_my_authored_courses">
     <div class="header">
         <div class="title">
-            <h2>{{myauthoringcoursesstr}}</h2>
+            <h2>{{#str}}myauthoringcourses, local_my{{/str}}</h2>
         </div>
     </div>
+
+    {{#debuginfo}}
+    <pre>
+    {{debuginfo}}
+    </pre>
+    {{/debuginfo}}
 
     <div class="content">
 
@@ -41,4 +47,4 @@
     </div>
 </div>
 {{/hideifempty}}
-<!-- /authored_courses_module -->
+<!-- /local_my/authored_courses_module -->

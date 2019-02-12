@@ -114,6 +114,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             var mode = matches[1];
             var area = matches[2];
+            var url = '';
 
             if (mode == 'collapseall') {
                 $('.local-my-course-' + area).addClass('collapsed');
@@ -122,7 +123,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     handlesrc = handlesrc.replace('expanded', 'collapsed');
                     element.src = handlesrc;
                 });
-                var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                url = config.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catids=' + $('#local-my-areacategories-' + area).html();
                 url += '&what=collapseall';
@@ -136,7 +137,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     element.src = handlesrc;
                 });
 
-                var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                url = config.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catids=' + $('#local-my-areacategories-' + area).html();
                 url += '&what=expandall';

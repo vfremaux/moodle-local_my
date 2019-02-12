@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/course/classes/management_renderer.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
 
-class management_renderer extends \core_course_management_renderer implements \renderable, \templatable {
+class management_renderer extends \core_course_management_renderer {
 
     /**
      * Displays a heading for the management pages.

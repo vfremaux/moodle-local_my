@@ -92,7 +92,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
-    $defaultmodules = "my_caption\nme\ncourse_search\nauthored_courses\n";
+    $defaultmodules = "my_caption\nme\ncourse_search\nteacher_courses\n";
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
@@ -215,4 +215,16 @@ if ($hassiteconfig) {
     $desc = get_string('rendererimages_desc', 'local_my');
     $options = array('subdirs' => false, 'maxfiles' => 20);
     $settings->add(new admin_setting_configstoredfile($key, $label, $desc, 'rendererimages', 0, $options));
+
+    $settings->add(new admin_setting_heading('header5', get_string('visualsettings', 'local_my'), ''));
+
+    $key = 'local_my/effect_opacity';
+    $label = get_string('effectopacity', 'local_my');
+    $desc = '';
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
+    $key = 'local_my/effect_halo';
+    $label = get_string('effecthalo', 'local_my');
+    $desc = '';
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 }

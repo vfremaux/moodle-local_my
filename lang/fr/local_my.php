@@ -20,6 +20,8 @@ $string['my:iscoursemanager'] = 'A une activité de coordinateur dans un cours';
 $string['my:isteacher'] = 'A une activité d\'enseignement dans un cours';
 $string['my:isauthor'] = 'A une activité d\'auteur dans un cours';
 
+// Privacy.
+$string['privacy:metadata'] = 'Le plugin local Mon Moodle Amélioré ne détient directement aucune donnée relative aux utilisateurs.';
 
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
 $string['allcategories'] = 'Naviguer dans les catégories';
@@ -114,6 +116,14 @@ $string['task_compile_stats'] = 'Statistiques de site';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';
 $string['upper'] = 'Plus que {max} {name}';
+$string['visualsettings'] = "Réglages graphiques";
+$string['effectopacity'] = "Effet d'opacité";
+$string['effecthalo'] = "Effet de halo";
+$string['ishidden'] = "Cours caché";
+$string['canedit'] = "Avec droits d'édition";
+$string['selfenrol'] = "Auto incription";
+$string['guestenrol'] = "Ouvert aux invités";
+$string['future'] = "Cours à venir (non encore ouvert)";
 
 $string['january'] = 'Janvier';
 $string['february'] = 'Février';
