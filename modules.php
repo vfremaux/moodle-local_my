@@ -195,8 +195,7 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
     }
 
     // Post 2.5.
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
 
     $template->myauthoringcoursesstr = get_string('myauthoringcourses', 'local_my');
 
@@ -302,8 +301,7 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
     }
 
     // Post 2.5.
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
 
     $template->mymanagedcoursesstr = get_string('mymanagedcourses', 'local_my');
 
@@ -375,8 +373,7 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     $template->widgetname = 'my_authored_courses_slider';
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -420,8 +417,7 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
     $template->widgetname = 'my_managed_courses_slider';
     $template->courselisttitlestr = get_string('mymanagedcourses', 'local_my');
 
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -473,8 +469,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
     $debuginfo .= local_my_process_metas($myteachercourses);
 
     // Post 2.5.
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
 
     $template = new StdClass();
 
@@ -579,8 +574,7 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
 
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
-    $mycatlist = coursecat::make_categories_list('moodle/course:create');
+    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -693,7 +687,6 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
 
     $mytemplates = local_get_my_templates();
 
-    include_once($CFG->dirroot.'/lib/coursecatlib.php'); // Keep this here as being used after configi init.
     $templatecatcontext = context_coursecat::instance($config->templatecategory);
 
     $canview = false;

@@ -337,8 +337,7 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         if ($course instanceof stdClass) {
-            require_once($CFG->libdir. '/coursecatlib.php');
-            $course = new course_in_list($course);
+            $course = new \core_course_list_element($course);
         }
 
         $context = context_course::instance($course->id);

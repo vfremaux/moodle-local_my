@@ -22,8 +22,6 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/lib/coursecatlib.php');
-
 // Settings default init.
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
     // Integration driven code.
@@ -129,7 +127,7 @@ if ($hassiteconfig) {
 
     global $SITE;
 
-    $categoryoptions = coursecat::make_categories_list();
+    $categoryoptions = \core_course_category::make_categories_list();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas; $i++) {
@@ -150,7 +148,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
-    $categoryoptions = coursecat::make_categories_list();
+    $categoryoptions = \core_course_category::make_categories_list();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas2; $i++) {

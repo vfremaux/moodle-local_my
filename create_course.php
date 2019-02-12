@@ -52,7 +52,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('choosecategory', 'local_my'));
 
-$displaylist = coursecat::make_categories_list('moodle/course:create');
+$displaylist = \core_course_category::make_categories_list('moodle/course:create');
 
 $table = new html_table();
 $table->head = array(get_string('mycategories', 'local_my'));
