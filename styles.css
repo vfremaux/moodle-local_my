@@ -406,6 +406,7 @@ div.course-box .title {
 .local-my-course-id:after {
     content: '] ';
 }
+
 .local-my-course-id:before {
     content: '[';
 }

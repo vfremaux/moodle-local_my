@@ -142,6 +142,7 @@ function local_my_before_footer() {
 }
 
 function local_my_fetch_modules($view) {
+
     $config = get_config('local_my');
 
     $mymodules = array();
