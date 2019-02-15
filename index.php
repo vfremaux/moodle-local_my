@@ -243,9 +243,25 @@ if ($showresolve) {
     $OUTPUT->box_end();
 }
 
+// Examine the other panel constraints on excluded courses.
+
 if ($view == 'asstudent' && $isteacher) {
     // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
     $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asstudent' && $iscoursemanager) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses('id');
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asteacher' && $iscoursemanager) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses('id');
     $prefetchkeys = array_keys($prefetchcourses);
     local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
 }
