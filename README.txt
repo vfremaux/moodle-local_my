@@ -49,3 +49,9 @@ Add capability local/my:ismanager to allow non siteadmins to have admin tab.
 =========================================
 
 Add manager as being an author when assigned in some context
+
+2019050300 - XXXX.0006
+=========================================
+
+Add more settings to control some elements visibility on widgets. Add
+capability to hide/show course attributes on grid/boxed views.

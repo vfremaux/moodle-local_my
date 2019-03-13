@@ -180,28 +180,12 @@ $excludedcourses = explode(',', @$config->excludedcourses);
 
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
+list($view, $isteacher, $iscoursemanager) = local_my_resolve_view();
 $teachercap = 'local/my:isteacher';
-$authorcap = 'local/my:isauthor';
-$coursemanagercap = 'local/my:iscoursemanager';
-$isteacher = local_my_has_capability_somewhere($teachercap) ||
-        local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
-$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
 
 // Get and clean modules names.
 
 echo $OUTPUT->header();
-
-$view = optional_param('view', '', PARAM_TEXT);
-if (empty($view)) {
-    if ($isteacher) {
-        // Defaults for teachers.
-        $view = 'asteacher';
-    }
-    if ($iscoursemanager) {
-        // Defaults for coursemanagers.
-        $view = 'ascoursemanager';
-    }
-}
 
 // We need prefetch tabs as it may resolve view.
 $tabs = $renderer->tabs($view, $isteacher, $iscoursemanager);
@@ -243,9 +227,25 @@ if ($showresolve) {
     $OUTPUT->box_end();
 }
 
+// Examine the other panel constraints on excluded courses.
+
 if ($view == 'asstudent' && $isteacher) {
     // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
     $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asstudent' && $iscoursemanager) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses('id');
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asteacher' && $iscoursemanager) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses('id');
     $prefetchkeys = array_keys($prefetchcourses);
     local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
 }
