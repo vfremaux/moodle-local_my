@@ -35,15 +35,15 @@ class local_my_renderer extends plugin_renderer_base {
      * @param string $progressbar type of gauge renderer.
      */
     public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar', &$template) {
-        global $USER, $PAGE, $DB;
+        global $USER, $PAGE, $DB, $CFG;
 
         $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
         $completion = new completion_info($courserec);
         if ($completion->is_enabled(null)) {
-            $ratio = \core_completion\progress::get_course_progress_percentage($courserec);
+            $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');
 
-            $template->completionstr = get_string('completion', 'local_my', (0 + $ratio));
+            $template->completionstr = get_string('completion', 'local_my', 0 + $ratio);
 
             if ($type == 'gauge') {
                 $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
@@ -54,9 +54,11 @@ class local_my_renderer extends plugin_renderer_base {
                 $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
                                                                         $ratio, $properties);
             } else if ($type == 'jqplot') {
+                include_once($CFG->dirroot . "/local/vflibs/jqplotlib.php");
+                local_vflibs_require_jqplot_libs();
                 // Completion with a donut.
                 $completedstr = get_string('completion', 'local_my', $ratio);
-                $data = array(array($completedstr, round($ratio)), array('', round(100 - $ratio)));
+                $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
                 $attrs = array('height' => $width, 'width' => $height);
                 $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
             } else {
@@ -149,6 +151,8 @@ class local_my_renderer extends plugin_renderer_base {
 
     public function course_as_box($c) {
 
+        $config = get_config('local_my');
+
         $template = new StdClass;
 
         $context = context_course::instance($c->id);
@@ -157,6 +161,12 @@ class local_my_renderer extends plugin_renderer_base {
 
         $template->css = $c->visible ? '' : 'dimmed';
         $template->fullname = format_string($c->fullname);
+        if ($config->trimmode == 'words') {
+            $template->fullname = local_my_course_trim_words($template->fullname, $config->trimlength1);
+        } else if ($config->trimmode == 'chars') {
+            $template->fullname = local_my_course_trim_char($template->fullname, $config->trimlength1);
+        }
+
         $template->shortname = $c->shortname;
 
         $template->editingicon = $this->editing_icon($c);
@@ -169,12 +179,19 @@ class local_my_renderer extends plugin_renderer_base {
             $template->coursefileurl = $coursefileurl;
             $template->hasimage = true;
         } else {
-            $template->summary = shorten_text(format_text($c->summary), 80);
+            $template->summary = format_text($c->summary);
+            if ($config->trimmode == 'words') {
+                $template->summary = local_my_course_trim_words($template->summary, $config->trimlength2);
+            } else if ($config->trimmode == 'chars') {
+                $template->summary = local_my_course_trim_char($template->summary, $config->trimlength2);
+            }
         }
 
-        $this->course_completion_gauge($course, 'div', 
-                                       $options['gaugewidth'], $options['gaugeheight'],
-                                       'donut', $template);
+        if (empty($config->hideprogression)) {
+            $this->course_completion_gauge($course, 'div', 
+                                           $options['gaugewidth'], $options['gaugeheight'],
+                                           'donut', $template);
+        }
 
         return $this->output->render_from_template('local_my/coursebox', $template);
     }
@@ -277,6 +294,8 @@ class local_my_renderer extends plugin_renderer_base {
     public function coursebox($courseorid) {
         global $CFG, $USER;
 
+        $config = get_config('local_my');
+
         if (is_object($courseorid)) {
             $courseid = $courseorid->id;
         } else {
@@ -286,10 +305,23 @@ class local_my_renderer extends plugin_renderer_base {
         $coursetpl = new StdClass;
         $course = get_course($courseid);
         $context = context_course::instance($course->id);
-        $summary = local_my_strip_html_tags($course->summary);
-        $coursetpl->summary = local_my_course_trim_char($summary, 250);
+
+        $coursetpl->summary = '';
+        if (empty($config->hidedescriptions)) {
+            $summary = local_my_strip_html_tags($course->summary);
+            if ($config->trimmode == 'words') {
+                $coursetpl->summary = local_my_course_trim_words($summary, $config->trimlength2);
+            } else {
+                $coursetpl->summary = local_my_course_trim_char($summary, $config->trimlength2);
+            }
+        }
+
         $coursetpl->fullname = format_string($course->fullname);
-        $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), 80);
+        if ($config->trimmode == 'words') {
+            $coursetpl->trimtitle = local_my_course_trim_words(format_string($course->fullname), $config->trimlength1);
+        } else {
+            $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), $config->trimlength1);
+        }
 
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
         $coursetpl->courseurl = ''.$courseurl;
@@ -325,7 +357,7 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->guestattribute = $this->output->pix_icon('guest', get_string('guestenrol', 'local_my'), 'local_my');
         } else {
             $coursetpl->guestenrolclass = '';
-            $coursetpl->guestattirbute = '';
+            $coursetpl->guestattribute = '';
         }
         if ($course->startdate > time()) {
             $coursetpl->hasattributes = true;
@@ -334,6 +366,11 @@ class local_my_renderer extends plugin_renderer_base {
         } else {
             $coursetpl->futureclass = '';
             $coursetpl->futureattribute = '';
+        }
+
+        if (!has_capability('local/my:seecourseattributes', $context)) {
+            // Hide all attributes if requested by capability.
+            $coursetpl->hasattributes = false;
         }
 
         if ($course instanceof stdClass) {
@@ -354,7 +391,9 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
         }
 
-        $this->course_completion_gauge($course, 'div', 120, 120, 'donut', $coursetpl);
+        if (empty($config->hideprogression)) {
+            $this->course_completion_gauge($course, 'div', 120, 120, 'jqplot', $coursetpl);
+        }
 
         return $coursetpl;
     }
@@ -413,6 +452,7 @@ class local_my_renderer extends plugin_renderer_base {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
         $renderer = $PAGE->get_renderer('local_my');
+        $config = get_config('local_my');
 
         // Get user preferences for collapser.
         $select = " userid = ? and name LIKE 'local_my%' ";
@@ -433,6 +473,7 @@ class local_my_renderer extends plugin_renderer_base {
         $template->collapseallstr = get_string('collapseall', 'local_my');
         $template->expandallstr = get_string('expandall', 'local_my');
         $template->catidlist = implode(',', array_keys($catcourses));
+        $template->isaccordion = !empty($config->courselistaccordion);
 
         foreach ($catcourses as $catid => $cat) {
 

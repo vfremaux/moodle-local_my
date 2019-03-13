@@ -37,6 +37,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('.local-my-modality-chooser').bind('change', this.toggle_modality);
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
 
+            if ($('.is-accordion').length !== 0) {
+                $('.local-my-course').hide();
+            }
+
             log.debug('AMD Local my cat control initialized');
 
         },
@@ -61,29 +65,37 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
-            url += 'item=' + area;
-            url += '&catid=' + catid;
+            if (that.closest('.is-accordion').length == 0) {
+                // This is the previous close/open mode.
+                var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                url += 'item=' + area;
+                url += '&catid=' + catid;
 
-            var handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
-            var hide = 0;
+                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+                var hide = 0;
 
-            if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
-                $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
-                handlesrc = handlesrc.replace('collapsed', 'expanded');
-                $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
-                hide = 0;
+                if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
+                    $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
+                    handlesrc = handlesrc.replace('collapsed', 'expanded');
+                    $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
+                    hide = 0;
+                } else {
+                    $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
+                    handlesrc = handlesrc.replace('expanded', 'collapsed');
+                    $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
+                    hide = 1;
+                }
+
+                url += '&hide=' + hide;
+
+                $.get(url, function() {
+                });
+
             } else {
-                $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
-                handlesrc = handlesrc.replace('expanded', 'collapsed');
-                $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
-                hide = 1;
+                // This is the accordion mode.
+                $('.local-my-course-' + area).slideUp("normal");
+                $('.local-my-course-' + area + '.cat-' + area + '-' + catid).slideDown("normal");
             }
-
-            url += '&hide=' + hide;
-
-            $.get(url, function() {
-            });
 
             return false;
         },

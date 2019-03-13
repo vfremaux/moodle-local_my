@@ -876,6 +876,31 @@ function local_my_course_trim_char($str, $n = 500, $endchar = '...') {
 }
 
 /**
+ * Cut the Course content by words.
+ *
+ * @param $str input string
+ * @param $n number of words max
+ * @param $endchar unfinished string suffix
+ * @return the shortened string
+ */
+function local_my_course_trim_words($str, $w = 10, $endchar = '...') {
+
+    // Preformatting.
+    $str = str_replace(array("\r\n", "\r", "\n"), ' ', $str); // Remove all endlines
+    $str = preg_replace('/\s+/', ' ', $str); // Reduce spaces.
+
+    $words = explode(' ', $str);
+
+    if (count($words) <= $w) {
+        return $str;
+    }
+
+    $shortened = array_slice($words, 0, 10);
+    $out = implode(' ', $shortened).' '.$endchar;
+    return $out;
+}
+
+/**
  * Serves the format page context (course context) attachments. Implements needed access control ;-)
  *
  * @param object $course
@@ -1048,4 +1073,39 @@ function local_my_process_excluded($excludedcourses, &$courselist) {
     }
 
     return $debuginfo;
+}
+
+function local_my_resolve_view() {
+    static $iseacher;
+    static $iscoursemanager;
+
+    $teachercap = 'local/my:isteacher';
+    $authorcap = 'local/my:isauthor';
+    $coursemanagercap = 'local/my:iscoursemanager';
+    if (!isset($isteacher)) {
+        $isteacher = local_my_has_capability_somewhere($teachercap) ||
+                local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
+    }
+    if (!isset($iscoursemanager)) {
+        $iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
+    }
+
+    $view = optional_param('view', '', PARAM_TEXT);
+    if (empty($view)) {
+        $view = 'asstudent';
+        if ($isteacher) {
+            // Defaults for teachers.
+            $view = 'asteacher';
+        }
+        if ($iscoursemanager) {
+            // Defaults for coursemanagers.
+            $view = 'ascoursemanager';
+        }
+        $systemcontext = context_system::instance();
+        if (has_capability('moodle/site:config', $systemcontext)) {
+            $view = 'asadmin';
+        }
+    }
+
+    return array($view, $isteacher, $iscoursemanager);
 }
