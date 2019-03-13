@@ -2,6 +2,14 @@
     text-align: left;
 }
 
+#mydashboard .generaltable td {
+    border: none;
+    border-bottom-width: medium;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+    background-color: #fff;
+}
+
 .right-button {
     text-align: right;
 }
@@ -137,7 +145,7 @@ div.course-box .courseimage img {
 
 .local-my-fp-coursename a img,
 .local-my-fp-coursethumb a img {
-    height: 250px !important;
+    height: 150px !important;
     width:fit-content;
     width:-moz-fit-content;
     width:-webkit-fit-content;
@@ -192,6 +200,8 @@ div.course-box .title {
     text-align: center;
     margin: 0;
     padding: 0;
+    max-width: 350px;
+    max-height: 350px;
 }
 
 @media (max-width: 900px) {
@@ -257,13 +267,16 @@ div.course-box .title {
     margin: 5px -10px 5px -10px;
     background: rgba(0, 0, 0, .2);
 }
+
 .info-box .progress,
 .info-box .progress .progress-bar {
     border-radius: 0;
 }
+
 .info-box .progress .progress-bar {
     background: #fff;
 }
+
 .info-box-icon {
     display: block;
     float: left;
@@ -530,4 +543,17 @@ div.course-box .title {
 
 .local-my-fp-attributes img {
     display: inline !important;
+}
+
+/* hide progression when empty */
+#page-my-index .progress-chart-container .no-progress {
+    display: none;
+}
+
+/* adjust progress donut location */
+.local-my-fp-progression {
+    width: 150px;
+    position: relative;
+    left: 210px;
+    top: 20px;
 }

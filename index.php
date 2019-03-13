@@ -180,28 +180,12 @@ $excludedcourses = explode(',', @$config->excludedcourses);
 
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
+list($view, $isteacher, $iscoursemanager) = local_my_resolve_view();
 $teachercap = 'local/my:isteacher';
-$authorcap = 'local/my:isauthor';
-$coursemanagercap = 'local/my:iscoursemanager';
-$isteacher = local_my_has_capability_somewhere($teachercap) ||
-        local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
-$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
 
 // Get and clean modules names.
 
 echo $OUTPUT->header();
-
-$view = optional_param('view', '', PARAM_TEXT);
-if (empty($view)) {
-    if ($isteacher) {
-        // Defaults for teachers.
-        $view = 'asteacher';
-    }
-    if ($iscoursemanager) {
-        // Defaults for coursemanagers.
-        $view = 'ascoursemanager';
-    }
-}
 
 // We need prefetch tabs as it may resolve view.
 $tabs = $renderer->tabs($view, $isteacher, $iscoursemanager);

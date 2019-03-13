@@ -70,6 +70,9 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
         if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
             // Solve a performance issue for people having wide access to courses.
             $options = array('noheading' => true, 'withcats' => false, 'gaugewidth' => 150, 'gaugeheight' => 20);
+        } else {
+            // We need print categories, and this implies resetting template to list mode.
+            $alttemplate = '';
         }
         if ($alttemplate == 'my_courses_grid') {
             foreach ($mycourses as $cid => $c) {
@@ -236,6 +239,7 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
                                  'nocompletion' => true,
                                  'gaugewidth' => 0,
                                  'gaugeheight' => 0);
+                $alttemplate = ''; // Reset eventual graphic mode.
             }
             $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
         }
@@ -328,6 +332,7 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
                              'nocompletion' => true,
                              'gaugewidth' => 0,
                              'gaugeheight' => 0);
+            $alttemplate = ''; // Reset to a list mode when displaying category.
         }
         $template->simplecourses = local_my_print_courses('mymanagedcourses', $mymanagedcourses, $options, true);
 
@@ -511,6 +516,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
                                  'nocompletion' => true,
                                  'gaugewidth' => 0,
                                  'gaugeheight' => 0);
+                $alttemplate = ''; // Reset to list mode.
             }
             $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
         }
@@ -777,7 +783,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         return;
     }
 
-    $view = optional_param('view', 'asstudent', PARAM_TEXT);
+    list($view, $isteacher, $iscoursemanager) = local_my_resolve_view();
     $template = new StdClass();
 
     $reali = 1;
@@ -859,6 +865,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
             // Solve a performance issue for people having wide access to courses.
             $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas_'.$i);
 
+            $template->isaccordion = !empty($config->courselistaccordion);
             $template->courseareas[] = $courseareatpl;
 
             $reali++;
@@ -965,6 +972,7 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas2_'.$i);
 
             $template->courseareas[] = $courseareatpl;
+            $template->isaccordion = !empty($config->courselistaccordion);
 
             $reali++;
         }
@@ -1101,6 +1109,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
             }
 
             $template->courseareas[] = $courseareatpl;
+            $template->isaccordion = !empty($config->courselistaccordion);
 
             $reali++;
         }

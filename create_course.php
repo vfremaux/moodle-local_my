@@ -27,7 +27,6 @@
  */
 require('../../config.php');
 require_once($CFG->dirroot . '/my/lib.php');
-require_once($CFG->dirroot.'/lib/coursecatlib.php');
 
 $context = context_system::instance();
 
