@@ -71,18 +71,18 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 url += 'item=' + area;
                 url += '&catid=' + catid;
 
-                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid).attr('src');
+                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src');
                 var hide = 0;
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
                     handlesrc = handlesrc.replace('collapsed', 'expanded');
-                    $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src', handlesrc);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
                     handlesrc = handlesrc.replace('expanded', 'collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid).attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src', handlesrc);
                     hide = 1;
                 }
 
