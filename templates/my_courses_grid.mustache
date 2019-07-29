@@ -1,6 +1,13 @@
 
 
 <!-- local_my/my_courses_grid -->
+
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
+
 <div class="block block_my_courses">
 
     <div class="header">
@@ -18,7 +25,7 @@
 {{#hascourses}}
     {{#coursegridelms}}
         <div class="local-my-promowrap">
-            <div class="local-my-fp-coursebox {{hiddenclass}} [[selfenrolclass}} {{guestenrolclass}}">
+            <div class="local-my-fp-coursebox {{hiddenclass}} {{selfenrolclass}} {{guestenrolclass}}">
                 <div class="local-my-fp-coursethumb">
                     {{#progression}}
                     <div>

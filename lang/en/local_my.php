@@ -17,6 +17,7 @@
 $string['my:overridemy'] = 'Can override My routing';
 $string['my:ismanager'] = 'Has manager activity in site';
 $string['my:iscoursemanager'] = 'Has manager activity in courses';
+$string['my:isstudent'] = 'Has student activity in some course';
 $string['my:isteacher'] = 'Has teacher activity in some courses';
 $string['my:isauthor'] = 'Has editing teacher activity in some courses';
 $string['my:seecourseattributes'] = 'See course attributes (enrol, visibility, editability)';

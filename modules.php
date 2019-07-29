@@ -37,14 +37,21 @@ require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
 function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $DB, $USER, $OUTPUT, $PAGE, $CFG;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
 
     $config = get_config('local_my');
     $renderer = $PAGE->get_renderer('local_my');
 
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
+    if ($debug) {
+        foreach (array_keys($mycourses) as $cid) {
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Add (course $cid as enrolled in)\n";
+            }
+        }
+    }
 
-    $debuginfo = '';
     $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
     $debuginfo .= local_my_process_metas($mycourses);
 
@@ -75,12 +82,18 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
             $alttemplate = '';
         }
         if ($alttemplate == 'my_courses_grid') {
+            $options = array('noheading' => true,
+                             'withcats' => true,
+                             'gaugewidth' => 150,
+                             'gaugeheight' => 20);
             foreach ($mycourses as $cid => $c) {
                 $coursetpl = $renderer->coursebox($c);
                 $template->coursegridelms[] = $coursetpl;
             }
+            // Alternative one line per course list.
             $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
         } else {
+            $template->isaccordion = !empty($config->courselistaccordion);
             $options = array('noheading' => true,
                              'withcats' => true,
                              'gaugewidth' => 150,
@@ -92,15 +105,12 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
             $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
         }
 
+        $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'mycourses');
+
         if ($debug) {
-            $debuginfo = '';
-            foreach ($mycourses as $ac) {
-                $debuginfo .= "exclude authored $ac->id as mine <br/>";
-            }
             $template->debuginfo = $debuginfo;
         }
 
-        $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
     }
 
     if (!empty($alttemplate)) {
@@ -124,25 +134,27 @@ function local_my_print_my_courses_grid(&$excludedcourses, &$courseareacourses) 
 function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses) {
     global $DB, $USER, $PAGE, $CFG, $OUTPUT;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
 
     $renderer = $PAGE->get_renderer('local_my');
 
     $config = get_config('local_my');
 
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
+    if ($debug) {
+        foreach (array_keys($mycourses) as $cid) {
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Add (course $cid as enrolled in - slider)\n";
+            }
+        }
+    }
 
-
-    $debuginfo = '';
     $debuginfo .= local_my_process_metas($mycourses);
     $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
 
     $template = new StdClass();
     $template->widgetname = 'my_courses_slider';
-
-    if ($debug) {
-        $template->debuginfo = $debuginfo;
-    }
 
     $template->courselisttitlestr = get_string('mycourses', 'local_my');
     $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
@@ -152,8 +164,13 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
     } else {
         $template->hascourses = true;
         $template->courseslider = $renderer->courses_slider(array_keys($mycourses));
-        $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
+        $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'mycourseslider');
     }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
     return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
 }
 
@@ -165,11 +182,14 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
 function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $OUTPUT, $CFG, $DB, $PAGE;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+
     $config = get_config('local_my');
 
     $renderer = $PAGE->get_renderer('local_my');
-    $myauthcourses = local_get_my_authoring_courses();
+    $myauthcourses = local_get_my_authoring_courses($debuginfo);
+
     $template = new StdClass();
 
     if (!empty($config->effect_opacity)) {
@@ -180,22 +200,8 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
         $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $debuginfo = '';
-    if ($debug) {
-        foreach(array_keys($myauthcourses) as $cid) {
-            $debuginfo .= "Pre accepting authored $cid \n";
-        }
-    }
-
     $debuginfo .= local_my_process_excluded($excludedcourses, $myauthcourses);
     $debuginfo .= local_my_process_metas($myauthcourses);
-
-    if ($debug) {
-        foreach(array_keys($myauthcourses) as $cid) {
-            $debuginfo .= "Accepting authored $cid \n";
-        }
-        $template->debuginfo = $debuginfo;
-    }
 
     // Post 2.5.
     $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
@@ -244,20 +250,16 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
             $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
         }
 
-        if (!empty($myauthcourses)) {
-            foreach ($myauthcourses as $ac) {
-                if ($debug) {
-                    $debuginfo .= "exclude authored $ac->id as authored <br/>";
-                }
-                if (!in_array($ac->id, $excludedcourses)) {
-                    $excludedcourses[] = $ac->id;
-                }
-            }
-            if ($debug) {
-                // Update debug info if necessary.
-                $template->debuginfo = $debuginfo;
-            }
+        $debuginfo .= local_my_exclude_post_display($myauthoredcourses, $excludedcourses, 'authored');
+
+        if ($debug) {
+            // Update debug info if necessary.
+            $template->debuginfo = $debuginfo;
         }
+    }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
     if (!empty($alttemplate)) {
@@ -281,11 +283,14 @@ function local_my_print_authored_courses_grid(&$excludedcourses, &$courseareacou
 function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $CFG, $DB, $PAGE;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+
     $config = get_config('local_my');
 
     $renderer = $PAGE->get_renderer('local_my');
-    $mymanagedcourses = local_get_my_managed_courses();
+    $mymanagedcourses = local_get_my_managed_courses($debuginfo);
+
     $template = new StdClass;
 
     if (!empty($config->effect_opacity)) {
@@ -296,13 +301,8 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
         $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $debuginfo = '';
     $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
     $debuginfo .= local_my_process_metas($mymanagedcourses);
-
-    if ($debug) {
-        $template->debuginfo = $debuginfo;
-    }
 
     // Post 2.5.
     $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
@@ -336,20 +336,11 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
         }
         $template->simplecourses = local_my_print_courses('mymanagedcourses', $mymanagedcourses, $options, true);
 
-        if (!empty($mymanagedcourses)) {
-            foreach ($mymanagedcourses as $ac) {
-                if ($debug) {
-                    $debuginfo .= "exclude managed $ac->id as managed <br/>";
-                }
-                if (!in_array($ac->id, $excludedcourses)) {
-                    $excludedcourses[] = $ac->id;
-                }
-            }
-            if ($debug) {
-                // Update debug info if necessary.
-                $template->debuginfo = $debuginfo;
-            }
-        }
+        $debuginfo .= local_my_exclude_post_display($mymanagedcourses, $excludedcourses, 'managed');
+    }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
     return $OUTPUT->render_from_template('local_my/managed_courses_module', $template);
@@ -364,13 +355,20 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     global $DB, $USER, $PAGE, $CFG, $OUTPUT;
 
     $renderer = $PAGE->get_renderer('local_my');
+    $debuginfo = '';
 
     $config = get_config('local_my');
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
 
-    $mycourses = local_get_my_authoring_courses();
+    $mycourses = local_get_my_authoring_courses($debuginfo);
+    if ($debug) {
+        foreach (array_keys($myauthcourses) as $cid) {
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Add (course $cid as author)\n";
+            }
+        }
+    }
 
-    $debuginfo = '';
     $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
     $debuginfo .= local_my_process_metas($mycourses);
 
@@ -389,7 +387,7 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     } else {
         $template->hascourses = true;
         $template->courseslider = $renderer->courses_slider(array_keys($mycourses));
-        $excludedcourses = array_merge($excludedcourses, array_keys($mycourses));
+        $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'authorslider');
     }
 
     if ($debug) {
@@ -408,13 +406,14 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
     global $DB, $USER, $PAGE, $CFG, $OUTPUT;
 
     $renderer = $PAGE->get_renderer('local_my');
+    $debuginfo = '';
 
     $config = get_config('local_my');
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
 
-    $mymanagedcourses = local_get_my_managed_courses();
+    $debug = optional_param('showresolve', false, PARAM_INT);
 
-    $debuginfo = '';
+    $mymanagedcourses = local_get_my_managed_courses($debuginfo);
+
     $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
     $debuginfo .= local_my_process_metas($mymanagedcourses);
 
@@ -433,7 +432,7 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
     } else {
         $template->hascourses = true;
         $template->courseslider = $renderer->courses_slider(array_keys($mymanagedcourses));
-        $excludedcourses = array_merge($excludedcourses, array_keys($mymanagedcourses));
+        $debuginfo .= local_my_exclude_post_display($mymanagedcourses, $excludedcourses, 'managedslider');
     }
 
     if ($debug) {
@@ -453,7 +452,9 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
 function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
     global $OUTPUT, $CFG, $DB, $USER, $PAGE;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+
     $config = get_config('local_my');
 
     $renderer = $PAGE->get_renderer('local_my');
@@ -463,13 +464,15 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
     $myteachercourses = array();
     if (!empty($teachercourses)) {
         // Key each course with id.
-        foreach ($teachercourses as $c) {
+        foreach ($teachercourses as $cid => $c) {
             $myteachercourses[$c->id] = $c;
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Add (course $cid as teached)\n";
+            }
         }
     }
 
     // Process exclusions
-    $debuginfo = '';
     $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
     $debuginfo .= local_my_process_metas($myteachercourses);
 
@@ -521,12 +524,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
             $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
         }
 
-        if ($debug) {
-            foreach ($myteachercourses as $ac) {
-                $debuginfo .= "exclude course $ac->id as teaching course <br/>";
-            }
-        }
-        $excludedcourses = array_merge($excludedcourses, array_keys($myteachercourses));
+        $debuginfo .= local_my_exclude_post_display($myteachercourses, $excludedcourses, 'teached');
     }
 
     if ($debug) {
@@ -554,6 +552,8 @@ function local_my_print_teacher_courses_grid(&$excludedcourses, &$courseareacour
 function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareacourses) {
     global $DB, $USER, $PAGE, $CFG, $OUTPUT;
 
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
     $renderer = $PAGE->get_renderer('local_my');
 
     $config = get_config('local_my');
@@ -562,15 +562,14 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     $teachercourses = local_get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields, 'c.sortorder ASC');
     $myteachercourses = array();
     if (!empty($teachercourses)) {
-        // Key eahc course with id.
+        // Key each course with id.
         foreach ($teachercourses as $c) {
             $myteachercourses[$c->id] = $c;
+            if ($debug == 1 || $debug == $c->id) {
+                $debuginfo .= "Course Add (course $c->id as teached)\n";
+            }
         }
     }
-
-    $debug = optional_param('debug', false, PARAM_BOOL);
-
-    $debuginfo = '';
 
     $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
     $debuginfo .= local_my_process_metas($myteachercourses);
@@ -591,7 +590,11 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
     } else {
         $template->hascourses = true;
         $template->courseslider = $renderer->courses_slider(array_keys($myteachercourses));
-        $excludedcourses = array_merge($excludedcourses, array_keys($myteachercourses));
+        $debuginfo .= local_my_exclude_post_display($myteachercourses, $excludedcourses, 'teachedslider');
+    }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
     return $OUTPUT->render_from_template('local_my/courses_slider_module', $template);
@@ -680,7 +683,9 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         return '';
     }
 
+    $debug = optional_param('showresolve', false, PARAM_INT);
     $config = get_config('local_coursetemplates');
+    $debuginfo = '';
 
     if (!$config->templatecategory) {
         return '';
@@ -691,7 +696,15 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         return '';
     }
 
-    $mytemplates = local_get_my_templates();
+    $mytemplates = local_get_my_templates($debuginfo);
+
+    if (empty($config->templatecategory)) {
+        $debuginfo = "Template category is empty or not defined. This has to be checked in configuration.";
+        if ($debug) {
+            $template->debuginfo = $debuginfo;
+        }
+        return $OUTPUT->render_from_template('local_my/my_templates_module', $template);        return;
+    }
 
     $templatecatcontext = context_coursecat::instance($config->templatecategory);
 
@@ -716,11 +729,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
     }
 
     // Post 2.5.
-    if (!empty($excludedcourses)) {
-        foreach (array_keys($excludedcourses) as $cid) {
-            unset($mytemplates[$cid]);
-        }
-    }
+    $debuginfo .= local_my_process_excluded($excludedcourses, $mytemplates);
 
     $template = new StdClass();
 
@@ -743,11 +752,11 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
         $template->templates = local_my_print_courses('mytemplates', $mytemplates, array('noheading' => 1, 'nocompletion' => 1));
 
         // Add templates to exclusions.
-        foreach (array_keys($mytemplates) as $tplid) {
-            if (!in_array($tplid, $excludedcourses)) {
-                $excludedcourses[] = $tplid;
-            }
-        }
+        $debuginfo .= local_my_exclude_post_display($mytemplates, $excludedcourses, 'templates');
+    }
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
     }
 
     return $OUTPUT->render_from_template('local_my/my_templates_module', $template);
@@ -761,10 +770,18 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
 function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $DB, $PAGE, $USER;
 
+    $config = get_config('local_my');
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+
+    if (empty($config->courseareas)) {
+        // Performance quick trap if no areas defined at all.
+        return;
+    }
+
     // Get all courses i am in.
     $allcourses = enrol_get_my_courses('id, shortname, fullname');
 
-    $config = get_config('local_my');
     $renderer = $PAGE->get_renderer('local_my');
 
     $options = array();
@@ -778,13 +795,32 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         $allcourses[$id]->lastaccess = $DB->get_field('user_lastaccess', 'timeaccess', $params);
     }
 
-    if (empty($config->courseareas)) {
-        // Performance quick trap if no areas defined at all.
-        return;
+    list($view, $isstudent, $isteacher, $iscoursemanager) = local_my_resolve_view();
+    $template = new StdClass();
+
+    $colwidth = false;
+    if ($config->courseareas % 3 == 0) {
+        $colwidth = 33;
     }
 
-    list($view, $isteacher, $iscoursemanager) = local_my_resolve_view();
-    $template = new StdClass();
+    if (!$colwidth) {
+        if ($config->courseareas % 2 == 0) {
+            $colwidth = 50;
+        }
+    }
+
+    if (!$colwidth) {
+        switch ($config->courseareas) {
+            case 1:
+                $colwidth = 100;
+                break;
+            case 2:
+                $colwidth = 50;
+                break;
+            default:
+                $colwidth = 32;
+        }
+    }
 
     $reali = 1;
     for ($i = 0; $i < $config->courseareas; $i++) {
@@ -809,45 +845,34 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 
             $context = context_course::instance($c->id);
             // Treat site admins as standard users.
-            $editing = has_capability('moodle/course:manageactivities', $context, $USER, false);
+            // $editing = has_capability('moodle/course:manageactivities', $context, $USER, false);
+            $hasteachingactivity = has_capability('local/my:isteacher', $context, $USER, false);
+            $hasmanageractivity = has_capability('local/my:iscoursemanager', $context, $USER, false);
+
             // Filter out non editing.
-            if (($view == 'asteacher') || ($view == 'ascoursemanager')) {
-                if (!$editing) {
+            if ($view == 'asteacher') {
+                if (!$hasteachingactivity) {
+                    continue;
+                }
+            } else if ($view == 'ascoursemanager') {
+                if (!$hasmanageractivity) {
                     continue;
                 }
             } else {
-                if ($editing) {
+                if ($hasteachingactivity || $hasmanageractivity) {
                     continue;
                 }
             }
 
             if (in_array($c->category, $retainedcategories)) {
                 $areacourses[$c->id] = $c;
+                if ($debug == 1 || $debug == $c->id) {
+                    $debuginfo .= "Course Add ({$c->id} in course area $key\n";
+                }
                 $excludedcourses[] = $c->id;
-            }
-        }
-
-        $colwidth = false;
-        if ($config->courseareas % 3 == 0) {
-            $colwidth = 33;
-        }
-
-        if (!$colwidth) {
-            if ($config->courseareas % 2 == 0) {
-                $colwidth = 50;
-            }
-        }
-
-        if (!$colwidth) {
-            switch ($config->courseareas) {
-                case 1:
-                    $colwidth = 100;
-                    break;
-                case 2:
-                    $colwidth = 50;
-                    break;
-                default:
-                    $colwidth = 32;
+                if ($debug == 1 || $debug == $c->id) {
+                    $debuginfo .= "Course Remove (exclude {$c->id} after display in coursearea $key\n";
+                }
             }
         }
 
@@ -855,7 +880,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 
             $courseareatpl = new StdClass();
 
-            if ($reali % 3 == 0) {
+            if ($i != 0 && ($i % 3 == 0)) {
                 $courseareatpl->coljump = true;
             }
             $courseareatpl->colwidth = $colwidth;
@@ -872,6 +897,10 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
         }
     }
 
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
     return $OUTPUT->render_from_template('local_my/courseareas_module', $template);
 }
 
@@ -883,10 +912,18 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
 function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $DB, $PAGE, $USER;
 
+    $config = get_config('local_my');
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+
+    if (empty($config->courseareas2)) {
+        // Performance quick trap if no areas defined at all.
+        return;
+    }
+
     // Get all courses i am in.
     $allcourses = enrol_get_my_courses('id, shortname, fullname');
 
-    $config = get_config('local_my');
     $renderer = $PAGE->get_renderer('local_my');
 
     $options = array();
@@ -898,11 +935,6 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
     foreach ($allcourses as $id => $c) {
         $params = array('userid' => $USER->id, 'courseid' => $id);
         $allcourses[$id]->lastaccess = $DB->get_field('user_lastaccess', 'timeaccess', $params);
-    }
-
-    if (empty($config->courseareas2)) {
-        // Performance quick trap if no areas defined at all.
-        return;
     }
 
     $template = new StdClass;
@@ -926,10 +958,41 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
         // Filter courses of this area.
         $retainedcategories = local_get_cat_branch_ids_rec($categoryid);
         $areacourses = array();
+
+        list($view, $isstudent, $isteacher, $iscoursemanager) = local_my_resolve_view();
+
         foreach ($allcourses as $c) {
+
+            $context = context_course::instance($c->id);
+            // Treat site admins as standard users.
+            // $editing = has_capability('moodle/course:manageactivities', $context, $USER, false);
+            $hasteachingactivity = has_capability('local/my:isteacher', $context, $USER, false);
+            $hasmanageractivity = has_capability('local/my:iscoursemanager', $context, $USER, false);
+
+            // Filter out non editing.
+            if ($view == 'asteacher') {
+                if (!$hasteachingactivity) {
+                    continue;
+                }
+            } else if ($view == 'ascoursemanager') {
+                if (!$hasmanageractivity) {
+                    continue;
+                }
+            } else {
+                if ($hasteachingactivity || $hasmanageractivity) {
+                    continue;
+                }
+            }
+
             if (in_array($c->category, $retainedcategories)) {
+                if ($debug == 1 || $debug == $c->id) {
+                    $debuginfo .= "Course Add ({$c->id} in course area $key\n";
+                }
                 $areacourses[$c->id] = $c;
                 $excludedcourses[] = $c->id;
+                if ($debug == 1 || $debug == $c->id) {
+                    $debuginfo .= "Course Remove (exclude $c->id after display in coursearea $key\n";
+                }
             }
         }
 
@@ -978,6 +1041,10 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
         }
     }
 
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
     return $OUTPUT->render_from_template('local_my/courseareas_module', $template);
 }
 
@@ -990,18 +1057,19 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
 function local_my_print_course_areas_and_availables(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $DB, $PAGE;
 
-    $debug = 0;
-
-    $mycourses = enrol_get_my_courses('id,shortname,fullname');
-    $availablecourses = local_get_enrollable_courses();
     $config = get_config('local_my');
-
-    $renderer = $PAGE->get_renderer('local_my');
+    $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
 
     if (!$config->courseareas) {
         // Performance quick trap.
         return;
     }
+
+    $mycourses = enrol_get_my_courses('id,shortname,fullname');
+    $availablecourses = local_get_enrollable_courses();
+
+    $renderer = $PAGE->get_renderer('local_my');
 
     if (empty($mycourses)) {
         $mycourses = array(); // Be sure of that !
@@ -1019,15 +1087,15 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
             if (in_array($cid, array_keys($courseareacourses))) {
                 continue;
             }
-            if ($debug) {
-                echo "reject enrolled as excluded $cid <br/>";
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Remove : (reject enrolled as excluded $cid )\n";
             }
             if (array_key_exists($cid, $mycourses)) {
                 unset($mycourses[$cid]);
             }
             if (array_key_exists($cid, $availablecourses)) {
-                if ($debug) {
-                    echo "reject available as excluded $id <br/>";
+                if ($debug == 1 || $debug == $cid) {
+                    $debuginfo .= "course Remove : (reject available as excluded $cid)\n";
                 }
                 unset($availablecourses[$cid]);
             }
@@ -1115,6 +1183,10 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
         }
     }
 
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
     return $OUTPUT->render_from_template('local_my/courseareas_module', $template);
 }
 
@@ -1127,29 +1199,35 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
     global $OUTPUT;
 
     $config = get_config('local_my');
+    $debuginfo = '';
+    $debug = optional_param('showresolve', false, PARAM_INT);
 
-    $courses = local_get_enrollable_courses();
-    if (empty($courses)) {
+    $availablecourses = local_get_enrollable_courses();
+    if (empty($availablecourses)) {
         return;
     }
 
     $overcount = 0;
     if (!empty($config->maxavailablelistsize)) {
-        $overcount = (count($courses) > $config->maxavailablelistsize);
+        $overcount = (count($availablecourses) > $config->maxavailablelistsize);
         if ($overcount) {
-            $courses = array_slice($courses, 0, 11);
+            $availablecourses = array_slice($availablecourses, 0, 11);
         }
     }
 
-    foreach ($excludedcourses as $cid) {
-        if (in_array($cid, array_keys($courses))) {
-            unset($courses[$cid]);
-        }
-    }
+    $debuginfo .= local_my_process_excluded($excludedcourses, $availablecourses);
 
-    if (!count($courses)) {
+    if (!count($availablecourses)) {
         // No more courses to show once filtered.
         return '';
+    }
+
+    if ($debug) {
+        foreach (array_keys($availablecourses) as $cid) {
+            if ($debug == 1 || $debug == $cid) {
+                $debuginfo .= "Course Add (course $cid as available)\n";
+            }
+        }
     }
 
     $options['printifempty'] = 0;
@@ -1158,7 +1236,7 @@ function local_my_print_available_courses(&$excludedcourses, &$courseareacourses
 
     $template = new StdClass();
 
-    $template->availablecourses = local_my_print_courses('availablecourses', $courses, $options);
+    $template->availablecourses = local_my_print_courses('availablecourses', $availablecourses, $options);
     if ($overcount) {
         $template->hastoomany = true;
         $template->allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');

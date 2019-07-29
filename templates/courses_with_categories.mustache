@@ -5,7 +5,7 @@
 {{#hascategories}}
 {{^isaccordion}}
 <div class="course-category-ctls">
-    <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> - 
+    <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> 
     <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}">{{expandallstr}}</a>
     <span id="local-my-areacategories-{{area}}" style="display:none">{{catidlist}}</span>
 </div>
@@ -14,9 +14,11 @@
 
 {{#categories}}
 
+{{#catname}}
 <div id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
-    <img src="{{{collapseiconurl}}}" <b>{{catname}}</b>
+    <img src="{{{collapseiconurl}}}" /> <b>{{catname}}</b>
 </div>
+{{/catname}}
 
 {{#courses}}
 <div class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
@@ -26,4 +28,4 @@
 {{/courses}}
 
 {{/categories}}
-<!-- local_my/course_with_categories -->
+<!-- /local_my/course_with_categories -->

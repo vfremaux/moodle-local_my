@@ -57,8 +57,9 @@ class management_renderer extends \core_course_management_renderer {
                 $coursecreatecategories = \core_course_category::make_categories_list(array('moodle/course:create'));
                 $categories = $managecategories + $coursecreatecategories;
 
-                $authorcourses = local_get_my_authoring_courses('id,fullname,shortname,category',
-                                                                'local/my:isteacher', array_keys($categories));
+                $catids = array_keys($categories);
+                $authorcourses = local_get_my_authoring_courses($debuginfo, 'id,fullname,shortname,category',
+                                                                'local/my:isteacher', $catids);
                 // Foreach unchecked authored course, add category and all parents in catlist.
                 if ($authorcourses) {
                     foreach ($authorcourses as $cid => $course) {

@@ -17,6 +17,7 @@
 $string['my:overridemy'] = 'Peut surpasser la page My';
 $string['my:ismanager'] = 'A une activité de gestionnaire dans le site';
 $string['my:iscoursemanager'] = 'A une activité de coordinateur dans un cours';
+$string['my:isstudent'] = 'A une activité étudiante dans un cours';
 $string['my:isteacher'] = 'A une activité d\'enseignement dans un cours';
 $string['my:isauthor'] = 'A une activité d\'auteur dans un cours';
 $string['my:seecourseattributes'] = 'Voit les attributs de cours';

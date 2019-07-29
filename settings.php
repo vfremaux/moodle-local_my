@@ -193,25 +193,27 @@ if ($hassiteconfig) {
     $select = 'datatype '.$insql;
     $fieldoptions = $DB->get_records_select_menu('user_info_field', $select, $inparams, 'shortname, name');
 
-    $key = 'local_my/profilefieldforcelistmode';
-    $label = get_string('localprofilefieldforcelistmode', 'local_my');
-    $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_INT));
+    if (!empty($fieldoptions)) {
+        $key = 'local_my/profilefieldforcelistmode';
+        $label = get_string('localprofilefieldforcelistmode', 'local_my');
+        $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
 
-    $key = 'local_my/profilefieldforcelistvalues';
-    $label = get_string('localprofilefieldforcelistvalues', 'local_my');
-    $desc = get_string('localprofilefieldforcelistvalues_desc', 'local_my');
-    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+        $key = 'local_my/profilefieldforcelistvalues';
+        $label = get_string('localprofilefieldforcelistvalues', 'local_my');
+        $desc = get_string('localprofilefieldforcelistvalues_desc', 'local_my');
+        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
 
-    $key = 'local_my/profilefieldforcegraphicmode';
-    $label = get_string('localprofilefieldforcegraphicmode', 'local_my');
-    $desc = get_string('localprofilefieldforcegraphicmode_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_INT));
+        $key = 'local_my/profilefieldforcegraphicmode';
+        $label = get_string('localprofilefieldforcegraphicmode', 'local_my');
+        $desc = get_string('localprofilefieldforcegraphicmode_desc', 'local_my');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
 
-    $key = 'local_my/profilefieldforcegraphicvalues';
-    $label = get_string('localprofilefieldforcegraphicvalues', 'local_my');
-    $desc = get_string('localprofilefieldforcegraphicvalues_desc', 'local_my');
-    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+        $key = 'local_my/profilefieldforcegraphicvalues';
+        $label = get_string('localprofilefieldforcegraphicvalues', 'local_my');
+        $desc = get_string('localprofilefieldforcegraphicvalues_desc', 'local_my');
+        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+    }
 
     $uncategorizedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 50 => 50, 100 => 100);
     $key = 'local_my/maxuncategorizedlistsize';
