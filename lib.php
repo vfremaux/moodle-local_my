@@ -44,46 +44,91 @@ function local_my_supports_feature() {
  * @param string $contextlevels restrict to some contextlevel may speedup the query.
  */
 function local_my_has_capability_somewhere($capability, $excludesystem = true, $excludesite = true,
-                                           $doanything = false, $contextlevels = '') {
+                                           $doanything = false, $contextlevels = '', $checkvisible = false) {
     global $USER, $DB;
 
-    $contextclause = '';
-
-    if ($contextlevels) {
-        list($sql, $params) = $DB->get_in_or_equal(explode(',', $contextlevels), SQL_PARAMS_NAMED);
-        $contextclause = "
-           AND ctx.contextlevel $sql
-        ";
+    if (empty($contextlevels)) {
+        $contextlevels = [CONTEXT_COURSE, CONTEXT_COURSECAT];
+    } else {
+        $contextlevels = explode(',', $contextlevels);
     }
+
     $params['capability'] = $capability;
     $params['userid'] = $USER->id;
 
-    $sitecontextexclclause = '';
-    if ($excludesite) {
-        $sitecontextexclclause = " ctx.id != 1  AND ";
+    if (in_array(CONTEXT_COURSE, $contextlevels)) {
+
+        $sitecontextexclclause = '';
+        if ($excludesite) {
+            $sitecontextexclclause = " ctx.id != 1  AND ";
+        }
+
+        $coursecheckvisibleclause = '';
+        if ($checkvisible) {
+            $coursecheckvisibleclause = " c.visible = 1 AND ";
+        }
+
+        // This is a a quick rough query that may not handle all role override possibility.
+
+        $sql = "
+            SELECT
+                COUNT(DISTINCT ra.id)
+            FROM
+                {role_capabilities} rc,
+                {role_assignments} ra,
+                {context} ctx,
+                {course} c
+            WHERE
+                rc.roleid = ra.roleid AND
+                ra.contextid = ctx.id AND
+                $sitecontextexclclause
+                rc.capability = :capability AND
+                ctx.contextlevel = ".CONTEXT_COURSE." AND
+                ctx.instanceid = c.id AND
+                $coursecheckvisibleclause
+                ra.userid = :userid AND
+                rc.permission = 1
+        ";
+        $hassomecourses = $DB->count_records_sql($sql, $params);
     }
 
-    // This is a a quick rough query that may not handle all role override possibility.
+   if (in_array(CONTEXT_COURSECAT, $contextlevels)) {
 
-    $sql = "
-        SELECT
-            COUNT(DISTINCT ra.id)
-        FROM
-            {role_capabilities} rc,
-            {role_assignments} ra,
-            {context} ctx
-        WHERE
-            rc.roleid = ra.roleid AND
-            ra.contextid = ctx.id AND
-            $sitecontextexclclause
-            rc.capability = :capability
-            $contextclause
-            AND ra.userid = :userid AND
-            rc.permission = 1
-    ";
-    $hassome = $DB->count_records_sql($sql, $params);
+        $sitecontextexclclause = '';
+        if ($excludesite) {
+            $sitecontextexclclause = " ctx.id != 1  AND ";
+        }
 
-    if (!empty($hassome)) {
+        $coursecatcheckvisibleclause = '';
+        if ($checkvisible) {
+            $coursecatcheckvisibleclause = " cc.visible = 1 AND ";
+        }
+
+        // This is a a quick rough query that may not handle all role override possibility.
+
+        $sql = "
+            SELECT
+                COUNT(DISTINCT ra.id)
+            FROM
+                {role_capabilities} rc,
+                {role_assignments} ra,
+                {context} ctx,
+                {course_categories} cc
+            WHERE
+                rc.roleid = ra.roleid AND
+                ra.contextid = ctx.id AND
+                $sitecontextexclclause
+                rc.capability = :capability AND
+                ctx.contextlevel = ".CONTEXT_COURSECAT." AND
+                ctx.instanceid = cc.id AND
+                $coursecatcheckvisibleclause
+                ra.userid = :userid AND
+                rc.permission = 1
+        ";
+        $hassomecategories = $DB->count_records_sql($sql, $params);
+    }
+
+    if (!empty($hassomecourses) || !empty($hassomecategories)) {
         return true;
     }
 
@@ -258,10 +303,10 @@ function local_get_my_meta_courses(&$courses = null, $certified = 0) {
  * get courses i am authoring in (or by capability).
  *
  */
-function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:isauthor') {
+function local_get_my_authoring_courses(&$debuginfo, $fields = '*', $capability = 'local/my:isauthor') {
     global $USER, $DB, $CFG;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_BOOL);
 
     $authoredcourses = array();
     $authored = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder');
@@ -271,12 +316,12 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
             if (!has_capability('local/my:iscoursemanager', $context, $USER, false)) {
                 // doanything not considered here.
                 $authoredcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
-                if ($debug) {
-                    echo "Accept {$a->id} by capability $capability<br/>\n";
+                if ($debug = 1 || $debug == $a->id) {
+                    $debuginfo .= "Accept {$a->id} by capability $capability\n";
                 }
             } else {
-                if ($debug) {
-                    echo "Reject {$a->id} because coursemanager<br/>\n";
+                if ($debug = 1 || $debug == $a->id) {
+                    $debuginfo .= "Reject {$a->id} because coursemanager\n";
                 }
             }
         }
@@ -289,12 +334,17 @@ function local_get_my_authoring_courses($fields = '*', $capability = 'local/my:i
  * get courses i am managing (or by capability).
  *
  */
-function local_get_my_managed_courses($fields = '*', $capability = 'local/my:iscoursemanager') {
+function local_get_my_managed_courses(&$debuginfo, $fields = '*', $capability = 'local/my:iscoursemanager') {
     global $USER, $DB;
 
+    $debug = optional_param('showresolve', false, PARAM_BOOL);
+
     if ($managed = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
-        foreach ($managed as $a) {
-            $managedcourses[$a->id] = $DB->get_record('course', array('id' => $a->id), $fields);
+        foreach ($managed as $m) {
+            $managedcourses[$m->id] = $DB->get_record('course', array('id' => $m->id), $fields);
+            if ($debug = 1 || $debug == $m->id) {
+                $debuginfo .= "Accept {$m->id} as managed\n";
+            }
         }
         return $managedcourses;
     }
@@ -305,12 +355,13 @@ function local_get_my_managed_courses($fields = '*', $capability = 'local/my:isc
  * get courses templates i am authoring in.
  * @return an array of course records.
  */
-function local_get_my_templates() {
+function local_get_my_templates(&$debuginfo) {
     global $USER, $DB, $CFG;
 
     require_once($CFG->dirroot.'/local/coursetemplates/xlib.php');
 
     $config = get_config('local_coursetemplates');
+    $debug = optional_param('showresolve', false, PARAM_BOOL);
 
     $templatecatids = local_coursetemplates_get_template_categories();
 
@@ -320,6 +371,9 @@ function local_get_my_templates() {
             $category = $DB->get_field('course', 'category', array('id' => $t->id));
             if (in_array($category, $templatecatids)) {
                 $templatecourses[$t->id] = $DB->get_record('course', array('id' => $t->id));
+                if ($debug = 1 || $debug == $m->id) {
+                    $debuginfo .= "Accept {$t->id} as template\n";
+                }
             }
         }
         return $templatecourses;
@@ -542,10 +596,13 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
 
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
-            $str .= $renderer->course_overview($courses, $options);
+            // Old overviewed. OBSOLETE.
+            // $str .= $renderer->course_overview($courses, $options);
         } else if (!empty($options['withcats'])) {
+            // Structured list.
             $str .= $renderer->courses_by_cats($courses, $options, $title);
         } else {
+            // Flat list.
             foreach ($courses as $c) {
                 $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
                 $str .= $renderer->course_table_row($c, $options);
@@ -591,13 +648,22 @@ function local_get_cat_branch_ids_rec($categoryid) {
 }
 
 /**
- * Prefetch courses that will be printed by course areas
+ * Prefetch courses that will be printed by course areas. Any course captured in a coursearea
+ * should not appear in any other module even evaluated before courseareas for display.
+ * 
  */
-function local_prefetch_course_areas(&$excludedcourses) {
+function local_my_prefetch_course_areas($isadmin, $isteacher, $iscoursemanager, $modules, &$excludedcourses) {
     global $DB;
 
-    $allmycourses = enrol_get_my_courses('id, shortname');
     $config = get_config('local_my');
+    $debug = optional_param('showresolve', false, PARAM_INT);
+
+    if (empty($config->courseareas) && empty($config->courseareas2)) {
+        // Performance quick trap.
+        return array();
+    }
+
+    $allmycourses = enrol_get_my_courses('id, shortname');
 
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $id => $c) {
@@ -605,52 +671,66 @@ function local_prefetch_course_areas(&$excludedcourses) {
         }
     }
 
-    if (empty($config->courseareas) && empty($config->courseareas2)) {
-        // Performance quick trap.
-        return array();
-    }
-
     $prefetchareacourses = array();
 
     // Get the first coursearea zone exclusions.
-    for ($i = 0; $i < $config->courseareas; $i++) {
+    if (in_array('course_areas', $modules) || in_array('course_areas_and_availables', $modules)) {
+        if ($debug) {
+            echo "<pre>prefetch courseareas</pre>\n";
+        }
+        for ($i = 0; $i < $config->courseareas; $i++) {
 
-        $coursearea = 'coursearea'.$i;
-        if (!empty($config->$coursearea)) {
-            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
-            if ($mastercategory) {
-                // Filter courses of this area.
-                $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
-                foreach ($allmycourses as $c) {
-                    if (in_array($c->category, $retainedcategories)) {
-                        $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
-                        $prefetchareacourses[$c->id] = $c;
-                    }
-                }
-            }
+            $coursearea = 'coursearea'.$i;
+            $courseareacourses = local_my_get_coursearea_courses($coursearea, $allmycourses);
+            $prefetchareacourses += $courseareacourses;
         }
     }
 
     // Add the second coursearea zone exclusions.
-    for ($i = 0; $i < $config->courseareas2; $i++) {
+    if (in_array('course_areas2', $modules)) {
+        if ($debug) {
+            echo "<pre>prefetch courseareas2</pre>\n";
+        }
+        for ($i = 0; $i < $config->courseareas2; $i++) {
+            $coursearea = 'coursearea2_'.$i;
+            $courseareacourses = local_my_get_coursearea_courses($coursearea, $allmycourses);
+            $prefetchareacourses += $courseareacourses;
+        }
+    }
 
-        $coursearea = 'coursearea2_'.$i;
-        if (!empty($config->$coursearea)) {
-            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$coursearea));
+    return $prefetchareacourses;
+}
+
+/**
+ * Prefetches and caches the course list in a course area.
+ */
+function local_my_get_coursearea_courses($courseareaname, &$allmycourses) {
+    global $DB;
+    static $courseareas;
+
+    if (!isset($courseareas[$courseareaname])) {
+
+        $config = get_config('local_my');
+        if (!empty($config->$courseareaname)) {
+
+            $courseareas[$courseareaname] = array();
+            $mastercategory = $DB->get_record('course_categories', array('id' => $config->$courseareaname));
             if ($mastercategory) {
                 // Filter courses of this area.
                 $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
                 foreach ($allmycourses as $c) {
                     if (in_array($c->category, $retainedcategories)) {
                         $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
-                        $prefetchareacourses[$c->id] = $c;
+                        $courseareas[$courseareaname][$c->id] = $c;
                     }
                 }
             }
+        } else {
+            $courseareas[$courseareaname] = array();
         }
     }
 
-    return $prefetchareacourses;
+    return $courseareas[$courseareaname];
 }
 
 function local_my_hide_home() {
@@ -876,6 +956,31 @@ function local_my_course_trim_char($str, $n = 500, $endchar = '...') {
 }
 
 /**
+ * Cut the Course content by words.
+ *
+ * @param $str input string
+ * @param $n number of words max
+ * @param $endchar unfinished string suffix
+ * @return the shortened string
+ */
+function local_my_course_trim_words($str, $w = 10, $endchar = '...') {
+
+    // Preformatting.
+    $str = str_replace(array("\r\n", "\r", "\n"), ' ', $str); // Remove all endlines
+    $str = preg_replace('/\s+/', ' ', $str); // Reduce spaces.
+
+    $words = explode(' ', $str);
+
+    if (count($words) <= $w) {
+        return $str;
+    }
+
+    $shortened = array_slice($words, 0, $w);
+    $out = implode(' ', $shortened).' '.$endchar;
+    return $out;
+}
+
+/**
  * Serves the format page context (course context) attachments. Implements needed access control ;-)
  *
  * @param object $course
@@ -957,7 +1062,7 @@ function local_my_scalar_array_merge(&$arr1, &$arr2) {
     }
     foreach ($arr2 as $val) {
         if (!in_array($val, $arr1)) {
-            $arr1[] = $val;
+            $arr1[] = ''.$val;
         }
         sort($arr1);
     }
@@ -1012,14 +1117,16 @@ function local_my_process_metas(&$courselist) {
     global $USER, $DB;
 
     $config = get_config('local_my');
-    $debug = optional_param('debug', false, PARAM_BOOL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
 
     foreach ($courselist as $id => $c) {
         if (!empty($config->skipmymetas)) {
             if (local_my_is_meta_for_user($c->id, $USER->id)) {
                 if ($debug) {
-                    $debuginfo .= "reject meta $id as meta disabled";
+                    if ($debug == 1 || $debug == $cid) {
+                        $debuginfo .= "Course Remove (reject meta $id as meta disabled)<br/>\n";
+                    }
                 }
                 unset($courselist[$id]);
                 continue;
@@ -1033,19 +1140,142 @@ function local_my_process_metas(&$courselist) {
 
 function local_my_process_excluded($excludedcourses, &$courselist) {
 
-    $debug = optional_param('debug', false, PARAM_BOOL);
+    $debug = optional_param('showresolve', false, PARAM_INT);
 
     $debuginfo = '';
+
+    if ($debug) {
+        $debuginfo .= "local_my_process_excluded(\n";
+    }
+
     if (!empty($excludedcourses)) {
         foreach ($excludedcourses as $cid) {
             if (!empty($cid)) {
                 if ($debug) {
-                    $debuginfo .= "rejected $cid as excluded</br/>";
+                    if ($debug == 1 || $debug == $cid) {
+                        $debuginfo .= "Course Remove (rejected $cid as excluded)\n";
+                    }
                 }
                 unset($courselist[$cid]);
             }
         }
     }
 
+    if ($debug) {
+        $debuginfo .= ")\n";
+    }
+
     return $debuginfo;
+}
+
+function local_my_exclude_post_display($courses, &$excludedcourses, $reason) {
+
+    $debug = optional_param('showresolve', false, PARAM_INT);
+
+    $debuginfo = '';
+    if (!empty($courses)) {
+        foreach ($courses as $c) {
+            if ($debug == 1 || $debug == $c->id) {
+                $debuginfo .= "Course Removed : exclude after display $c->id as $reason\n";
+            }
+            if (!in_array($c->id, $excludedcourses)) {
+                $excludedcourses[] = $c->id;
+            }
+        }
+    }
+
+    return $debuginfo;
+}
+
+function local_my_resolve_view() {
+    static $isstudent = null;
+    static $isteacher = null;
+    static $iscoursemanager = null;
+    static $isadmin = null;
+
+    $config = get_config('local_my');
+
+    $studentcap = 'local/my:isstudent';
+    $teachercap = 'local/my:isteacher';
+    $authorcap = 'local/my:isauthor';
+    $coursemanagercap = 'local/my:iscoursemanager';
+
+    if (is_null($isstudent)) {
+        $isstudent = local_my_has_capability_somewhere($studentcap, true, true, false, CONTEXT_COURSE);
+    }
+
+    if (is_null($isteacher)) {
+        $isteacher = local_my_has_capability_somewhere($teachercap) ||
+                local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
+    }
+
+    if (is_null($iscoursemanager) && !empty($config->coursemanagermodules) && preg_match('/\bmanaged/', $config->coursemanagermodules)) {
+        $iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
+    }
+
+    if (is_null($isadmin)) {
+        $systemcontext = context_system::instance();
+        $isadmin = has_capability("moodle/site:config", $systemcontext) || has_capability("local/my:ismanager", $systemcontext);
+    }
+
+    $view = optional_param('view', '', PARAM_TEXT);
+    if (empty($view)) {
+
+        $view = 'asstudent';
+        if ($isteacher && !empty($config->teachermodules)) {
+            // Defaults for teachers.
+            $view = 'asteacher';
+        }
+        if ($iscoursemanager && !empty($config->coursemanagermodules)) {
+            // Defaults for coursemanagers.
+            $view = 'ascoursemanager';
+        }
+        if ($isadmin && !empty($config->adminmodules)) {
+            $view = 'asadmin';
+        }
+    }
+
+    $result = array($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
+    return $result;
+}
+
+function local_my_is_panel_empty($panelname) {
+
+    $config = get_config('local_my');
+
+    if (!isset($config->$panelname)) {
+        throw new Exception('Invalid panel identifier '.$panelname);
+    }
+
+    if (empty($config->$panelname)) {
+        // Quick path.
+        return true;
+    }
+
+    $entries = explode("\n", $config->$panelname);
+
+    foreach ($entries as $entry) {
+        $entry = trim($entry);
+        if (strpos($entry, '#') !== 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function local_my_get_catlist($capability = '') {
+    if (empty($capability)) {
+        $capability = 'moodle/course:create';
+    }
+    $mycatlist = \coursecat::make_categories_list('moodle/course:create');
+    return $mycatlist;
+}
+
+function local_get_category($catid) {
+    return \coursecat::get($course->category);
+}
+
+function local_get_course_list($course) {
+    return new \course_in_list($course);
 }

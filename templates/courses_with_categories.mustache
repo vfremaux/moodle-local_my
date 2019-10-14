@@ -1,31 +1,36 @@
 
 
-<!-- course_with_categories -->
+<!-- local_my/course_with_categories -->
 
 {{#hascategories}}
-    <tr valign="top">
-        <td class="course-category-ctls">
-            <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> - 
-            <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}">{{expandallstr}}</a>
-            <span id="local-my-areacategories-{{area}}" style="display:none">{{catidlist}}</span>
-        </td>
-    </tr>
+{{^isaccordion}}
+<div class="course-category-ctls">
+    <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> 
+    <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}">{{expandallstr}}</a>
+    <span id="local-my-areacategories-{{area}}" style="display:none">{{catidlist}}</span>
+</div>
+{{/isaccordion}}
 {{/hascategories}}
 
 {{#categories}}
-    <tr valign="top">
-        <td class="course-category {{catstyle}}">
-            <img src="{{{collapseiconurl}}}" id="local-my-cathandle-{{area}}-{{catid}}" class="local-my-cat-collapse local-my-cat-collapse-{{area}}"> <b>{{catname}}</b>
-        </td>
-    </tr>
 
-    {{#courses}}
-    <tr valign="top" class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
-        <td class="course">
-            <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}}</a>
-            {{{editingicon}}}
-        </td>
-    </tr>
-    {{/courses}}
+{{#catname}}
+<div id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
+    <h3 tabindex="0"><button aria-expanded="false"><img aria-hidden="true" src="{{{collapseiconurl}}}" /></button> {{catname}}</h3>
+</div>
+{{/catname}}
+
+<table width="100%">
+{{#courses}}
+<tr>
+    <td class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
+        <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}} {{{editingicon}}}</a>
+    </td>
+
+    {{> local_my/courseprogression}}
+</tr>
+{{/courses}}
+</table>
+
 {{/categories}}
-<!-- /course_with_categories -->
+<!-- /local_my/course_with_categories -->

@@ -24,39 +24,55 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/local/my/lib.php');
+
 class local_my_renderer extends plugin_renderer_base {
 
     /**
      * Prints a progression progress bar or gauge in a div or a table cell
      * @param objectref $course
-     * @param string $div 'div' if the result needs being tableless
      * @param int $width default width
      * @param int $heigh default height
      * @param string $progressbar type of gauge renderer.
      */
-    public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar', &$template) {
-        global $USER, $PAGE, $DB;
+    public function course_completion_gauge(&$course, $width, $height, $type, &$template) {
+        global $USER, $PAGE, $DB, $CFG;
+
+        if ($type == 'noprogress') {
+            $template->progression = '';
+            return;
+        }
+
+        $template->progression = '';
+
+        if (has_any_capability(array('local/my:isteacher', 'local/my:iscoursemanager'), context_course::instance($course->id), $USER->id, false)) {
+            // $template->progression = '';
+            // return;
+        }
 
         $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
         $completion = new completion_info($courserec);
         if ($completion->is_enabled(null)) {
-            $ratio = \core_completion\progress::get_course_progress_percentage($courserec);
-            $jqwrenderer = $PAGE->get_renderer('local_vflibs');
+            $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
 
-            $template->completionstr = get_string('completion', 'local_my', (0 + $ratio));
+            $template->completionstr = get_string('completion', 'local_my', 0 + $ratio);
 
             if ($type == 'gauge') {
+                $jqwrenderer = $PAGE->get_renderer('local_vflibs');
                 $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
                 $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id,
                                                                            array($ratio), $properties);
             } else if ($type == 'progressbar') {
+                $jqwrenderer = $PAGE->get_renderer('local_vflibs');
                 $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
                 $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
                                                                         $ratio, $properties);
             } else if ($type == 'jqplot') {
+                include_once($CFG->dirroot . "/local/vflibs/jqplotlib.php");
+                local_vflibs_require_jqplot_libs();
                 // Completion with a donut.
                 $completedstr = get_string('completion', 'local_my', $ratio);
-                $data = array(array($completedstr, round($ratio)), array('', round(100 - $ratio)));
+                $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
                 $attrs = array('height' => $width, 'width' => $height);
                 $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
             } else {
@@ -68,7 +84,7 @@ class local_my_renderer extends plugin_renderer_base {
                     $hasprogress = false;
                 }
                 $progresschartcontext = ['hasprogress' => $hasprogress, 'progress' => $comppercent];
-                $template->progression = $this->render_from_template('block_myoverview/progress-chart', $progresschartcontext);
+                $template->progression = $this->render_from_template('local_my/progress-chart', $progresschartcontext);
             }
         } else {
             $template->progression = '';
@@ -121,16 +137,12 @@ class local_my_renderer extends plugin_renderer_base {
             $template->hasdescription = true;
         }
 
-        if (empty($options['nocompletion'])) {
-            if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
-                // Only non teachers can see progression.
-                if (!array_key_exists('gaugewidth', $options)) {
-                    debugging('Missing option');
-                }
-                $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'],
-                                               'progressbar', $template);
-            }
+        // Only non teachers can see progression.
+        if (!array_key_exists('gaugewidth', $options)) {
+            debugging('Missing option');
         }
+        $this->course_completion_gauge($course, $options['gaugewidth'], $options['gaugeheight'],
+                                       $options['gaugetype'], $template);
 
         $template->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
         $template->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
@@ -142,12 +154,15 @@ class local_my_renderer extends plugin_renderer_base {
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
-            $pix = $this->output->pix_icon('editing', get_string('editing', 'local_my'), 'local_my');
-            return $this->output->box($pix, 'editing-icon pull-right');
+            $attrs = array('aria-label' => get_string('editing', 'local_my'));
+            $pix = $this->output->pix_icon('editing', get_string('editing', 'local_my'), 'local_my', $attrs);
+            return '<div class="editing-icon pull-right">'.$pix.'</div>';
         }
     }
 
     public function course_as_box($c) {
+
+        $config = get_config('local_my');
 
         $template = new StdClass;
 
@@ -157,6 +172,18 @@ class local_my_renderer extends plugin_renderer_base {
 
         $template->css = $c->visible ? '' : 'dimmed';
         $template->fullname = format_string($c->fullname);
+        if ($config->trimmode == 'words') {
+            if (empty($config->trimlength1)) {
+                $config->trimlength1 = 20;
+            }
+            $template->fullname = local_my_course_trim_words($template->fullname, $config->trimlength1);
+        } else if ($config->trimmode == 'chars') {
+            if (empty($config->trimlength1)) {
+                $config->trimlength1 = 80;
+            }
+            $template->fullname = local_my_course_trim_char($template->fullname, $config->trimlength1);
+        }
+
         $template->shortname = $c->shortname;
 
         $template->editingicon = $this->editing_icon($c);
@@ -169,12 +196,23 @@ class local_my_renderer extends plugin_renderer_base {
             $template->coursefileurl = $coursefileurl;
             $template->hasimage = true;
         } else {
-            $template->summary = shorten_text(format_text($c->summary), 80);
+            $template->summary = format_text($c->summary);
+            if ($config->trimmode == 'words') {
+                if (empty($config->trimlength2)) {
+                    $config->trimlength2 = 100;
+                }
+                $template->summary = local_my_course_trim_words($template->summary, $config->trimlength2);
+            } else if ($config->trimmode == 'chars') {
+                if (empty($config->trimlength2)) {
+                    $config->trimlength2 = 500;
+                }
+                $template->summary = local_my_course_trim_char($template->summary, $config->trimlength2);
+            }
         }
 
-        $this->course_completion_gauge($course, 'div', 
-                                       $options['gaugewidth'], $options['gaugeheight'],
-                                       'donut', $template);
+        $this->course_completion_gauge($course,
+                                       $config->progressgaugewidth, $config->progressgaugeheight,
+                                       $config->progressgaugetype, $template);
 
         return $this->output->render_from_template('local_my/coursebox', $template);
     }
@@ -197,64 +235,50 @@ class local_my_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Prints tabs if separated role screens
+     * Prints tabs if separated role screens.
+     * view is assumed being adequately tuned and resolved.
      */
-    public function tabs(&$view, $isteacher, $iscoursemanager) {
+    public function tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin) {
         global $SESSION;
 
         $config = get_config('local_my');
 
-        $systemcontext = context_system::instance();
-        $isadmin = has_capability("moodle/site:config", $systemcontext) || has_capability("local/my:ismanager", $systemcontext);
-
-        if (!empty($config->adminmodules) && $isadmin) {
+        $hasadmintab = false;
+        if (!local_my_is_panel_empty('adminmodules') && $isadmin) {
             $tabname = get_string('asadmin', 'local_my');
             $params = array('view' => 'asadmin');
             $taburl = new moodle_url('/my/index.php', $params);
             $rows[0][] = new tabobject('asadmin', $taburl, $tabname);
         }
 
-        if (!empty($config->coursemanagermodules) && $iscoursemanager) {
+        if (!local_my_is_panel_empty('coursemanagermodules') && $iscoursemanager) {
             $tabname = get_string('ascoursemanager', 'local_my');
             $params = array('view' => 'ascoursemanager');
             $taburl = new moodle_url('/my/index.php', $params);
             $rows[0][] = new tabobject('ascoursemanager', $taburl, $tabname);
         }
 
-        if (empty($config->teachermodules)) {
-            return;
+        if (!local_my_is_panel_empty('teachermodules') && $isteacher) {
+            $tabname = get_string('asteacher', 'local_my');
+            $params = array('view' => 'asteacher');
+            $taburl = new moodle_url('/my/index.php', $params);
+            $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
         }
 
-        if (empty($view)) {
-            $view = @$SESSION->localmyview;
+        $canhaveavailablecourses = preg_match('/available/', $config->modules) || preg_match('/area/', $config->modules);
 
-            if ($isadmin) {
-                if (empty($view)) {
-                    $view = 'asadmin';
-                }
-            } else if ($isteacher) {
-                if (empty($view)) {
-                    $view = 'asteacher';
-                }
-            } else {
-                // Force anyway the student view only, including forcing session.
-                // Do NOT print any tabs.
-                $view = 'asstudent';
-                return;
-            }
+        if ($isstudent || $canhaveavailablecourses) {
+            $tabname = get_string('asstudent', 'local_my');
+            $params = array('view' => 'asstudent');
+            $taburl = new moodle_url('/my/index.php', $params);
+            $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
         }
 
-        $tabname = get_string('asteacher', 'local_my');
-        $params = array('view' => 'asteacher');
-        $taburl = new moodle_url('/my/index.php', $params);
-        $rows[0][] = new tabobject('asteacher', $taburl, $tabname);
+        if (!empty($rows)) {
+            return print_tabs($rows, $view, null, null, true);
+        }
 
-        $tabname = get_string('asstudent', 'local_my');
-        $params = array('view' => 'asstudent');
-        $taburl = new moodle_url('/my/index.php', $params);
-        $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
-
-        return print_tabs($rows, $view, null, null, true);
+        return '';
     }
 
     public function courses_slider($courseids) {
@@ -277,6 +301,8 @@ class local_my_renderer extends plugin_renderer_base {
     public function coursebox($courseorid) {
         global $CFG, $USER;
 
+        $config = get_config('local_my');
+
         if (is_object($courseorid)) {
             $courseid = $courseorid->id;
         } else {
@@ -286,10 +312,23 @@ class local_my_renderer extends plugin_renderer_base {
         $coursetpl = new StdClass;
         $course = get_course($courseid);
         $context = context_course::instance($course->id);
-        $summary = local_my_strip_html_tags($course->summary);
-        $coursetpl->summary = local_my_course_trim_char($summary, 250);
+
+        $coursetpl->summary = '';
+        if (empty($config->hidedescriptions)) {
+            $summary = local_my_strip_html_tags($course->summary);
+            if ($config->trimmode == 'words') {
+                $coursetpl->summary = local_my_course_trim_words($summary, $config->trimlength2);
+            } else {
+                $coursetpl->summary = local_my_course_trim_char($summary, $config->trimlength2);
+            }
+        }
+
         $coursetpl->fullname = format_string($course->fullname);
-        $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), 80);
+        if ($config->trimmode == 'words') {
+            $coursetpl->trimtitle = local_my_course_trim_words(format_string($course->fullname), $config->trimlength1);
+        } else {
+            $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), $config->trimlength1);
+        }
 
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
         $coursetpl->courseurl = ''.$courseurl;
@@ -325,7 +364,7 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->guestattribute = $this->output->pix_icon('guest', get_string('guestenrol', 'local_my'), 'local_my');
         } else {
             $coursetpl->guestenrolclass = '';
-            $coursetpl->guestattirbute = '';
+            $coursetpl->guestattribute = '';
         }
         if ($course->startdate > time()) {
             $coursetpl->hasattributes = true;
@@ -336,9 +375,13 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->futureattribute = '';
         }
 
+        if (!has_capability('local/my:seecourseattributes', $context)) {
+            // Hide all attributes if requested by capability.
+            $coursetpl->hasattributes = false;
+        }
+
         if ($course instanceof stdClass) {
-            require_once($CFG->libdir. '/coursecatlib.php');
-            $course = new course_in_list($course);
+            $course = local_get_course_list($course);;
         }
 
         $context = context_course::instance($course->id);
@@ -355,7 +398,7 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
         }
 
-        $this->course_completion_gauge($course, 'div', 120, 120, 'donut', $coursetpl);
+        $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
 
         return $coursetpl;
     }
@@ -408,12 +451,13 @@ class local_my_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Print a simple list of coures with first level category caption
+     * Print a simple list of courses with first level category caption
      */
     public function courses_by_cats($courselist, $options = array(), $area = '') {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
         $renderer = $PAGE->get_renderer('local_my');
+        $config = get_config('local_my');
 
         // Get user preferences for collapser.
         $select = " userid = ? and name LIKE 'local_my%' ";
@@ -434,6 +478,7 @@ class local_my_renderer extends plugin_renderer_base {
         $template->collapseallstr = get_string('collapseall', 'local_my');
         $template->expandallstr = get_string('expandall', 'local_my');
         $template->catidlist = implode(',', array_keys($catcourses));
+        $template->isaccordion = !empty($config->courselistaccordion);
 
         foreach ($catcourses as $catid => $cat) {
 
@@ -445,10 +490,9 @@ class local_my_renderer extends plugin_renderer_base {
             $cattpl->catid = $cat->category->id;
 
             $catcontext = context_coursecat::instance($catid);
-            if (array_key_exists('local_my_'.$area.'_'.$catid.'_hidden', $collapses)) {
+            $cattpl->collapseclass = '';
+            if (array_key_exists('local_my_'.$area.'_'.$catid.'_hidden', $collapses) && !$template->isaccordion) {
                 $cattpl->collapseclass = 'collapsed';
-            } else {
-                $cattpl->collapseclass = '';
             }
 
             if (!empty($cattpl->collapseclass)) {

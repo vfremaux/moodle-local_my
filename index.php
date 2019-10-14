@@ -49,7 +49,7 @@ local_vflibs_require_jqplot_libs();
 
 // TODO Add sesskey check to edit.
 $edit = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off.
-$showresolve = optional_param('showresolve', null, PARAM_BOOL);    // Turn check of how courses are dispatched.
+$showresolve = optional_param('showresolve', null, PARAM_INT);    // Turn check of how courses are dispatched.
 
 // Security.
 
@@ -104,6 +104,7 @@ if (!empty($config->slick)) {
     $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 }
 $PAGE->requires->css('/local/my/css/slick.css');
+$PAGE->requires->skip_link_to('localmymaincontent', '');
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
@@ -177,41 +178,33 @@ if ($currentpage->userid == 0) {
 
 // Get exclusions startup from config.
 $excludedcourses = explode(',', @$config->excludedcourses);
-
+if ($showresolve && !empty($excludedcourses)) {
+    echo "<pre>\n";
+    foreach ($excludedcourses as $cid) {
+        if ($showresolve == 1 || $showresolve == $cid) {
+            mtrace("Course exclude : (Initial exclude $cid)\n");
+        }
+    }
+    echo "</pre>\n";
+}
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
+list($view, $isstudent, $isteacher, $iscoursemanager, $isadmin) = local_my_resolve_view();
 $teachercap = 'local/my:isteacher';
-$authorcap = 'local/my:isauthor';
-$coursemanagercap = 'local/my:iscoursemanager';
-$isteacher = local_my_has_capability_somewhere($teachercap) ||
-        local_my_has_capability_somewhere($authorcap, true, true, false, CONTEXT_COURSECAT);
-$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
 
 // Get and clean modules names.
 
 echo $OUTPUT->header();
 
-$view = optional_param('view', '', PARAM_TEXT);
-if (empty($view)) {
-    if ($isteacher) {
-        // Defaults for teachers.
-        $view = 'asteacher';
-    }
-    if ($iscoursemanager) {
-        // Defaults for coursemanagers.
-        $view = 'ascoursemanager';
-    }
-}
-
 // We need prefetch tabs as it may resolve view.
-$tabs = $renderer->tabs($view, $isteacher, $iscoursemanager);
+$tabs = $renderer->tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
 
 list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
 
 if (in_array('my_caption', $mymodules)) {
     if (file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
         include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
-        local_print_static_text('my_caption_static_text', $CFG->wwwroot.'/my/index.php');
+        local_print_static_text('my_caption_static_text', new moodle_url('/my/index.php'));
     } else {
         echo $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'my_caption'));
     }
@@ -224,30 +217,59 @@ $fooarray = null;
 $courseareacourses = array();
 
 $courseareaskeys = array();
-// Calculate course areas content for exclusions.
-if ((in_array('course_areas', $modules) ||
-        in_array('course_areas_and_availables', $modules) ||
-        in_array('course_areas2', $modules)) &&
-                @$config->courseareas > 0) {
-    $courseareacourses = local_prefetch_course_areas($fooarray);
 
+// Calculate course areas content for exclusions.
+$courseareacourses = local_my_prefetch_course_areas($isadmin, $isteacher, $iscoursemanager, $modules, $excludedcourses);
+if (!empty($courseareacourses)) {
     $courseareaskeys = array_keys($courseareacourses);
     local_my_scalar_array_merge($excludedcourses, $courseareaskeys);
+
+    if ($showresolve) {
+        echo "<pre>\n";
+        foreach ($courseareaskeys as $cid) {
+            if ($showresolve == 1 || $showresolve == $cid) {
+                mtrace("Course remove : (coursearea prefetch $cid)\n");
+            }
+        }
+        echo "</pre>\n";
+    }
 }
-if ($showresolve) {
-    $OUTPUT->box_start();
-    echo "Excluded:";
-    print_object($excludedcourses);
-    echo "Courseareakeys:";
-    print_object($courseareaskeys);
-    $OUTPUT->box_end();
-}
+
+// Examine the other panel constraints on excluded courses.
 
 if ($view == 'asstudent' && $isteacher) {
     // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
-    $prefetchcourses = local_get_my_authoring_courses('id', $teachercap);
+    $debuginfo = '';
+    $prefetchcourses = local_get_my_authoring_courses($debuginfo, 'id', $teachercap);
+    if ($showresolve && !empty($debuginfo)) {
+        echo "<pre>prefetch authored(\n".$debuginfo."\n)</pre>";
+    }
     $prefetchkeys = array_keys($prefetchcourses);
     local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asstudent' && $iscoursemanager) {
+    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses($debuginfo, 'id');
+    if ($showresolve && !empty($debuginfo)) {
+        echo "<pre>prefetch managed(\n".$debuginfo."\n)</pre>";
+    }
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+}
+
+if ($view == 'asteacher' && $iscoursemanager) {
+
+    // If i am teacher and viewing the student tab, prefech managed courses to exclude them.
+    $prefetchcourses = local_get_my_managed_courses($debuginfo, 'id');
+    if ($showresolve && !empty($debuginfo)) {
+        echo "<pre>prefetch managed(\n".$debuginfo."\n)</pre>";
+    }
+    $prefetchkeys = array_keys($prefetchcourses);
+    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
+    if ($showresolve && !empty($debuginfo)) {
+        echo "<pre>excluded after prefetch(\n".json_encode($excludedcourses)."\n)</pre>";
+    }
 }
 
 // Render dahsboard.
