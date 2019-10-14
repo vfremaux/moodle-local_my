@@ -95,6 +95,7 @@ if ($hassiteconfig) {
     if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
     }
+
     $key = 'local_my/teachermodules';
     $label = get_string('localmyteachermodules', 'local_my');
     $desc = get_string('localmyteachermodules_desc', 'local_my');
@@ -119,6 +120,7 @@ if ($hassiteconfig) {
     for ($i = 1; $i < 10; $i++) {
         $options[$i] = $i;
     }
+
     $key = 'local_my/courseareas';
     $label = get_string('localmycourseareas', 'local_my');
     $desc = get_string('localmycourseareas_desc', 'local_my');
@@ -193,25 +195,27 @@ if ($hassiteconfig) {
     $select = 'datatype '.$insql;
     $fieldoptions = $DB->get_records_select_menu('user_info_field', $select, $inparams, 'shortname, name');
 
-    $key = 'local_my/profilefieldforcelistmode';
-    $label = get_string('localprofilefieldforcelistmode', 'local_my');
-    $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_INT));
+    if (!empty($fieldoptions)) {
+        $key = 'local_my/profilefieldforcelistmode';
+        $label = get_string('localprofilefieldforcelistmode', 'local_my');
+        $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
 
-    $key = 'local_my/profilefieldforcelistvalues';
-    $label = get_string('localprofilefieldforcelistvalues', 'local_my');
-    $desc = get_string('localprofilefieldforcelistvalues_desc', 'local_my');
-    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+        $key = 'local_my/profilefieldforcelistvalues';
+        $label = get_string('localprofilefieldforcelistvalues', 'local_my');
+        $desc = get_string('localprofilefieldforcelistvalues_desc', 'local_my');
+        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
 
-    $key = 'local_my/profilefieldforcegraphicmode';
-    $label = get_string('localprofilefieldforcegraphicmode', 'local_my');
-    $desc = get_string('localprofilefieldforcegraphicmode_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_INT));
+        $key = 'local_my/profilefieldforcegraphicmode';
+        $label = get_string('localprofilefieldforcegraphicmode', 'local_my');
+        $desc = get_string('localprofilefieldforcegraphicmode_desc', 'local_my');
+        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
 
-    $key = 'local_my/profilefieldforcegraphicvalues';
-    $label = get_string('localprofilefieldforcegraphicvalues', 'local_my');
-    $desc = get_string('localprofilefieldforcegraphicvalues_desc', 'local_my');
-    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+        $key = 'local_my/profilefieldforcegraphicvalues';
+        $label = get_string('localprofilefieldforcegraphicvalues', 'local_my');
+        $desc = get_string('localprofilefieldforcegraphicvalues_desc', 'local_my');
+        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
+    }
 
     $uncategorizedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 50 => 50, 100 => 100);
     $key = 'local_my/maxuncategorizedlistsize';
@@ -271,11 +275,37 @@ if ($hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
+    /*
     $key = 'local_my/hideprogression';
     $label = get_string('localmyhideprogression', 'local_my');
     $desc = get_string('localmyhideprogression_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+    */
+
+    $key = 'local_my/progressgaugetype';
+    $label = get_string('localmyprogressgaugetype', 'local_my');
+    $desc = get_string('localmyprogressgaugetype_desc', 'local_my');
+    $default = 'progressbar';
+    $options = array(
+        'noprogress' => get_string('noprogress', 'local_my'),
+        'gauge' => get_string('progressgauge', 'local_my'),
+        'progressbar' => get_string('progressbar', 'local_my'),
+        'jqplot' => get_string('progressdonut', 'local_my'),
+    );
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
+
+    $key = 'local_my/progressgaugeheight';
+    $label = get_string('localmyprogressgaugeheight', 'local_my');
+    $desc = get_string('localmyprogressgaugeheight_desc', 'local_my');
+    $default = '20px';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
+
+    $key = 'local_my/progressgaugewidth';
+    $label = get_string('localmyprogressgaugewidth', 'local_my');
+    $desc = get_string('localmyprogressgaugewidth_desc', 'local_my');
+    $default = '100%';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
 
     $key = 'local_my/effect_opacity';
     $label = get_string('effectopacity', 'local_my');

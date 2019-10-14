@@ -1,7 +1,14 @@
 
 
 
-<!-- my_teacher_courses_module -->
+<!-- local_my/my_teacher_courses_module -->
+
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
+
 {{^hideifempty}}
 <div class="block block_my_teacher_courses">
 
@@ -23,12 +30,6 @@
                     {{{overviewedcourses}}}
 
                     {{{simplecourses}}}
-
-                    {{#debuginfo}}
-                    <pre>
-                    {{debuginfo}}
-                    </pre>
-                    {{/debuginfo}}
                 </td>
             </tr>
         </table>
@@ -38,4 +39,4 @@
     </div>
 </div>
 {{/hideifempty}}
-<!-- /my_teacher_courses_module -->
+<!-- /local_my/my_teacher_courses_module -->

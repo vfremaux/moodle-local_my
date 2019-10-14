@@ -1,6 +1,11 @@
 
 
-
+<!-- local_my/my_courses -->
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
 <div class="block block_my_courses">
 
     <div class="header">
@@ -17,21 +22,17 @@
 
 {{#hascourses}}
 
-        <table width="100%">
+        <table width="100%" class="courselist generaltable {{#isaccordion}}is-accordion{{/isaccordion}}">
             <tr valign="top">
                 <td>
                     {{{overviewedcourses}}}
 
                     {{{simplecourses}}}
 
-                    {{#debuginfo}}
-                    <pre>
-                    {{debuginfo}}
-                    </pre>
-                    {{/debuginfo}}
                 </td>
             </tr>
         </table>
 {{/hascourses}}
     </div>
 </div>
+<!-- /local_my/my_courses -->

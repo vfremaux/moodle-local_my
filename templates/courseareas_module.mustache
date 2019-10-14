@@ -1,6 +1,19 @@
 
 
-<!-- courseareas_module -->
+<!-- local_my/courseareas_module -->
+
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
+
+<div class="courseareas-skip-links">
+{{#courseareas}}
+<a class="sr-only sr-only-focussable" href="#local-my-coursearea-{{i}}">{{catname}}</a>
+{{/courseareas}}
+</div>
+
 <table id="mycourseareas" width="100%">
     <tr valign="top">
 
@@ -13,6 +26,7 @@
         <td width="{{colwidth}}%">
 
             <div class="headingblock header">
+                <a name="local-my-coursearea-{{i}}"></a>
                 <h2>{{catname}}</h2>
             </div>
 
@@ -35,4 +49,4 @@
 
     </tr>
 </table>
-<!-- /courseareas_module -->
+<!-- /local_my/courseareas_module -->

@@ -1,6 +1,13 @@
 
 
 <!-- local_my/my_courses_grid -->
+
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
+
 <div class="block block_my_courses">
 
     <div class="header">
@@ -18,32 +25,15 @@
 {{#hascourses}}
     {{#coursegridelms}}
         <div class="local-my-promowrap">
-            <div class="local-my-fp-coursebox {{hiddenclass}} [[selfenrolclass}} {{guestenrolclass}}">
+            <div class="local-my-fp-coursebox {{hiddenclass}} {{selfenrolclass}} {{guestenrolclass}}">
                 <div class="local-my-fp-coursethumb">
-                    {{#progression}}
-                    <div>
-                    <div class="local-my-fp-coursename pull-left {{withopacityeffect}} {{withhaloeffect}}">
-                        <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="50%" title="{{fullname}}"></a>
-                    </div>
-                    <div class="local-my-fp-progression">
-                        {{{progression}}}
-                    </div>
-                    </div>
-                    {{/progression}}
-
-                    {{^progression}}
-                    <div class="local-my-fp-coursename {{withopacityeffect}} {{withhaloeffect}}">
-                        <a href="{{{courseurl}}}"><img src="{{{imgurl}}}" width="100%" height="125" title="{{fullname}}"></a>
-                    </div>
-                    {{/progression}}
-                    <div class="local-my-fp-courseinfo">
-                        <h5>
+                    <div class="local-my-fp-courseinfo {{withopacityeffect}} {{withhaloeffect}}">
+                        <h3>
                             <a href="{{{courseurl}}}"
-                               id="button"
                                data-toggle="tooltip"
-                               data-placement="bottom"
-                               title="{{fullname}}" >{{trimtitle}}</a>
-                        </h5>
+                               data-placement="bottom"><img src="{{{imgurl}}}" width="100%" height="125" alt="">
+                               <div class="coursetitle">{{trimtitle}}</div></a>
+                        </h3>
                     </div>
                     <div class="local-my-fp-summary">{{{summary}}}</div>
                     {{#hasattributes}}
@@ -58,7 +48,13 @@
                     </div>
                     {{/hasattributes}}
                 </div>
+
             </div>
+            {{#progression}}
+            <div class="local-my-fp-progression">
+                {{{progression}}}
+            </div>
+            {{/progression}}
         </div>
     {{/coursegridelms}}
 {{/hascourses}}
