@@ -32,4 +32,4 @@ $plugin->release = '3.6.0 (Build 2019051300)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.6.0008';
+$plugin->codeincrement = '3.6.0009';

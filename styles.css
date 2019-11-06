@@ -27,9 +27,30 @@ table#my-dashboard {
     border-spacing: 0;
 }
 
-table#mycourseareas {
+table.mycourseareas {
     border-collapse: separate;
     border-spacing: 15px;
+}
+
+table.mycourseareas h2 {
+    font-size: 1.4rem;
+}
+
+table.mycourseareas h3 {
+    font-size: 1.2rem;
+}
+
+table.mycourseareas h4 {
+    font-size: 1.1rem;
+}
+
+.local-my-cat-collapse > h3 > button {
+    background-color: transparent;
+    border: none;
+}
+
+.course-category-ctls {
+    line-height: 24px;
 }
 
 #my-me {
@@ -106,10 +127,6 @@ table#mycourseareas {
     display: none;
 }
 
-div.course-completion {
-    float: right;
-}
-
 div.course-box {
     background-color: #f0f0f0;
     display: inline-block;
@@ -183,6 +200,10 @@ div.course-box .title {
     max-width: 320px;
 }
 
+.local-my-promowrap h3 {
+    font-size: 1.3rem;
+}
+
 .local-my-fp-coursethumb {
   width: 100%;
   padding-right: 0;
@@ -191,9 +212,11 @@ div.course-box .title {
   padding-bottom: 5px;
 }
 
+/*
 .local-my-fp-coursename {
     text-align: center;
 }
+*/
 
 .local-my-fp-courseinfo {
     text-align: center;
@@ -558,12 +581,6 @@ div.course-box .title {
 }
 
 /* adjust progress donut location */
-.local-my-fp-progression {
-    width: 150px;
-    position: relative;
-    left: 210px;
-    top: 20px;
-}
 
 .local-my-course-mycourses.local-my-course {
     height: 38px;
@@ -927,6 +944,7 @@ div.course-box .title {
   border-radius: 50%;
   position: relative;
 }
+
 .progress-chart-container .no-progress .icon,
 .progress-chart-container .no-progress .smallicon {
   position: absolute;
@@ -943,4 +961,20 @@ div.course-box .title {
 
 .local-my-course-availablecourses {
     line-height: 35px;
+}
+
+.local-my-fp-progression {
+    left: -1px;
+}
+
+@media all and (max-width:480px) {
+    .coursetitle {
+        margin-top: 20px;
+    }
+
+    .local-my-fp-coursebox {
+        height: 250px;
+        max-height: 250px;
+        min-height: 250px;
+    }
 }

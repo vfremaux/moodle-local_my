@@ -596,10 +596,13 @@ function local_my_print_courses($title = 'mycourses', $courses, $options = array
 
         $str .= '<table class="courselist" width="100%">';
         if (!empty($options['withoverview'])) {
-            $str .= $renderer->course_overview($courses, $options);
+            // Old overviewed. OBSOLETE.
+            // $str .= $renderer->course_overview($courses, $options);
         } else if (!empty($options['withcats'])) {
+            // Structured list.
             $str .= $renderer->courses_by_cats($courses, $options, $title);
         } else {
+            // Flat list.
             foreach ($courses as $c) {
                 $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
                 $str .= $renderer->course_table_row($c, $options);
@@ -1251,7 +1254,7 @@ function local_my_is_panel_empty($panelname) {
 
     $entries = explode("\n", $config->$panelname);
 
-    foreach($entries as $entry) {
+    foreach ($entries as $entry) {
         $entry = trim($entry);
         if (strpos($entry, '#') !== 0) {
             return false;
@@ -1259,4 +1262,20 @@ function local_my_is_panel_empty($panelname) {
     }
 
     return true;
+}
+
+function local_my_get_catlist($capability = '') {
+    if (empty($capability)) {
+        $capability = 'moodle/course:create';
+    }
+    $mycatlist = \core_course_category::make_categories_list($capability);
+    return $mycatlist;
+}
+
+function local_get_category($catid) {
+    return \core_course_category::get($course->category);
+}
+
+function local_get_course_list($course) {
+    return new \core_course_list_element($course);
 }

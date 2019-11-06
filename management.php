@@ -52,8 +52,8 @@ $url = new moodle_url('/local/my/management.php');
 $systemcontext = $context = context_system::instance();
 if ($courseid) {
     $record = get_course($courseid);
-    $course = new \core_course_list_element($record);
-    $category = \core_course_category::get($course->category);
+    $course = local_get_course_list($record);
+    $category = local_get_category($course->category);
     $categoryid = $category->id;
     $context = context_coursecat::instance($category->id);
     $url->param('categoryid', $categoryid);
@@ -62,7 +62,7 @@ if ($courseid) {
 } else if ($categoryid) {
     $courseid = null;
     $course = null;
-    $category = \core_course_category::get($categoryid);
+    $category = local_get_category($categoryid);
     $context = context_coursecat::instance($category->id);
     $url->param('categoryid', $category->id);
 
@@ -288,7 +288,7 @@ if ($action !== false && confirm_sesskey()) {
                 if ($courseids === false) {
                     break;
                 }
-                $moveto = \core_course_category::get($movetoid);
+                $moveto = local_get_category($movetoid);
                 try {
                     // If this fails we want to catch the exception and report it.
                     $redirectback = \core_course\management\helper::move_courses_into_category($moveto,
@@ -306,10 +306,10 @@ if ($action !== false && confirm_sesskey()) {
             } else if ($bulkmovecategories) {
                 $categoryids = optional_param_array('bcat', array(), PARAM_INT);
                 $movetocatid = required_param('movecategoriesto', PARAM_INT);
-                $movetocat = \core_course_category::get($movetocatid);
+                $movetocat = local_get_category($movetocatid);
                 $movecount = 0;
                 foreach ($categoryids as $id) {
-                    $cattomove = \core_course_category::get($id);
+                    $cattomove = local_get_category($id);
                     if ($id == $movetocatid) {
                         $notificationsfail[] = get_string('movecategoryownparent', 'error', $cattomove->get_formatted_name());
                         continue;
@@ -380,10 +380,10 @@ if ($action !== false && confirm_sesskey()) {
                     }
                     $categories = \core_course_category::get_many($categoryids);
                 } else if ($for === 'allcategories') {
-                    if ($sortcategoriesby && \core_course_category::get(0)->can_resort_subcategories()) {
+                    if ($sortcategoriesby && local_get_category(0)->can_resort_subcategories()) {
                         \core_course\management\helper::action_category_resort_subcategories(\core_course_category::get(0), $sortcategoriesby);
                     }
-                    $categorieslist = \core_course_category::make_categories_list('moodle/category:manage');
+                    $categorieslist = local_my_get_catlist('moodle/category:manage');
                     $categoryids = array_keys($categorieslist);
                     $categories = \core_course_category::get_many($categoryids);
                     unset($categorieslist);

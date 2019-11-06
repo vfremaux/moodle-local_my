@@ -8,7 +8,13 @@
 </pre>
 {{/debuginfo}}
 
-<table id="mycourseareas" width="100%">
+<div class="courseareas-skip-links">
+{{#courseareas}}
+<a class="sr-only sr-only-focussable" href="#local-my-coursearea-{{i}}">{{catname}}</a>
+{{/courseareas}}
+</div>
+
+<table class="mycourseareas" width="100%">
     <tr valign="top">
 
     {{#courseareas}}
@@ -20,11 +26,12 @@
         <td width="{{colwidth}}%">
 
             <div class="headingblock header">
+                <a name="local-my-coursearea-{{i}}"></a>
                 <h2>{{catname}}</h2>
             </div>
 
             <div class="block">
-                <table id="courselistarea{{i}}" width="100%" class="courselist generaltable {{#isaccordion}}is-accordion{{/isaccordion}}">
+                <table id="courselistarea{{i}}" width="100%" class="local-my-courselist {{#isaccordion}}is-accordion{{/isaccordion}}">
                     <tr valign="top">
                         <td>
                             {{{courseoverview}}}

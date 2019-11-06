@@ -20,7 +20,8 @@
  * @package    block_multicourse_navigation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// jshint unused: true, undef:true
+// jshint unused: false, undef:false
+/* eslint-disable no-undef no-unused-vars */
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
     /**
@@ -71,18 +72,22 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 url += 'item=' + area;
                 url += '&catid=' + catid;
 
-                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src');
+                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src');
                 var hide = 0;
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
                     handlesrc = handlesrc.replace('collapsed', 'expanded');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'true');
+                    log.debug('Expanding ' + area + ' in area ' + catid);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
                     handlesrc = handlesrc.replace('expanded', 'collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > img').attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'false');
+                    log.debug('Closing ' + area + ' in area ' + catid);
                     hide = 1;
                 }
 
@@ -130,7 +135,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             if (mode == 'collapseall') {
                 $('.local-my-course-' + area).addClass('collapsed');
-                $('.local-my-cat-collapse-' + area).each( function(index, element) {
+                $('.local-my-cat-collapse-' + area + ' > h3 > button > img').each( function(index, element) {
                     var handlesrc = element.src;
                     handlesrc = handlesrc.replace('expanded', 'collapsed');
                     element.src = handlesrc;
@@ -143,7 +148,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 $.get(url);
             } else {
                 $('.local-my-course-' + area).removeClass('collapsed');
-                $('.local-my-cat-collapse-' + area).each( function(index, element) {
+                $('.local-my-cat-collapse-' + area + ' > h3 > button > img').each( function(index, element) {
                     var handlesrc = element.src;
                     handlesrc = handlesrc.replace('collapsed', 'expanded');
                     element.src = handlesrc;
@@ -158,6 +163,20 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }
 
             return false;
+        },
+
+        sektor: function(args) {
+            /* eslint-disable */
+            var sektor = new Sektor(args['id'], {
+              size: args['size'],
+              stroke: 20,
+              arc: false,
+              angle: args['angle'],
+              sectorColor: '#bD2828',
+              circleColor: '#ddd',
+              fillCircle: true
+            });
+            /* eslint-enable */
         }
     };
 

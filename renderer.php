@@ -31,13 +31,24 @@ class local_my_renderer extends plugin_renderer_base {
     /**
      * Prints a progression progress bar or gauge in a div or a table cell
      * @param objectref $course
-     * @param string $div 'div' if the result needs being tableless
      * @param int $width default width
      * @param int $heigh default height
      * @param string $progressbar type of gauge renderer.
      */
-    public function course_completion_gauge(&$course, $div, $width = 160, $height = 160, $type = 'progressbar', &$template) {
+    public function course_completion_gauge(&$course, $width, $height, $type, &$template) {
         global $USER, $PAGE, $DB, $CFG;
+
+        if ($type == 'noprogress') {
+            $template->progression = '';
+            return;
+        }
+
+        $template->progression = '';
+
+        if (has_any_capability(array('local/my:isteacher', 'local/my:iscoursemanager'), context_course::instance($course->id), $USER->id, false)) {
+            // $template->progression = '';
+            // return;
+        }
 
         $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
         $completion = new completion_info($courserec);
@@ -64,6 +75,15 @@ class local_my_renderer extends plugin_renderer_base {
                 $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
                 $attrs = array('height' => $width, 'width' => $height);
                 $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
+            } else if ($type == 'sektor') {
+                $sektorparams = array(
+                    'id' => 'sektor-progress-'.$course->id;
+                    'angle' => round($ratio * 360 / 100);
+                    'size' => $width;
+                    // height not used.
+                );
+                $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($params));
+                $template->progression = $ratio;
             } else {
                 if ($ratio) {
                     $comppercent = number_format($ratio, 0);
@@ -126,16 +146,15 @@ class local_my_renderer extends plugin_renderer_base {
             $template->hasdescription = true;
         }
 
-        if (empty($options['nocompletion'])) {
-            if (!has_capability('local/my:isteacher', context_course::instance($course->id), $USER->id, false)) {
-                // Only non teachers can see progression.
-                if (!array_key_exists('gaugewidth', $options)) {
-                    debugging('Missing option');
-                }
-                $this->course_completion_gauge($course, 'td', $options['gaugewidth'], $options['gaugeheight'],
-                                               'progressbar', $template);
-            }
+        // Only non teachers can see progression.
+        if (!array_key_exists('gaugewidth', $options)) {
+            debugging('Missing option');
         }
+        if (!array_key_exists('gaugetype', $options)) {
+            debugging('Missing option');
+        }
+        $this->course_completion_gauge($course, $options['gaugewidth'], $options['gaugeheight'],
+                                       $options['gaugetype'], $template);
 
         $template->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
         $template->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
@@ -147,7 +166,8 @@ class local_my_renderer extends plugin_renderer_base {
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
-            $pix = $this->output->pix_icon('editing', get_string('editing', 'local_my'), 'local_my');
+            $attrs = array('aria-label' => get_string('editing', 'local_my'));
+            $pix = $this->output->pix_icon('editing', get_string('editing', 'local_my'), 'local_my', $attrs);
             return '<div class="editing-icon pull-right">'.$pix.'</div>';
         }
     }
@@ -202,11 +222,9 @@ class local_my_renderer extends plugin_renderer_base {
             }
         }
 
-        if (empty($config->hideprogression)) {
-            $this->course_completion_gauge($course, 'div', 
-                                           $options['gaugewidth'], $options['gaugeheight'],
-                                           'donut', $template);
-        }
+        $this->course_completion_gauge($course,
+                                       $config->progressgaugewidth, $config->progressgaugeheight,
+                                       $config->progressgaugetype, $template);
 
         return $this->output->render_from_template('local_my/coursebox', $template);
     }
@@ -326,6 +344,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
         $coursetpl->courseurl = ''.$courseurl;
+        $coursetpl->id = $course->id;
 
         $coursetpl->hasattributes = false;
         if (local_my_is_visible_course($course)) {
@@ -375,7 +394,7 @@ class local_my_renderer extends plugin_renderer_base {
         }
 
         if ($course instanceof stdClass) {
-            $course = new \core_course_list_element($course);
+            $course = local_get_course_list($course);;
         }
 
         $context = context_course::instance($course->id);
@@ -392,9 +411,7 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
         }
 
-        if (empty($config->hideprogression)) {
-            $this->course_completion_gauge($course, 'div', 120, 120, '', $coursetpl);
-        }
+        $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
 
         return $coursetpl;
     }
@@ -493,8 +510,10 @@ class local_my_renderer extends plugin_renderer_base {
 
             if (!empty($cattpl->collapseclass)) {
                 $cattpl->collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
+                $cattpl->ariaexpanded = 'false';
             } else {
                 $cattpl->collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
+                $cattpl->ariaexpanded = 'true';
             }
 
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {

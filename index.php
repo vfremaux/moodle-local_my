@@ -104,6 +104,7 @@ if (!empty($config->slick)) {
     $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 }
 $PAGE->requires->css('/local/my/css/slick.css');
+$PAGE->requires->skip_link_to('localmymaincontent', '');
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {

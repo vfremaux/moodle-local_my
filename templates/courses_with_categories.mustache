@@ -16,16 +16,21 @@
 
 {{#catname}}
 <div id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
-    <img src="{{{collapseiconurl}}}" /> <b>{{catname}}</b>
+    <h3 tabindex="0"><button aria-expanded="{{ariaexpanded}}"><img aria-hidden="true" src="{{{collapseiconurl}}}" /></button> {{catname}}</h3>
 </div>
 {{/catname}}
 
+<ul class="course-category-list">
 {{#courses}}
-<div class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
-    <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}}</a>
-    {{{editingicon}}}
-</div>
+<li>
+    <div class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
+        <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}} {{{editingicon}}}</a>
+    </div>
+
+    {{> local_my/courseprogression_sektor}}
+</li>
 {{/courses}}
+</ul>
 
 {{/categories}}
 <!-- /local_my/course_with_categories -->

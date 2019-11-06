@@ -22,6 +22,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/local/my/lib.php');
+
 // Settings default init.
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
     // Integration driven code.
@@ -95,6 +97,7 @@ if ($hassiteconfig) {
     if (!isset($config->teachermodules)) {
         set_config('teachermodules', $defaultmodules, 'local_my');
     }
+
     $key = 'local_my/teachermodules';
     $label = get_string('localmyteachermodules', 'local_my');
     $desc = get_string('localmyteachermodules_desc', 'local_my');
@@ -119,6 +122,7 @@ if ($hassiteconfig) {
     for ($i = 1; $i < 10; $i++) {
         $options[$i] = $i;
     }
+
     $key = 'local_my/courseareas';
     $label = get_string('localmycourseareas', 'local_my');
     $desc = get_string('localmycourseareas_desc', 'local_my');
@@ -127,7 +131,7 @@ if ($hassiteconfig) {
 
     global $SITE;
 
-    $categoryoptions = \core_course_category::make_categories_list();
+    $categoryoptions = local_my_get_catlist();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas; $i++) {
@@ -148,7 +152,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
-    $categoryoptions = \core_course_category::make_categories_list();
+    $categoryoptions = local_my_get_catlist();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas2; $i++) {
@@ -273,11 +277,37 @@ if ($hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
+    /*
     $key = 'local_my/hideprogression';
     $label = get_string('localmyhideprogression', 'local_my');
     $desc = get_string('localmyhideprogression_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+    */
+
+    $key = 'local_my/progressgaugetype';
+    $label = get_string('localmyprogressgaugetype', 'local_my');
+    $desc = get_string('localmyprogressgaugetype_desc', 'local_my');
+    $default = 'progressbar';
+    $options = array(
+        'noprogress' => get_string('noprogress', 'local_my'),
+        'gauge' => get_string('progressgauge', 'local_my'),
+        'progressbar' => get_string('progressbar', 'local_my'),
+        'jqplot' => get_string('progressdonut', 'local_my'),
+    );
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
+
+    $key = 'local_my/progressgaugeheight';
+    $label = get_string('localmyprogressgaugeheight', 'local_my');
+    $desc = get_string('localmyprogressgaugeheight_desc', 'local_my');
+    $default = '20px';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
+
+    $key = 'local_my/progressgaugewidth';
+    $label = get_string('localmyprogressgaugewidth', 'local_my');
+    $desc = get_string('localmyprogressgaugewidth_desc', 'local_my');
+    $default = '100%';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
 
     $key = 'local_my/effect_opacity';
     $label = get_string('effectopacity', 'local_my');

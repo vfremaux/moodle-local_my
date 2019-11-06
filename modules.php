@@ -28,6 +28,7 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
 }
 
 require_once($CFG->dirroot.'/local/my/extlibs/Mobile_Detect.php');
+require_once($CFG->dirroot.'/local/my/lib.php');
 
 /**
  * Prints the "classical" "My Courses" area, course for students that are not displayed elsewhere.
@@ -84,8 +85,9 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
         if ($alttemplate == 'my_courses_grid') {
             $options = array('noheading' => true,
                              'withcats' => true,
-                             'gaugewidth' => 150,
-                             'gaugeheight' => 20);
+                             'gaugetype' => $config->progressgaugetype,
+                             'gaugewidth' => $config->progressgaugewidth,
+                             'gaugeheight' => $config->progressgaugeheight);
             foreach ($mycourses as $cid => $c) {
                 $coursetpl = $renderer->coursebox($c);
                 $template->coursegridelms[] = $coursetpl;
@@ -96,8 +98,9 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
             $template->isaccordion = !empty($config->courselistaccordion);
             $options = array('noheading' => true,
                              'withcats' => true,
-                             'gaugewidth' => 150,
-                             'gaugeheight' => 20);
+                             'gaugetype' => $config->progressgaugetype,
+                             'gaugewidth' => $config->progressgaugewidth,
+                             'gaugeheight' => $config->progressgaugeheight);
             if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
                 // Solve a performance issue for people having wide access to courses.
                 $options['withcats'] = false;
@@ -120,6 +123,10 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
     }
 
     return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+}
+
+function local_my_print_main_content_anchor(&$excludedcourses, &$courseareacourses) {
+    return '<a name="localmymaincontent"></a>';
 }
 
 function local_my_print_my_courses_grid(&$excludedcourses, &$courseareacourses) {
@@ -203,8 +210,7 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
     $debuginfo .= local_my_process_excluded($excludedcourses, $myauthcourses);
     $debuginfo .= local_my_process_metas($myauthcourses);
 
-    // Post 2.5.
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
 
     $template->myauthoringcoursesstr = get_string('myauthoringcourses', 'local_my');
 
@@ -304,8 +310,7 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
     $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
     $debuginfo .= local_my_process_metas($mymanagedcourses);
 
-    // Post 2.5.
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
 
     $template->mymanagedcoursesstr = get_string('mymanagedcourses', 'local_my');
 
@@ -376,7 +381,8 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
     $template->widgetname = 'my_authored_courses_slider';
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
+
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -421,7 +427,8 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
     $template->widgetname = 'my_managed_courses_slider';
     $template->courselisttitlestr = get_string('mymanagedcourses', 'local_my');
 
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
+
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -476,8 +483,7 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
     $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
     $debuginfo .= local_my_process_metas($myteachercourses);
 
-    // Post 2.5.
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
 
     $template = new StdClass();
 
@@ -510,15 +516,17 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
                 $options = array('noheading' => true,
                                  'withcats' => false,
                                  'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
+                                 'gaugetype' => 'progressbar',
+                                 'gaugewidth' => '100%',
+                                 'gaugeheight' => '5px');
             } else {
                 // Solve a performance issue for people having wide access to courses.
                 $options = array('noheading' => true,
                                  'withcats' => true,
                                  'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
+                                 'gaugetype' => 'progressbar',
+                                 'gaugewidth' => '100%',
+                                 'gaugeheight' => '5px');
                 $alttemplate = ''; // Reset to list mode.
             }
             $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
@@ -579,7 +587,8 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
 
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
-    $mycatlist = \core_course_category::make_categories_list('moodle/course:create');
+    $mycatlist = local_my_get_catlist('moodle/course:create');
+
     if (!empty($mycatlist)) {
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
@@ -749,7 +758,8 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
     }
 
     if (!empty($mytemplates)) {
-        $template->templates = local_my_print_courses('mytemplates', $mytemplates, array('noheading' => 1, 'nocompletion' => 1));
+        $options = array('noheading' => 1, 'gaugetype' => 'noprogress', 'gaugewidth' => '100%', 'gaugeheight' => '20px');
+        $template->templates = local_my_print_courses('mytemplates', $mytemplates, $options);
 
         // Add templates to exclusions.
         $debuginfo .= local_my_exclude_post_display($mytemplates, $excludedcourses, 'templates');
@@ -928,8 +938,9 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
 
     $options = array();
     $options['withcats'] = $config->printcategories;
-    $options['gaugewidth'] = 60;
-    $options['gaugeheight'] = 15;
+    $options['gaugewidth'] = $config->progressgaugewidth;
+    $options['gaugeheight'] = $config->progressgaugeheight;
+    $options['gaugetype'] = $config->progressgaugetype;
 
     // Ensure we have last access.
     foreach ($allcourses as $id => $c) {
@@ -1114,8 +1125,9 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
     $options['withdescription'] = 0;
     $options['withcats'] = $config->printcategories;
     $options['withcats'] = 0; // Which one ???
-    $options['gaugewidth'] = 60;
-    $options['gaugeheight'] = 15;
+    $options['gaugewidth'] = $config->progressgaugewidth;
+    $options['gaugeheight'] = $config->progressgaugeheight;
+    $options['gaugetype'] = $config->progressgaugetype;
 
     $reali = 1;
     for ($i = 0; $i < $config->courseareas; $i++) {
@@ -1514,7 +1526,7 @@ function local_my_print_static($index) {
                     }
                     $unfilteredmodality = trim($modality);
                     $modality = str_replace(' ', '-', $unfilteredmodality);
-                    $modality = str_replace('_', '-', $unfilteredmodality);
+                    $modality = str_replace('_', '-', $modality);
                     $modality = preg_replace("/[^0-9a-zA-Z-]/", '', $modality);
 
                     $modaltpl->modalindex = $index.'-'.$modality;
