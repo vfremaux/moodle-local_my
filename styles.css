@@ -47,6 +47,7 @@ div.mycourseareas h2 {
 
 div.mycourseareas h3 {
     font-size: 1.2rem;
+    display: inline;
 }
 
 div.mycourseareas h4 {
@@ -56,20 +57,14 @@ div.mycourseareas h4 {
 .local-my-catlink::before {
     color: #fff;
     font-family: "fontAwesome";
-    margin-right:5px;
 }
 
 .local-my-catlink[aria-expanded="false"]::before {
-    content: " \f078";
+    content: " \f078 ";
 }
 
 .local-my-catlink[aria-expanded="true"]::before {
-    content: " \f077";
-}
-
-.local-my-cat-collapse > h3 > button {
-    background-color: transparent;
-    border: none;
+    content: " \f077 ";
 }
 
 .course-category-ctls {

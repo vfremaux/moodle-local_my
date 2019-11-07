@@ -40,6 +40,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             if ($('.is-accordion').length !== 0) {
                 $('.local-my-course').hide();
+            } else {
+                // In accordion mode
+                $('.local-my-cat-collapse > a').attr('aria-expanded', 'false');
             }
 
             log.debug('AMD Local my cat control initialized');
@@ -94,7 +97,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             } else {
                 // This is the accordion mode.
                 $('.local-my-course-' + area).slideUp("normal");
-                $('.local-my-cat-collapse-' + area + '-' + catid + ' > a').attr('aria-expanded', 'false');
+                $('.local-my-cat-collapse-' + area + ' > a').attr('aria-expanded', 'false');
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).slideDown("normal");
                 $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'true');
             }
