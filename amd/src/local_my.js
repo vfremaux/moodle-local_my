@@ -42,7 +42,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 $('.local-my-course').hide();
             } else {
                 // In accordion mode
-                $('.local-my-cat-collapse > a').attr('aria-expanded', 'false');
+                $('.local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
             log.debug('AMD Local my cat control initialized');
