@@ -72,21 +72,16 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 url += 'item=' + area;
                 url += '&catid=' + catid;
 
-                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src');
                 var hide = 0;
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
-                    handlesrc = handlesrc.replace('collapsed', 'expanded');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'true');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'true');
                     log.debug('Expanding ' + area + ' in area ' + catid);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
-                    handlesrc = handlesrc.replace('expanded', 'collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'false');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'false');
                     log.debug('Closing ' + area + ' in area ' + catid);
                     hide = 1;
                 }
