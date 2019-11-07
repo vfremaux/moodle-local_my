@@ -45,7 +45,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 $('.local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
-            log.debug('AMD Local my cat control initialized');
+            log.debug('AMD Local My cat control initialized');
 
         },
 
