@@ -75,15 +75,6 @@ class local_my_renderer extends plugin_renderer_base {
                 $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
                 $attrs = array('height' => $width, 'width' => $height);
                 $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
-            } else if ($type == 'sektor') {
-                $sektorparams = array(
-                    'id' => 'sektor-progress-'.$course->id;
-                    'angle' => round($ratio * 360 / 100);
-                    'size' => $width;
-                    // height not used.
-                );
-                $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($params));
-                $template->progression = $ratio;
             } else {
                 if ($ratio) {
                     $comppercent = number_format($ratio, 0);
@@ -411,7 +402,8 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
         }
 
-        $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
+        // $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
+        $this->course_completion_gauge($course, 20, 20, 'sektor', $coursetpl);
 
         return $coursetpl;
     }
@@ -469,7 +461,6 @@ class local_my_renderer extends plugin_renderer_base {
     public function courses_by_cats($courselist, $options = array(), $area = '') {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
-        $renderer = $PAGE->get_renderer('local_my');
         $config = get_config('local_my');
 
         // Get user preferences for collapser.
@@ -544,7 +535,29 @@ class local_my_renderer extends plugin_renderer_base {
                         $coursetpl->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
                         $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'dimmed';
                         $coursetpl->fullname = format_string($c->fullname);
-                        $coursetpl->editingicon = $renderer->editing_icon($c);
+                        $coursetpl->id = $c->id;
+
+                        $coursetpl->hasprogression = false;
+                        $completion = new completion_info($c);
+                        $coursetpl->caneditclass = '';
+                        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+                            if ($completion->is_enabled(null)) {
+                                $coursetpl->hasprogression = true;
+                                $ratio = round(\core_completion\progress::get_course_progress_percentage($c));
+
+                                $sektorparams = array(
+                                    'id' => '#sektor-progress-'.$c->id,
+                                    'angle' => round($ratio * 360 / 100),
+                                    'size' => 20,
+                                    // height not used.
+                                );
+                                $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($sektorparams));
+                                $coursetpl->progression = $ratio;
+                            }
+                        } else {
+                            $coursetpl->caneditclass = 'can-edit';
+                        }
+
                         $cattpl->courses[] = $coursetpl;
                     }
                 }
@@ -553,6 +566,7 @@ class local_my_renderer extends plugin_renderer_base {
                 $template->hascategories = true;
             }
         }
+
         return($this->output->render_from_template('local_my/courses_with_categories', $template));
     }
 

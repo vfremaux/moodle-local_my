@@ -40,6 +40,7 @@ $string['available'] = 'Available';
 $string['availablecourses'] = 'Available courses for free enrol';
 $string['backtohome'] = 'Back to home page';
 $string['cachedef_heatmap'] = 'User\'s heatmap data';
+$string['caneditcourse'] = 'Course is editable';
 $string['categorysettings'] = 'Category Settings';
 $string['choosecategory'] = 'Choose a category for creating course';
 $string['choosecoursetoenrollin'] = 'Choose a course to enrol in';

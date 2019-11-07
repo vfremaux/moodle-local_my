@@ -40,6 +40,7 @@ $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';
 $string['cachedef_heatmap'] = 'Données de carte d\'activité';
+$string['caneditcourse'] = 'Vous pouvez éditer ce cours';
 $string['categorysettings'] = 'Réglages relatifs aux catégories';
 $string['collapseall'] = 'Tout fermer';
 $string['choosecategory'] = 'Choisir une de mes catégories pour la création du cours';

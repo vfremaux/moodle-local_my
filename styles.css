@@ -27,21 +27,37 @@ table#my-dashboard {
     border-spacing: 0;
 }
 
-table.mycourseareas {
-    border-collapse: separate;
-    border-spacing: 15px;
+div.mycourseareas {
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left:-30px;
+    justify-content: flex-start;
 }
 
-table.mycourseareas h2 {
+div.coursearea {
+    flex-basis: 30%;
+    margin-left: 30px;
+    margin-bottom: 30px;
+}
+
+div.mycourseareas h2 {
     font-size: 1.4rem;
 }
 
-table.mycourseareas h3 {
+div.mycourseareas h3 {
     font-size: 1.2rem;
 }
 
-table.mycourseareas h4 {
+div.mycourseareas h4 {
     font-size: 1.1rem;
+}
+
+.local-my-course .can-edit a::after {
+    content: " \f14b";
+    color: #373a3c;
+    font-family: "fontAwesome";
+    margin-left:5px;
 }
 
 .local-my-cat-collapse > h3 > button {
@@ -965,6 +981,18 @@ div.course-box .title {
 
 .local-my-fp-progression {
     left: -1px;
+}
+
+.sektor-course-completion {
+    display: flex;
+    align-items: center;
+}
+
+.sektor-image {
+    display: inline-block;
+    height: 22px;
+    width: 22px;
+    margin-right: 10px;
 }
 
 @media all and (max-width:480px) {

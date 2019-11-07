@@ -169,7 +169,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             /* eslint-disable */
             var sektor = new Sektor(args['id'], {
               size: args['size'],
-              stroke: 20,
+              stroke: 0,
               arc: false,
               angle: args['angle'],
               sectorColor: '#bD2828',
