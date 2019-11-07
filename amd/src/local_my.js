@@ -79,12 +79,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'true');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
                     log.debug('Expanding ' + area + ' in area ' + catid);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'false');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'false');
                     log.debug('Closing ' + area + ' in area ' + catid);
                     hide = 1;
                 }
@@ -97,9 +97,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             } else {
                 // This is the accordion mode.
                 $('.local-my-course-' + area).slideUp("normal");
-                $('.local-my-cat-collapse-' + area + ' > a').attr('aria-expanded', 'false');
+                $('.local-my-cat-collapse-' + area + ' > h3 > a').attr('aria-expanded', 'false');
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).slideDown("normal");
-                $('#local-my-cathandle-' + area + '-' + catid + ' > a').attr('aria-expanded', 'true');
+                $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
             }
 
             return false;

@@ -54,16 +54,16 @@ div.mycourseareas h4 {
     font-size: 1.1rem;
 }
 
-.local-my-catlink::before {
+.local-my-cat-collapse h3 a::before {
     color: #fff;
     font-family: "fontAwesome";
 }
 
-.local-my-catlink[aria-expanded="false"]::before {
+.local-my-cat-collapse h3 a[aria-expanded="false"]::before {
     content: " \f078 ";
 }
 
-.local-my-catlink[aria-expanded="true"]::before {
+.local-my-cat-collapse h3 a[aria-expanded="true"]::before {
     content: " \f077 ";
 }
 
