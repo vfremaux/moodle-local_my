@@ -39,9 +39,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
 
             if ($('.is-accordion').length !== 0) {
+                // Is in accordion
                 $('.local-my-course').hide();
-            } else {
-                // In accordion mode
                 $('.local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
@@ -69,7 +68,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            if (that.closest('.is-accordion').length == 0) {
+            if (that.closest('.is-accordion').length === 0) {
                 // This is the previous close/open mode.
                 var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
