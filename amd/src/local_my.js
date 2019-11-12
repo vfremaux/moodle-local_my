@@ -20,7 +20,8 @@
  * @package    block_multicourse_navigation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// jshint unused: true, undef:true
+// jshint unused: false, undef:false
+/* eslint-disable no-undef no-unused-vars */
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
     /**
@@ -38,10 +39,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
 
             if ($('.is-accordion').length !== 0) {
+                // Is in accordion
                 $('.local-my-course').hide();
+                $('.local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
-            log.debug('AMD Local my cat control initialized');
+            log.debug('AMD Local My cat control initialized');
 
         },
 
@@ -65,27 +68,22 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            if (that.closest('.is-accordion').length == 0) {
+            if (that.closest('.is-accordion').length === 0) {
                 // This is the previous close/open mode.
                 var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catid=' + catid;
 
-                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src');
                 var hide = 0;
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
-                    handlesrc = handlesrc.replace('collapsed', 'expanded');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'true');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
                     log.debug('Expanding ' + area + ' in area ' + catid);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
-                    handlesrc = handlesrc.replace('expanded', 'collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'false');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'false');
                     log.debug('Closing ' + area + ' in area ' + catid);
                     hide = 1;
                 }
@@ -98,7 +96,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             } else {
                 // This is the accordion mode.
                 $('.local-my-course-' + area).slideUp("normal");
+                $('.local-my-cat-collapse-' + area + ' > h3 > a').attr('aria-expanded', 'false');
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).slideDown("normal");
+                $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
             }
 
             return false;
@@ -162,6 +162,20 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }
 
             return false;
+        },
+
+        sektor: function(args) {
+            /* eslint-disable */
+            var sektor = new Sektor(args['id'], {
+              size: args['size'],
+              stroke: 0,
+              arc: false,
+              angle: args['angle'],
+              sectorColor: '#bD2828',
+              circleColor: '#ddd',
+              fillCircle: true
+            });
+            /* eslint-enable */
         }
     };
 

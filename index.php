@@ -75,6 +75,8 @@ if (isguestuser()) {
     $header = "$SITE->shortname: $strmymoodle";
 }
 
+$PAGE->requires->js('/local/my/js/sektor/sektor.js');
+
 // Get the My Moodle page info.  Should always return something unless the database is broken.
 if (!$currentpage = my_get_page($userid, MY_PAGE_PRIVATE)) {
     print_error('mymoodlesetup');
@@ -104,7 +106,7 @@ if (!empty($config->slick)) {
     $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
 }
 $PAGE->requires->css('/local/my/css/slick.css');
-$PAGE->requires->skip_link_to('localmymaincontent', '');
+$PAGE->requires->skip_link_to('localmymaincontent', get_string('tocontent', 'access'));
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {

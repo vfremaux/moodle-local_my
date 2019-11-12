@@ -14,39 +14,26 @@
 {{/courseareas}}
 </div>
 
-<table class="mycourseareas" width="100%">
-    <tr valign="top">
+<div class="mycourseareas">
 
     {{#courseareas}}
 
-    {{#coljump}}
-    </tr><tr valign="top">
-    {{/coljump}}
+    <div id="local-my-coursearea-{{i}}" class="coursearea">
 
-        <td width="{{colwidth}}%">
+        <div class="headingblock header">
+            <h2>{{catname}}</h2>
+        </div>
 
-            <div class="headingblock header">
-                <a name="local-my-coursearea-{{i}}"></a>
-                <h2>{{catname}}</h2>
-            </div>
+        <div id="courselistarea{{i}}" class="courselist {{#isaccordion}}is-accordion{{/isaccordion}}">
+            {{{courseoverview}}}
 
-            <div class="block">
-                <table id="courselistarea{{i}}" width="100%" class="local-my-courselist {{#isaccordion}}is-accordion{{/isaccordion}}">
-                    <tr valign="top">
-                        <td>
-                            {{{courseoverview}}}
+            {{{coursesbycats}}}
 
-                            {{{coursesbycats}}}
+            {{{availables}}}
+        </div>
 
-                            {{{availables}}}
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-        </td>
+    </div>
     {{/courseareas}}
 
-    </tr>
-</table>
+</div>
 <!-- /local_my/courseareas_module -->

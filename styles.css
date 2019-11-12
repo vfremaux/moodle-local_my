@@ -27,9 +27,49 @@ table#my-dashboard {
     border-spacing: 0;
 }
 
-table#mycourseareas {
-    border-collapse: separate;
-    border-spacing: 15px;
+div.mycourseareas {
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left:-30px;
+    justify-content: flex-start;
+}
+
+div.coursearea {
+    flex-basis: 30%;
+    margin-left: 30px;
+    margin-bottom: 30px;
+}
+
+div.mycourseareas h2 {
+    font-size: 1.4rem;
+}
+
+div.mycourseareas h3 {
+    font-size: 1.2rem;
+    display: inline;
+}
+
+div.mycourseareas h4 {
+    font-size: 1.1rem;
+}
+
+.local-my-cat-collapse h3 a::before {
+    color: #fff;
+    font-family: "fontAwesome";
+    padding: 5px;
+}
+
+.local-my-cat-collapse h3 a[aria-expanded="false"]::before {
+    content: " \f078 ";
+}
+
+.local-my-cat-collapse h3 a[aria-expanded="true"]::before {
+    content: " \f077 ";
+}
+
+.course-category-ctls {
+    line-height: 24px;
 }
 
 #my-me {
@@ -433,37 +473,37 @@ div.course-box .title {
     content: '[';
 }
 
+.course-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.course-grid > div {
+    width: 250px;
+}
+
+/*
 @media all and (min-width: 1200px) {
-    .course-grid {
-        display: grid;
-        grid-template-columns : 25% 25% 25% auto;
-        grid-row-gap: 20px;
-    }
 }
 
 @media all and (min-width: 985px) and (max-width: 1200px) {
-    .course-grid {
-        display: grid;
-        grid-template-columns : 33% 33% auto;
-        grid-row-gap: 20px;
+    .course-grid > div {
+        flex-basis: 32%;
     }
 }
 
 @media all and (min-width: 712px) and (max-width: 985px) {
-    .course-grid {
-        display: grid;
-        grid-template-columns : 50% auto;
-        grid-row-gap: 20px;
+    .course-grid > div {
+        flex-basis: 32%;
     }
 }
 
 @media all and (max-width: 712px) {
-    .course-grid {
-        display: grid;
-        grid-template-columns : 100%;
-        grid-row-gap: 20px;
+    .course-grid > div {
+        flex-basis: 32%;
     }
 }
+*/
 
 #mydashboard .jqplot-grid-canvas {
     display: none;
@@ -571,7 +611,6 @@ div.course-box .title {
     height: 70px;
     width: 70px;
     top: 300px;
-    position: relative;
     left: 30px;
 }
 
@@ -584,77 +623,95 @@ div.course-box .title {
   border-radius: 50%;
   box-sizing: border-box;
 }
+
 .progress-chart-container .progress-doughnut .progress-text {
-  position: absolute;
-  top: 50%;
-  /*rtl:ignore*/
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #eee;
+    position: absolute;
+    top: 50%;
+    /*rtl:ignore*/
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #eee;
 }
+
 .progress-chart-container .progress-doughnut .progress-text.has-percent {
-  color: #f89406;
+    color: #f89406;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator {
-  position: absolute;
-  top: -15px;
-  left: -15px;
-  height: 70px;
-  width: 70px;
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    height: 70px;
+    width: 70px;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg {
-  position: relative;
-  height: 100%;
-  width: 100%;
+    position: relative;
+    height: 100%;
+    width: 100%;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle {
-  stroke-width: 15px;
-  stroke: #f89406;
-  fill: none;
-  stroke-dasharray: 173;
-  stroke-dashoffset: 173;
-  transform: rotate(-90deg);
-  transform-origin: center center;
+    stroke-width: 15px;
+    stroke: #f89406;
+    fill: none;
+    stroke-dasharray: 173;
+    stroke-dashoffset: 173;
+    transform: rotate(-90deg);
+    transform-origin: center center;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-1 {
-  stroke-dashoffset: 171.27;
+    stroke-dashoffset: 171.27;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-2 {
-  stroke-dashoffset: 169.54;
+    stroke-dashoffset: 169.54;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-3 {
-  stroke-dashoffset: 167.81;
+    stroke-dashoffset: 167.81;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-4 {
-  stroke-dashoffset: 166.08;
+    stroke-dashoffset: 166.08;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-5 {
-  stroke-dashoffset: 164.35;
+    stroke-dashoffset: 164.35;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-6 {
-  stroke-dashoffset: 162.62;
+    stroke-dashoffset: 162.62;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-7 {
-  stroke-dashoffset: 160.89;
+    stroke-dashoffset: 160.89;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-8 {
-  stroke-dashoffset: 159.16;
+    stroke-dashoffset: 159.16;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-9 {
-  stroke-dashoffset: 157.43;
+    stroke-dashoffset: 157.43;
 }
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-10 {
-  stroke-dashoffset: 155.7;
+    stroke-dashoffset: 155.7;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-11 {
-  stroke-dashoffset: 153.97;
+    stroke-dashoffset: 153.97;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-12 {
-  stroke-dashoffset: 152.24;
+    stroke-dashoffset: 152.24;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-13 {
-  stroke-dashoffset: 150.51;
+    stroke-dashoffset: 150.51;
 }
+
 .progress-chart-container .progress-doughnut .progress-indicator svg .circle.percent-14 {
   stroke-dashoffset: 148.78;
 }
@@ -938,17 +995,24 @@ div.course-box .title {
   width: 35px;
 }
 
-.mycourseareas button {
-    background: none;
-    border: none;
-}
-
 .local-my-course-availablecourses {
     line-height: 35px;
 }
 
 .local-my-fp-progression {
     left: -1px;
+}
+
+.sektor-course-completion {
+    display: flex;
+    align-items: center;
+}
+
+.sektor-image {
+    display: inline-block;
+    height: 22px;
+    width: 22px;
+    margin-right: 10px;
 }
 
 @media all and (max-width:480px) {

@@ -141,6 +141,9 @@ class local_my_renderer extends plugin_renderer_base {
         if (!array_key_exists('gaugewidth', $options)) {
             debugging('Missing option');
         }
+        if (!array_key_exists('gaugetype', $options)) {
+            debugging('Missing option');
+        }
         $this->course_completion_gauge($course, $options['gaugewidth'], $options['gaugeheight'],
                                        $options['gaugetype'], $template);
 
@@ -274,7 +277,8 @@ class local_my_renderer extends plugin_renderer_base {
             $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
         }
 
-        if (!empty($rows)) {
+        if (!empty($rows) && count($rows[0]) > 1) {
+            // Do not print anything if only one tab.
             return print_tabs($rows, $view, null, null, true);
         }
 
@@ -332,6 +336,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
         $coursetpl->courseurl = ''.$courseurl;
+        $coursetpl->id = $course->id;
 
         $coursetpl->hasattributes = false;
         if (local_my_is_visible_course($course)) {
@@ -398,7 +403,10 @@ class local_my_renderer extends plugin_renderer_base {
             $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
         }
 
-        $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
+        if ($config->progressgaugetype != 'noprogress') {
+            // $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
+            $this->course_completion_gauge($course, 20, 20, 'sektor', $coursetpl);
+        }
 
         return $coursetpl;
     }
@@ -456,7 +464,6 @@ class local_my_renderer extends plugin_renderer_base {
     public function courses_by_cats($courselist, $options = array(), $area = '') {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
-        $renderer = $PAGE->get_renderer('local_my');
         $config = get_config('local_my');
 
         // Get user preferences for collapser.
@@ -497,8 +504,10 @@ class local_my_renderer extends plugin_renderer_base {
 
             if (!empty($cattpl->collapseclass)) {
                 $cattpl->collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
+                $cattpl->ariaexpanded = 'false';
             } else {
                 $cattpl->collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
+                $cattpl->ariaexpanded = 'true';
             }
 
             if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
@@ -529,7 +538,29 @@ class local_my_renderer extends plugin_renderer_base {
                         $coursetpl->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
                         $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'dimmed';
                         $coursetpl->fullname = format_string($c->fullname);
-                        $coursetpl->editingicon = $renderer->editing_icon($c);
+                        $coursetpl->id = $c->id;
+
+                        $coursetpl->hasprogression = false;
+                        $completion = new completion_info($c);
+                        $coursetpl->caneditclass = '';
+                        if (!has_capability('moodle/course:manageactivities', $coursecontext, $USER->id, false)) {
+                            if ($completion->is_enabled(null)) {
+                                $coursetpl->hasprogression = true;
+                                $ratio = round(\core_completion\progress::get_course_progress_percentage($c));
+
+                                $sektorparams = array(
+                                    'id' => '#sektor-progress-'.$c->id,
+                                    'angle' => round($ratio * 360 / 100),
+                                    'size' => 20,
+                                    // height not used.
+                                );
+                                $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($sektorparams));
+                                $coursetpl->progression = $ratio;
+                            }
+                        } else {
+                            $coursetpl->caneditclass = 'can-edit';
+                        }
+
                         $cattpl->courses[] = $coursetpl;
                     }
                 }
@@ -538,6 +569,7 @@ class local_my_renderer extends plugin_renderer_base {
                 $template->hascategories = true;
             }
         }
+
         return($this->output->render_from_template('local_my/courses_with_categories', $template));
     }
 

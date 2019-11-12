@@ -517,16 +517,16 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
                                  'withcats' => false,
                                  'nocompletion' => true,
                                  'gaugetype' => 'progressbar',
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
+                                 'gaugewidth' => '100%',
+                                 'gaugeheight' => '5px');
             } else {
                 // Solve a performance issue for people having wide access to courses.
                 $options = array('noheading' => true,
                                  'withcats' => true,
                                  'nocompletion' => true,
                                  'gaugetype' => 'progressbar',
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
+                                 'gaugewidth' => '100%',
+                                 'gaugeheight' => '5px');
                 $alttemplate = ''; // Reset to list mode.
             }
             $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
@@ -758,7 +758,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
     }
 
     if (!empty($mytemplates)) {
-        $options = array('noheading' => 1, 'gaugetype' => 'noprogress');
+        $options = array('noheading' => 1, 'gaugetype' => 'noprogress', 'gaugewidth' => '100%', 'gaugeheight' => '20px');
         $template->templates = local_my_print_courses('mytemplates', $mytemplates, $options);
 
         // Add templates to exclusions.
@@ -1526,7 +1526,7 @@ function local_my_print_static($index) {
                     }
                     $unfilteredmodality = trim($modality);
                     $modality = str_replace(' ', '-', $unfilteredmodality);
-                    $modality = str_replace('_', '-', $unfilteredmodality);
+                    $modality = str_replace('_', '-', $modality);
                     $modality = preg_replace("/[^0-9a-zA-Z-]/", '', $modality);
 
                     $modaltpl->modalindex = $index.'-'.$modality;
