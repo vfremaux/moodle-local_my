@@ -1210,7 +1210,7 @@ function local_my_resolve_view() {
     }
 
     if (is_null($iscoursemanager) && !empty($config->coursemanagermodules) && preg_match('/\bmanaged/', $config->coursemanagermodules)) {
-        $iscoursemanager = local_my_has_capability_somewhere($coursemanagercap);
+        $iscoursemanager = local_my_has_capability_somewhere($coursemanagercap, true, true, false);
     }
 
     if (is_null($isadmin)) {

@@ -45,10 +45,21 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
     $renderer = $PAGE->get_renderer('local_my');
 
     $mycourses = enrol_get_my_courses('id, shortname, fullname');
-    if ($debug) {
-        foreach (array_keys($mycourses) as $cid) {
-            if ($debug == 1 || $debug == $cid) {
-                $debuginfo .= "Course Add (course $cid as enrolled in)\n";
+    foreach (array_keys($mycourses) as $cid) {
+        $context = context_course::instance($cid);
+        if (!has_capability('local/my:isstudent', $context, $USER->id, false)) {
+            // Exclude courses where i'm NOT student.
+            if ($debug) {
+                if ($debug == 1 || $debug == $cid) {
+                    $debuginfo .= "Course Exclude (course $cid not student in)\n";
+                }
+            }
+            unset($mycourses[$cid]);
+        } else {
+            if ($debug) {
+                if ($debug == 1 || $debug == $cid) {
+                    $debuginfo .= "Course Add (course $cid as enrolled in)\n";
+                }
             }
         }
     }
@@ -229,13 +240,13 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
     if (!empty($myauthcourses)) {
         $template->hascourses = true;
         if ($alttemplate == 'authored_courses_grid') {
-            foreach ($mycourses as $cid => $c) {
+            foreach ($myauthcourses as $cid => $c) {
                 $coursetpl = $renderer->coursebox($c);
                 $coursetpl->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
                 $coursetpl->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
                 $template->coursegridelms[] = $coursetpl;
             }
-            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
+            $template->simplecourses = local_my_print_courses('mycourses', $myauthcourses, $options);
         } else {
             if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
                 // Solve a performance issue for people having wide access to courses.
@@ -256,7 +267,7 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
             $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
         }
 
-        $debuginfo .= local_my_exclude_post_display($myauthoredcourses, $excludedcourses, 'authored');
+        $debuginfo .= local_my_exclude_post_display($myauthcourses, $excludedcourses, 'authored');
 
         if ($debug) {
             // Update debug info if necessary.

@@ -1008,6 +1008,10 @@ div.course-box .title {
     align-items: center;
 }
 
+#mydashboard .course-category-list li {
+    margin-bottom: 10px;
+}
+
 .sektor-image {
     display: inline-block;
     height: 22px;

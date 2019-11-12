@@ -23,9 +23,11 @@
 <ul class="course-category-list">
 {{#courses}}
 <li class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
-    <div class="{{caneditclass}}">
+    <div class="course-line {{caneditclass}}">
         <a class="{{cstyle}}" href="{{{courseurl}}}" >{{fullname}} {{#caneditclass}}<i class="fa fa-pencil-square fa-fw" aria-label="{{#str}}caneditcourse, local_my{{/str}}"></i>{{/caneditclass}}</a>
         {{> local_my/courseprogression_sektor}}
+        {{> local_my/assignments_to_submit}}
+        {{> local_my/activities_to_complete}}
     </div>
 </li>
 {{/courses}}

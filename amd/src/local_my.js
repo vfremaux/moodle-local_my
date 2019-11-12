@@ -165,13 +165,18 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         sektor: function(args) {
+
+            if (!('color' in args)) {
+                args['color'] = '#bD2828';
+            }
+
             /* eslint-disable */
             var sektor = new Sektor(args['id'], {
               size: args['size'],
               stroke: 0,
               arc: false,
               angle: args['angle'],
-              sectorColor: '#bD2828',
+              sectorColor: args['color'],
               circleColor: '#ddd',
               fillCircle: true
             });
