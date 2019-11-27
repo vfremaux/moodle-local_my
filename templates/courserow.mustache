@@ -1,0 +1,14 @@
+
+
+<!-- local_my/courserow -->
+<li class="local-my-course local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}" data-shortname="{{shortname}}" data-idnumber="{{idnumber}}">
+    <div class="course-line {{caneditclass}}">
+        <a class="{{cstyle}}" href="{{{courseurl}}}" >{{fullname}} {{#caneditclass}}<i class="fa fa-pencil-square fa-fw" aria-label="{{#str}}caneditcourse, local_my{{/str}}"></i>{{/caneditclass}}</a>
+        {{#hasprogression}}
+        {{> local_my/courseprogression_sektor}}
+        {{/hasprogression}}
+        {{> local_my/assignments_to_submit}}
+        {{> local_my/quiz_to_perform}}
+    </div>
+</li>
+<!-- /local_my/courserow -->

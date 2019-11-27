@@ -9,34 +9,28 @@
         </div>
     </div>
 
-    <div class="content">
+    <div id="mymanagedcourselist" class="content courselist">
 
         {{{buttons}}}
 
 {{/hideifempty}}
-{{#hascourses}}
-        <table id="mymanagedcourselist" width="100%" class="generaltable courselist">
-            <tr valign="top">
-                <td>
+        {{#hascourses}}
 
-                    {{{overviewedcourses}}}
+        {{{overviewedcourses}}}
 
-                    {{{simplecourses}}}
+        {{{simplecourses}}}
 
-                    {{#debuginfo}}
-                    <pre>
-                    {{debuginfo}}
-                    </pre>
-                    {{/debuginfo}}
-                </td>
-            </tr>
-        </table>
-{{/hascourses}}
+        {{#debuginfo}}
+        <pre>
+        {{debuginfo}}
+        </pre>
+        {{/debuginfo}}
+        {{/hascourses}}
 
 {{^hideifempty}}
-    {{^hascourses}}
-    {{{nocourses}}}
-    {{/hascourses}}
+        {{^hascourses}}
+        {{{nocourses}}}
+        {{/hascourses}}
 
     </div>
 </div>

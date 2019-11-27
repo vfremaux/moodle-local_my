@@ -178,15 +178,6 @@ if ($hassiteconfig) {
     $desc = get_string('localmyshowcourseidentifier_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $identifieroptions, PARAM_TEXT));
 
-    /*
-    // Obsolete in 3.5
-    $overviewedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20);
-    $key = 'local_my/maxoverviewedlistsize';
-    $label = get_string('localmymaxoverviewedlistsize', 'local_my');
-    $desc = get_string('localmymaxoverviewedlistsize_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $overviewedoptions, PARAM_INT));
-    */
-
     $availableoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50);
     $key = 'local_my/maxavailablelistsize';
     $label = get_string('localmymaxavailablelistsize', 'local_my');

@@ -23,7 +23,7 @@
 
 require('../../../config.php');
 
-$item = required_param('item', PARAM_ALPHA); // At start 'authoredcat'.
+$item = required_param('item', PARAM_TEXT); // At start 'authoredcat'.
 $catid = optional_param('catid', 0, PARAM_INT);
 $hide = optional_param('hide', false, PARAM_BOOL);
 $action = optional_param('what', '', PARAM_ALPHA);

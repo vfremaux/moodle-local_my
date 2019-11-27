@@ -170,6 +170,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 args['color'] = '#bD2828';
             }
 
+            if (!('circlecolor' in args)) {
+                args['circlecolor'] = '#ddd';
+            }
+
             /* eslint-disable */
             var sektor = new Sektor(args['id'], {
               size: args['size'],
@@ -177,7 +181,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
               arc: false,
               angle: args['angle'],
               sectorColor: args['color'],
-              circleColor: '#ddd',
+              circleColor: args['circlecolor'],
               fillCircle: true
             });
             /* eslint-enable */

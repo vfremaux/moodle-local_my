@@ -35,78 +35,75 @@ class local_my_renderer extends plugin_renderer_base {
      * @param int $heigh default height
      * @param string $progressbar type of gauge renderer.
      */
-    public function course_completion_gauge(&$course, $width, $height, $type, &$template) {
+    public function course_completion_gauge(&$course, $type, $options = []) {
         global $USER, $PAGE, $DB, $CFG;
 
         if ($type == 'noprogress') {
-            $template->progression = '';
-            return;
-        }
-
-        $template->progression = '';
-
-        if (has_any_capability(array('local/my:isteacher', 'local/my:iscoursemanager'), context_course::instance($course->id), $USER->id, false)) {
-            // $template->progression = '';
-            // return;
+            return '';
         }
 
         $courserec = $DB->get_record('course', array('id' => $course->id)); // Get a mutable object.
         $completion = new completion_info($courserec);
-        if ($completion->is_enabled(null)) {
-            $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
-
-            $template->completionstr = get_string('completion', 'local_my', 0 + $ratio);
-
-            if ($type == 'gauge') {
-                $jqwrenderer = $PAGE->get_renderer('local_vflibs');
-                $properties = array('width' => $width, 'height' => $height, 'max' => 100, 'crop' => 120);
-                $template->progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id,
-                                                                           array($ratio), $properties);
-            } else if ($type == 'progressbar') {
-                $jqwrenderer = $PAGE->get_renderer('local_vflibs');
-                $properties = array('width' => $width, 'height' => $height, 'animation' => 300, 'template' => 'success');
-                $template->progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
-                                                                        $ratio, $properties);
-            } else if ($type == 'jqplot') {
-                include_once($CFG->dirroot . "/local/vflibs/jqplotlib.php");
-                local_vflibs_require_jqplot_libs();
-                // Completion with a donut.
-                $completedstr = get_string('completion', 'local_my', $ratio);
-                $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
-                $attrs = array('height' => $width, 'width' => $height);
-                $template->progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
-            } else {
-                if ($ratio) {
-                    $comppercent = number_format($ratio, 0);
-                    $hasprogress = true;
-                } else {
-                    $comppercent = 0;
-                    $hasprogress = false;
-                }
-                $progresschartcontext = ['hasprogress' => $hasprogress, 'progress' => $comppercent];
-                $template->progression = $this->render_from_template('local_my/progress-chart', $progresschartcontext);
-            }
-        } else {
-            $template->progression = '';
+        if (!$completion->is_enabled(null)) {
+            return '';
         }
-        // Just let data in incoming template.
+
+        $progression = '';
+
+        $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
+
+        if ($type == 'gauge') {
+            $jqwrenderer = $PAGE->get_renderer('local_vflibs');
+            $properties = array('width' => $options['gaugewidth'], 'height' => $options['gaugeheight'], 'max' => 100, 'crop' => 120);
+            $progression = $jqwrenderer->jqw_bargauge_simple('completion-jqw-'.$course->id,
+                                                                       array($ratio), $properties);
+        } else if ($type == 'progressbar') {
+            $jqwrenderer = $PAGE->get_renderer('local_vflibs');
+            $properties = ['width' => $options['gaugewidth'], 'height' => $options['gaugeheight'], 'animation' => 300, 'template' => 'success'];
+            $progression = $jqwrenderer->jqw_progress_bar('completion-jqw-'.$course->id,
+                                                                    $ratio, $properties);
+        } else if ($type == 'jqplot') {
+            include_once($CFG->dirroot . "/local/vflibs/jqplotlib.php");
+            local_vflibs_require_jqplot_libs();
+            // Completion with a donut.
+            $completedstr = get_string('completion', 'local_my', $ratio);
+            $data = array(array($completedstr, $ratio), array('', round(100 - $ratio)));
+            $attrs = array('width' => $options['gaugewidth'], 'height' => $options['gaugeheight']);
+            $progression = local_vflibs_jqplot_simple_donut($data, 'course_completion_'.$course->id, 'completion-jqw-'.$course->id, $attrs);
+        } else if ($type == 'sektor') {
+            $progresstpl = new StdClass;
+            $progresstpl->completionstr = get_string('completion', 'local_my', 0 + $ratio);
+            $progresstpl->id = $course->id;
+            $progresstpl->ratio = $ratio;
+            $progresstpl->collapseclass = @$options['collapseclass'];
+            $progression = $this->output->render_from_template('local_my/courseprogression_sektor', $progresstpl);
+            $sektorparams = array(
+                'id' => '#sektor-progress-'.$course->id,
+                'angle' => round($ratio * 360 / 100),
+                'size' => $options['gaugewidth'],
+                // height not used.
+            );
+            $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($sektorparams));
+        } else {
+            if ($ratio) {
+                $comppercent = number_format($ratio, 0);
+                $hasprogress = true;
+            } else {
+                $comppercent = 0;
+                $hasprogress = false;
+            }
+            $progresschartcontext = [
+                'completionstr' => get_string('completion', 'local_my', 0 + $ratio),
+                'hasprogress' => $hasprogress,
+                'progress' => $comppercent
+            ];
+            $progression = $this->output->render_from_template('local_my/progress-chart', $progresschartcontext);
+        }
+
+        return $progression;
     }
 
-    /**
-     * Deprecated : Used by no one.
-     */
-    public function course_simple_div($course, $classes = '') {
-
-        return "Is deprecated";
-
-        $str = '';
-        $courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-        $link = '<a class="courselink" href="'.$courseurl.'">'.format_string($course->fullname).'</a>';
-        $str .= '<div class="courseinfo '.$classes.'">'.$link.'</div>';
-
-        return $str;
-    }
-
+    /*
     public function course_table_row($course, $options) {
         global $DB, $USER;
 
@@ -153,6 +150,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         return $this->output->render_from_template('local_my/coursetablerow', $template);
     }
+    */
 
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
@@ -163,6 +161,67 @@ class local_my_renderer extends plugin_renderer_base {
         }
     }
 
+    /**
+     * Print a list style course list
+     */
+    /*
+    public function courses_list($title = 'mycourses', $courses, $options = array()) {
+        global $OUTPUT, $DB, $PAGE;
+
+        $config = get_config('local_my');
+
+        $str = '';
+
+        // Be sure we have something in lastaccess.
+        foreach ($courses as $cid => $c) {
+            $courses[$cid]->lastaccess = 0 + @$courses[$cid]->lastaccess;
+        }
+
+        if (empty($courses)) {
+            if (!empty($options['printifempty']) && empty($options['noheading'])) {
+                $str .= $OUTPUT->box_start('header');
+                $str .= $OUTPUT->box_start('title');
+                $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
+                $str .= $OUTPUT->box_end();
+                $str .= $OUTPUT->box_end();
+                $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
+            }
+        } else {
+            if (empty($options['noheading'])) {
+                $str .= $OUTPUT->box_start('header');
+                $str .= $OUTPUT->box_start('title');
+                $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
+                $str .= $OUTPUT->box_end();
+                $str .= $OUTPUT->box_end();
+                $str .= $OUTPUT->box_start('content');
+            }
+
+            $str .= '<table class="courselist" width="100%">';
+            if (!empty($options['withoverview'])) {
+                // Old overviewed. OBSOLETE.
+                // $str .= $renderer->course_overview($courses, $options);
+            } else if (!empty($options['withcats'])) {
+                // Structured list.
+                $str .= $this->courses_by_cats($courses, $options, $title);
+            } else {
+                // Flat list.
+                foreach ($courses as $c) {
+                    $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
+                    $str .= $this->course_table_row($c, $options);
+                }
+            }
+            $str .= '</table>';
+
+            if (empty($options['noheading'])) {
+                $str .= $OUTPUT->box_end();
+            }
+        }
+
+        return $str;
+    }
+    */
+
+    /*
     public function course_as_box($c) {
 
         $config = get_config('local_my');
@@ -219,6 +278,7 @@ class local_my_renderer extends plugin_renderer_base {
 
         return $this->output->render_from_template('local_my/coursebox', $template);
     }
+    */
 
     public function print_forum_link($forum, &$forumname) {
         global $SITE;
@@ -299,278 +359,7 @@ class local_my_renderer extends plugin_renderer_base {
             }
         }
 
-        return $this->output->render_from_template('local_my/course_slider', $template);
-    }
-
-    public function coursebox($courseorid) {
-        global $CFG, $USER;
-
-        $config = get_config('local_my');
-
-        if (is_object($courseorid)) {
-            $courseid = $courseorid->id;
-        } else {
-            $courseid = $courseorid;
-        }
-
-        $coursetpl = new StdClass;
-        $course = get_course($courseid);
-        $context = context_course::instance($course->id);
-
-        $coursetpl->summary = '';
-        if (empty($config->hidedescriptions)) {
-            $summary = local_my_strip_html_tags($course->summary);
-            if ($config->trimmode == 'words') {
-                $coursetpl->summary = local_my_course_trim_words($summary, $config->trimlength2);
-            } else {
-                $coursetpl->summary = local_my_course_trim_char($summary, $config->trimlength2);
-            }
-        }
-
-        $coursetpl->fullname = format_string($course->fullname);
-        if ($config->trimmode == 'words') {
-            $coursetpl->trimtitle = local_my_course_trim_words(format_string($course->fullname), $config->trimlength1);
-        } else {
-            $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), $config->trimlength1);
-        }
-
-        $courseurl = new moodle_url('/course/view.php', array('id' => $courseid ));
-        $coursetpl->courseurl = ''.$courseurl;
-        $coursetpl->id = $course->id;
-
-        $coursetpl->hasattributes = false;
-        if (local_my_is_visible_course($course)) {
-            $coursetpl->hiddenclass = '';
-            $coursetpl->hiddenattribute = '';
-        } else {
-            $coursetpl->hasattributes = true;
-            $coursetpl->hiddenattribute = $this->output->pix_icon('hidden', get_string('ishidden', 'local_my'), 'local_my');
-            $coursetpl->hiddenclass = 'dimmed';
-        }
-        if (has_capability('moodle/course:manageactivities', $context, $USER, false)) {
-            $coursetpl->hasattributes = true;
-            $coursetpl->editingclass = 'can-edit';
-            $coursetpl->editingattribute = $this->output->pix_icon('editing', get_string('canedit', 'local_my'), 'local_my');
-        } else {
-            $coursetpl->editingclass = '';
-            $coursetpl->editingattribute = '';
-        }
-        if (local_my_is_selfenrolable_course($course)) {
-            $coursetpl->hasattributes = true;
-            $coursetpl->selfenrolclass = 'selfenrol';
-            $coursetpl->selfattribute = $this->output->pix_icon('unlocked', get_string('selfenrol', 'local_my'), 'local_my');
-        } else {
-            $coursetpl->selfenrolclass = '';
-            $coursetpl->selfattribute = '';
-        }
-        if (local_my_is_guestenrolable_course($course)) {
-            $coursetpl->hasattributes = true;
-            $coursetpl->guestenrolclass = 'guestenrol';
-            $coursetpl->guestattribute = $this->output->pix_icon('guest', get_string('guestenrol', 'local_my'), 'local_my');
-        } else {
-            $coursetpl->guestenrolclass = '';
-            $coursetpl->guestattribute = '';
-        }
-        if ($course->startdate > time()) {
-            $coursetpl->hasattributes = true;
-            $coursetpl->futureclass = 'future';
-            $coursetpl->futureattribute = $this->output->pix_icon('future', get_string('future', 'local_my'), 'local_my');
-        } else {
-            $coursetpl->futureclass = '';
-            $coursetpl->futureattribute = '';
-        }
-
-        if (!has_capability('local/my:seecourseattributes', $context)) {
-            // Hide all attributes if requested by capability.
-            $coursetpl->hasattributes = false;
-        }
-
-        if ($course instanceof stdClass) {
-            $course = local_get_course_list($course);;
-        }
-
-        $context = context_course::instance($course->id);
-
-        foreach ($course->get_course_overviewfiles() as $file) {
-            if ($isimage = $file->is_valid_image()) {
-                $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
-                $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
-                $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
-                break;
-            }
-        }
-        if (empty($coursetpl->imgurl)) {
-            $coursetpl->imgurl = ''.$this->get_image_url('coursedefaultimage');
-        }
-
-        if ($config->progressgaugetype != 'noprogress') {
-            // $this->course_completion_gauge($course, $config->progressgaugewidth, $config->progressgaugeheight, $config->progressgaugetype, $coursetpl);
-            $this->course_completion_gauge($course, 20, 20, 'sektor', $coursetpl);
-        }
-
-        return $coursetpl;
-    }
-
-    protected function get_image_url($imgname) {
-        global $PAGE;
-
-        $fs = get_file_storage();
-
-        $context = context_system::instance();
-
-        $haslocalfile = false;
-        $frec = new StdClass;
-        $frec->contextid = $context->id;
-        $frec->component = 'local_my';
-        $frec->filearea = 'rendererimages';
-        $frec->filename = $imgname.'.svg';
-        if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
-            $frec->filename = $imgname.'.png';
-            if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
-                $frec->filename = $imgname.'.jpg';
-                if (!$fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
-                    $frec->filename = $imgname.'.gif';
-                    if ($fs->file_exists($frec->contextid, $frec->component, $frec->filearea, 0, '/', $frec->filename)) {
-                        $haslocalfile = true;
-                    }
-                } else {
-                    $haslocalfile = true;
-                }
-            } else {
-                $haslocalfile = true;
-            }
-        } else {
-            $haslocalfile = true;
-        }
-
-        if ($haslocalfile) {
-            $fileurl = moodle_url::make_pluginfile_url($frec->contextid, $frec->component, $frec->filearea, 0, '/',
-                                                    $frec->filename, false);
-            return $fileurl;
-        }
-
-        if ($PAGE->theme->resolve_image_location($imgname, 'theme', true)) {
-            $imgurl = $this->output->image_url($imgname, 'theme');
-        } else {
-            return $this->output->image_url($imgname, 'local_my');
-        }
-
-        return $imgurl;
-    }
-
-    /**
-     * Print a simple list of courses with first level category caption
-     */
-    public function courses_by_cats($courselist, $options = array(), $area = '') {
-        global $CFG, $DB, $USER, $OUTPUT, $PAGE;
-
-        $config = get_config('local_my');
-
-        // Get user preferences for collapser.
-        $select = " userid = ? and name LIKE 'local_my%' ";
-        $params = array('userid' => $USER->id);
-        $collapses = $DB->get_records_select_menu('user_preferences', $select, $params, 'name,value', 'name,value');
-
-        // Reorganise by cat.
-        foreach ($courselist as $c) {
-            if (!isset($catcourses[$c->category])) {
-                $catcourses[$c->category] = new StdClass;
-                $catcourses[$c->category]->category = $DB->get_record('course_categories', array('id' => $c->category));
-            }
-            $catcourses[$c->category]->courses[] = $c;
-        }
-
-        $template = new StdClass;
-        $template->area = $area;
-        $template->collapseallstr = get_string('collapseall', 'local_my');
-        $template->expandallstr = get_string('expandall', 'local_my');
-        $template->catidlist = implode(',', array_keys($catcourses));
-        $template->isaccordion = !empty($config->courselistaccordion);
-
-        foreach ($catcourses as $catid => $cat) {
-
-            if (!$catid) {
-                continue;
-            }
-
-            $cattpl = new Stdclass;
-            $cattpl->catid = $cat->category->id;
-
-            $catcontext = context_coursecat::instance($catid);
-            $cattpl->collapseclass = '';
-            if (array_key_exists('local_my_'.$area.'_'.$catid.'_hidden', $collapses) && !$template->isaccordion) {
-                $cattpl->collapseclass = 'collapsed';
-            }
-
-            if (!empty($cattpl->collapseclass)) {
-                $cattpl->collapseiconurl = $OUTPUT->image_url('collapsed', 'local_my');
-                $cattpl->ariaexpanded = 'false';
-            } else {
-                $cattpl->collapseiconurl = $OUTPUT->image_url('expanded', 'local_my');
-                $cattpl->ariaexpanded = 'true';
-            }
-
-            if ($cat->category->visible || has_capability('moodle/category:viewhiddencategories', $catcontext)) {
-
-                $cattpl->catstyle = ($cat->category->visible) ? '' : 'dimmed';
-
-                if ($options['withcats'] == 1) {
-                    $cattpl->catname = format_string($cat->category->name);
-                } else if ($options['withcats'] > 1) {
-                    $cats = array();
-                    $cats[] = format_string($cat->category->name);
-                    if ($cat->category->parent) {
-                        $parent = $cat->category;
-                        for ($i = 1; $i < $options['withcats']; $i++) {
-                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
-                            $cats[] = format_string($parent->name);
-                        }
-                    }
-                    $cats = array_reverse($cats);
-                    $cattpl->catname = implode(' / ', $cats);
-                }
-
-                $cattpl->courses = array();
-                foreach ($cat->courses as $c) {
-                    $coursetpl = new StdClass;
-                    $coursecontext = context_course::instance($c->id);
-                    if ($c->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
-                        $coursetpl->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-                        $coursetpl->cstyle = ($c->visible && empty($catstyle)) ? '' : 'dimmed';
-                        $coursetpl->fullname = format_string($c->fullname);
-                        $coursetpl->id = $c->id;
-
-                        $coursetpl->hasprogression = false;
-                        $completion = new completion_info($c);
-                        $coursetpl->caneditclass = '';
-                        if (!has_capability('moodle/course:manageactivities', $coursecontext, $USER->id, false)) {
-                            if ($completion->is_enabled(null)) {
-                                $coursetpl->hasprogression = true;
-                                $ratio = round(\core_completion\progress::get_course_progress_percentage($c));
-
-                                $sektorparams = array(
-                                    'id' => '#sektor-progress-'.$c->id,
-                                    'angle' => round($ratio * 360 / 100),
-                                    'size' => 20,
-                                    // height not used.
-                                );
-                                $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', array($sektorparams));
-                                $coursetpl->progression = $ratio;
-                            }
-                        } else {
-                            $coursetpl->caneditclass = 'can-edit';
-                        }
-
-                        $cattpl->courses[] = $coursetpl;
-                    }
-                }
-
-                $template->categories[] = $cattpl;
-                $template->hascategories = true;
-            }
-        }
-
-        return($this->output->render_from_template('local_my/courses_with_categories', $template));
+        return $template;
     }
 
     /**

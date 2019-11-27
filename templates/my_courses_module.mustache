@@ -1,0 +1,57 @@
+
+
+<!-- local_my/my_courses_module -->
+{{#debuginfo}}
+<pre>
+{{debuginfo}}
+</pre>
+{{/debuginfo}}
+<div class="block block_{{area}}" data-required="{{required}}" data-resolved="{{resolved}}" data-resolve-rule="{{rule}}">
+
+    <div class="header">
+        <div class="title">
+            <h2>{{modulename}}</h2>
+        </div>
+    </div>
+
+    {{#buttons}}
+    <div class="area-buttons">
+        {{{buttons}}}
+    </div>
+    {{/buttons}}
+
+    {{^hascourses}}
+    <div class="content">
+        {{{nocourses}}}
+    </div>
+    {{/hascourses}}
+
+    {{#hascourses}}
+    {{#aslist}}
+    <div class="content">
+        <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
+            {{> local_my/courses_with_categories}}
+        </ul>
+    </div>
+    {{/aslist}}
+
+    {{#asflatlist}}
+    <div class="content">
+        <ul class="course-list">
+            {{#courses}}
+            {{> local_my/courserow}}
+            {{/courses}}
+        </ul>
+    </div>
+    {{/asflatlist}}
+
+    {{#asgrid}}
+    <div class="content course-grid">
+        {{#courses}}
+        {{> local_my/coursebox}}
+        {{/courses}}
+    </div>
+    {{/asgrid}}
+    {{/hascourses}}
+</div>
+<!-- /local_my/my_courses_module -->

@@ -10,6 +10,15 @@
     background-color: #fff;
 }
 
+#mydashboard li {
+    list-style: none;
+    margin-bottom: 10px;
+}
+
+#mydashboard h3 {
+    font-size: 1.3em;
+}
+
 .right-button {
     text-align: right;
 }
@@ -20,11 +29,6 @@
 
 #my-dashboard-left {
     border-right: 20px transparent solid;
-}
-
-table#my-dashboard {
-    border-collapse: separate;
-    border-spacing: 0;
 }
 
 div.mycourseareas {
@@ -55,8 +59,9 @@ div.mycourseareas h4 {
 }
 
 .local-my-cat-collapse h3 a::before {
-    color: #fff;
+    color: #888;
     font-family: "fontAwesome";
+    font-size: 0.8em;
     padding: 5px;
 }
 
@@ -70,6 +75,7 @@ div.mycourseareas h4 {
 
 .course-category-ctls {
     line-height: 24px;
+    margin-bottom: 10px;
 }
 
 #my-me {
@@ -179,6 +185,10 @@ div.course-box .courseimage img {
     max-height: 110px;
 }
 
+div.course-box .title {
+    padding: 8px 5px 5px 8px;
+}
+
 .local-my-fp-coursename {
     width: 100%;
 }
@@ -193,15 +203,17 @@ div.course-box .courseimage img {
     margin:auto;
 }
 
+/*
 .local-my-fp-coursename.width50 a img,
 .local-my-fp-coursethumb.width50 a img {
     height: 120px !important;
     width:initial;
     margin:auto;
 }
+*/
 
-div.course-box .title {
-    padding: 8px 5px 5px 8px;
+#mydashboard .block .content {
+    padding-bottom: 10px;
 }
 
 .courselist {
@@ -243,6 +255,10 @@ div.course-box .title {
     clear: both;
 }
 
+local-my-fp-courseinfo > h3 > a > img {
+    margin-bottom: 10px;
+}
+
 .local-my-fp-coursebox {
     text-align: center;
     margin: 0;
@@ -272,10 +288,6 @@ div.course-box .title {
     float: none;
 }
 
-.courselist .course {
-    padding: 10px;
-}
-
 #mycourseareas td {
     padding: 8px;
 }
@@ -285,12 +297,8 @@ div.course-box .title {
     visibility: hidden;
 }
 
-#mydashboard .generaltable td {
-    border: none;
-}
-
-#mydashboard .generaltable td.course-category {
-    border-bottom: 1px #e3e3e3 solid;
+li.local-my-course {
+    margin-bottom: 10px;
 }
 
 /*
@@ -517,6 +525,7 @@ div.course-box .title {
 
 /* Some effects on boxes */
 
+/* Opacity effect */
 .local-my-fp-coursename.with-opacity-effect {
     background: #f8f8f8;
 }
@@ -532,7 +541,6 @@ div.course-box .title {
 }
 
 /* Halo effect */
-/* Halo lumineux */
 .local-my-fp-coursename.with-halo-effect {
     position: relative;
 }
@@ -606,7 +614,7 @@ div.course-box .title {
 }
 
 /* Progress chart forthported from m35 */
-
+/*
 .progress-chart-container {
     height: 70px;
     width: 70px;
@@ -627,7 +635,7 @@ div.course-box .title {
 .progress-chart-container .progress-doughnut .progress-text {
     position: absolute;
     top: 50%;
-    /*rtl:ignore*/
+    rtl:ignore
     left: 50%;
     transform: translate(-50%, -50%);
     color: #eee;
@@ -985,7 +993,7 @@ div.course-box .title {
 .progress-chart-container .no-progress .smallicon {
   position: absolute;
   top: 50%;
-  /*rtl:ignore*/
+  rtl:ignore
   left: 50%;
   margin: 0;
   padding: 0;
@@ -994,6 +1002,7 @@ div.course-box .title {
   height: 35px;
   width: 35px;
 }
+*/
 
 .local-my-course-availablecourses {
     line-height: 35px;
@@ -1003,13 +1012,11 @@ div.course-box .title {
     left: -1px;
 }
 
+/* sektor progress */
+
 .sektor-course-completion {
     display: flex;
     align-items: center;
-}
-
-#mydashboard .course-category-list li {
-    margin-bottom: 10px;
 }
 
 .sektor-image {
@@ -1017,6 +1024,10 @@ div.course-box .title {
     height: 22px;
     width: 22px;
     margin-right: 10px;
+}
+
+#mydashboard .course-category-list li {
+    margin-bottom: 10px;
 }
 
 @media all and (max-width:480px) {
@@ -1029,4 +1040,8 @@ div.course-box .title {
         max-height: 250px;
         min-height: 250px;
     }
+}
+
+.area-buttons {
+    padding: 10px;
 }

@@ -20,13 +20,32 @@
 
         {{{buttons}}}
 
-{{^hascourses}}
+        {{^hascourses}}
         {{{nocourses}}}
-{{/hascourses}}
+        {{/hascourses}}
 
-{{#hascourses}}
-        {{{courseslider}}}
-{{/hascourses}}
+        {{#hascourses}}
+        {{#courseslider}}
+        <div class="custom-courses-list">
+            <div class="container-fluid">
+                <div data-crow="{{totalfcourse}}">
+
+                    <div>
+                        <div class="row-fluid local-my-carousel">
+
+                            {{#courses}}
+                            {{> local_my/coursebox}}
+                            {{/courses}}
+
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        {{/courseslider}}
+        {{/hascourses}}
 
     </div>
 </div>

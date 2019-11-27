@@ -35,43 +35,24 @@ require_once($CFG->dirroot.'/local/my/lib.php');
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
+// TRANSCODED
+function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $required = 'aslist') {
     global $DB, $USER, $OUTPUT, $PAGE, $CFG;
 
     $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
-
-    $config = get_config('local_my');
     $renderer = $PAGE->get_renderer('local_my');
-
-    $mycourses = enrol_get_my_courses('id, shortname, fullname');
-    foreach (array_keys($mycourses) as $cid) {
-        $context = context_course::instance($cid);
-        if (!has_capability('local/my:isstudent', $context, $USER->id, false)) {
-            // Exclude courses where i'm NOT student.
-            if ($debug) {
-                if ($debug == 1 || $debug == $cid) {
-                    $debuginfo .= "Course Exclude (course $cid not student in)\n";
-                }
-            }
-            unset($mycourses[$cid]);
-        } else {
-            if ($debug) {
-                if ($debug == 1 || $debug == $cid) {
-                    $debuginfo .= "Course Add (course $cid as enrolled in)\n";
-                }
-            }
-        }
-    }
-
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
-    $debuginfo .= local_my_process_metas($mycourses);
-
+    $config = get_config('local_my');
     $template = new StdClass;
-    $template->mycoursesstr = get_string('mycourses', 'local_my');
-    $options = array();
-    $options['gaugewidth'] = 60;
-    $options['gaugeheight'] = 15;
+
+    $mycourses = local_my_get_my_courses($debuginfo, $excludedcourses, $courseareacourses);
+
+    // Default gauge settings.
+    $options = [
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
 
     if (!empty($config->effect_opacity)) {
         $template->withopacityeffect = 'with-opacity-effect';
@@ -81,67 +62,66 @@ function local_my_print_my_courses(&$excludedcourses, &$courseareacourses, $altt
         $template->withhaloeffect = 'with-halo-effect';
     }
 
+    $template->area = 'my_courses';
+    $template->modulename = get_string('mycourses', 'local_my');
+
     if (empty($mycourses)) {
         $template->hascourses = false;
         $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
-    } else {
-        $template->hascourses = true;
-        if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true, 'withcats' => false, 'gaugewidth' => 150, 'gaugeheight' => 20);
-        } else {
-            // We need print categories, and this implies resetting template to list mode.
-            $alttemplate = '';
-        }
-        if ($alttemplate == 'my_courses_grid') {
-            $options = array('noheading' => true,
-                             'withcats' => true,
-                             'gaugetype' => $config->progressgaugetype,
-                             'gaugewidth' => $config->progressgaugewidth,
-                             'gaugeheight' => $config->progressgaugeheight);
-            foreach ($mycourses as $cid => $c) {
-                $coursetpl = $renderer->coursebox($c);
-                $template->coursegridelms[] = $coursetpl;
-            }
-            // Alternative one line per course list.
-            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
-        } else {
-            $template->isaccordion = !empty($config->courselistaccordion);
-            $options = array('noheading' => true,
-                             'withcats' => true,
-                             'gaugetype' => $config->progressgaugetype,
-                             'gaugewidth' => $config->progressgaugewidth,
-                             'gaugeheight' => $config->progressgaugeheight);
-            if (count($mycourses) < (0 + @$config->maxuncategorizedlistsize)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options['withcats'] = false;
-            }
-            $template->simplecourses = local_my_print_courses('mycourses', $mycourses, $options);
-        }
-
-        $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'mycourses');
-
-        if ($debug) {
-            $template->debuginfo = $debuginfo;
-        }
-
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
     }
 
-    if (!empty($alttemplate)) {
-        $templatename = $alttemplate;
+    $template->hascourses = true;
+    $template->required = $required;
+
+    local_my_resolve_viewtype($template, count($mycourses));
+
+    if ($template->asflatlist || $template->asgrid) {
+
+        if ($template->asflatlist) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
+        } else {
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
+        }
+
+        // Get a simple, one level list.
+        foreach ($mycourses as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
+        }
     } else {
-        $templatename = 'my_courses';
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($courselist, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
     }
 
-    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+    // Process exclusion of what has been displayed.
+    $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'mycourses');
+
+    if ($debug) {
+        $template->debuginfo = $debuginfo;
+    }
+
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
 }
 
+// TRANSCODED
+function local_my_print_my_courses_grid(&$excludedcourses, &$courseareacourses) {
+    return local_my_print_my_courses($excludedcourses, $courseareacourses, ['asgrid' => true]);
+}
+
+// TRANSCODED
 function local_my_print_main_content_anchor(&$excludedcourses, &$courseareacourses) {
     return '<a name="localmymaincontent"></a>';
-}
-
-function local_my_print_my_courses_grid(&$excludedcourses, &$courseareacourses) {
-    return local_my_print_my_courses($excludedcourses, $courseareacourses, 'my_courses_grid');
 }
 
 /**
@@ -154,24 +134,12 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
 
     $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
-
     $renderer = $PAGE->get_renderer('local_my');
-
     $config = get_config('local_my');
-
-    $mycourses = enrol_get_my_courses('id, shortname, fullname');
-    if ($debug) {
-        foreach (array_keys($mycourses) as $cid) {
-            if ($debug == 1 || $debug == $cid) {
-                $debuginfo .= "Course Add (course $cid as enrolled in - slider)\n";
-            }
-        }
-    }
-
-    $debuginfo .= local_my_process_metas($mycourses);
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
-
     $template = new StdClass();
+
+    $mycourses = local_my_get_my_courses($debuginfo, $excludedcourses, $courseareacourses);
+
     $template->widgetname = 'my_courses_slider';
 
     $template->courselisttitlestr = get_string('mycourses', 'local_my');
@@ -197,18 +165,25 @@ function local_my_print_my_courses_slider(&$excludedcourses, &$courseareacourses
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
+ // TRANSCODED
+function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses, $required = 'aslist') {
     global $OUTPUT, $CFG, $DB, $PAGE;
 
     $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
-
-    $config = get_config('local_my');
-
     $renderer = $PAGE->get_renderer('local_my');
-    $myauthcourses = local_get_my_authoring_courses($debuginfo);
-
+    $config = get_config('local_my');
     $template = new StdClass();
+
+    $myauthcourses = local_get_my_authoring_courses($debuginfo, $excludedcourses, $courseareacourses);
+
+    // Default gauge settings.
+    $options = [
+        'withteachersignals' => true,
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
 
     if (!empty($config->effect_opacity)) {
         $template->withopacityeffect = 'with-opacity-effect';
@@ -218,78 +193,70 @@ function local_my_print_authored_courses(&$excludedcourses, &$courseareacourses,
         $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $debuginfo .= local_my_process_excluded($excludedcourses, $myauthcourses);
-    $debuginfo .= local_my_process_metas($myauthcourses);
-
     $mycatlist = local_my_get_catlist('moodle/course:create');
-
-    $template->myauthoringcoursesstr = get_string('myauthoringcourses', 'local_my');
-
-    $template->hascontent = false;
-    if (!empty($mycatlist) || !empty($myauthcourses)) {
-        $template->hascontent = true;
-    }
-
     $template->buttons = $renderer->course_creator_buttons($mycatlist);
+    $template->area = 'authored_courses';
+    $template->modulename = get_string('myauthoringcourses', 'local_my');
 
+    if (empty($mycatlist) && empty($myauthcourses)) {
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+    }
     if (empty($myauthcourses) && empty($template->buttons)) {
         // In case we cannot create and all courses where gone elsewhere.
         return '';
     }
 
-    if (!empty($myauthcourses)) {
-        $template->hascourses = true;
-        if ($alttemplate == 'authored_courses_grid') {
-            foreach ($myauthcourses as $cid => $c) {
-                $coursetpl = $renderer->coursebox($c);
-                $coursetpl->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
-                $coursetpl->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
-                $template->coursegridelms[] = $coursetpl;
-            }
-            $template->simplecourses = local_my_print_courses('mycourses', $myauthcourses, $options);
+    $template->hascourses = true;
+    $template->required = $required;
+
+    local_my_resolve_viewtype($template, count($myauthcourses));
+
+    if (!empty($template->asflatlist) || !empty($template->asgrid)) {
+
+        if (!empty($template->asflatlist)) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
         } else {
-            if (count($myauthcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => false,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-            } else {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => true,
-                                 'nocompletion' => true,
-                                 'gaugewidth' => 0,
-                                 'gaugeheight' => 0);
-                $alttemplate = ''; // Reset eventual graphic mode.
-            }
-            $template->simplecourses = local_my_print_courses('myauthcourses', $myauthcourses, $options, true);
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
         }
 
-        $debuginfo .= local_my_exclude_post_display($myauthcourses, $excludedcourses, 'authored');
+        $options['noprogress'] = true;
 
-        if ($debug) {
-            // Update debug info if necessary.
-            $template->debuginfo = $debuginfo;
+        // Get a simple, one level list.
+        foreach ($myauthcourses as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
         }
+
+    } else {
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($myauthcourses, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
     }
 
+
+    $debuginfo .= local_my_exclude_post_display($myauthcourses, $excludedcourses, 'authored');
+
     if ($debug) {
+        // Update debug info if necessary.
         $template->debuginfo = $debuginfo;
     }
 
-    if (!empty($alttemplate)) {
-        $templatename = $alttemplate;
-    } else {
-        $templatename = 'authored_courses_module';
-    }
-
-    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
 }
 
 function local_my_print_authored_courses_grid(&$excludedcourses, &$courseareacourses) {
-    return local_my_print_authored_courses($excludedcourses, $courseareacourses, 'authored_courses_grid_module');
+    return local_my_print_authored_courses($excludedcourses, $courseareacourses, ['asgrid' => true]);
 }
 
 /**
@@ -297,18 +264,25 @@ function local_my_print_authored_courses_grid(&$excludedcourses, &$courseareacou
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $CFG, $DB, $PAGE;
+ // TRANSCODED
+function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses, $required = 'aslist') {
+    global $OUTPUT, $PAGE;
 
     $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
-
-    $config = get_config('local_my');
-
     $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
+    $template = new StdClass();
+
     $mymanagedcourses = local_get_my_managed_courses($debuginfo);
 
-    $template = new StdClass;
+    // Default gauge settings.
+    $options = [
+        'withteachersignals' => true,
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
 
     if (!empty($config->effect_opacity)) {
         $template->withopacityeffect = 'with-opacity-effect';
@@ -318,48 +292,69 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
         $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
-    $debuginfo .= local_my_process_metas($mymanagedcourses);
-
     $mycatlist = local_my_get_catlist('moodle/course:create');
-
-    $template->mymanagedcoursesstr = get_string('mymanagedcourses', 'local_my');
-
-    $template->hascontent = false;
-    if (!empty($mycatlist) || !empty($mymanagedcourses)) {
-        $template->hascontent = true;
-    }
-
     $template->buttons = $renderer->course_creator_buttons($mycatlist);
 
-    if (!empty($mymanagedcourses)) {
-        $template->hascourses = true;
-        if (count($mymanagedcourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => false,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
-        } else {
-            // Solve a performance issue for people having wide access to courses.
-            $options = array('noheading' => true,
-                             'withcats' => true,
-                             'nocompletion' => true,
-                             'gaugewidth' => 0,
-                             'gaugeheight' => 0);
-            $alttemplate = ''; // Reset to a list mode when displaying category.
-        }
-        $template->simplecourses = local_my_print_courses('mymanagedcourses', $mymanagedcourses, $options, true);
+    $template->area = 'managed_courses';
+    $template->modulename = get_string('mymanagedcourses', 'local_my');
 
-        $debuginfo .= local_my_exclude_post_display($mymanagedcourses, $excludedcourses, 'managed');
+    if (empty($mycatlist) && empty($mymanagedcourses)) {
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+    }
+    if (empty($mymanagedcourses) && empty($template->buttons)) {
+        // In case we cannot create and all courses where gone elsewhere.
+        return '';
     }
 
+    $template->hascourses = true;
+    $template->required = $required;
+
+    local_my_resolve_viewtype($template, count($mymanagedcourses));
+
+    if (!empty($template->asflatlist) || !empty($template->asgrid)) {
+
+        if (!empty($template->asflatlist)) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
+        } else {
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
+        }
+
+        // Get a simple, one level list.
+        foreach ($mymanagedcourses as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
+        }
+
+    } else {
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($mymanagedcourses, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
+    }
+
+
+    $debuginfo .= local_my_exclude_post_display($myauthcourses, $excludedcourses, 'authored');
+
     if ($debug) {
+        // Update debug info if necessary.
         $template->debuginfo = $debuginfo;
     }
 
-    return $OUTPUT->render_from_template('local_my/managed_courses_module', $template);
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+}
+
+function local_my_print_managed_courses_grid(&$excludedcourses, &$courseareacourses) {
+    return local_my_print_managed_courses($excludedcourses, $courseareacourses, ['asgrid' => true]);
 }
 
 /**
@@ -368,27 +363,16 @@ function local_my_print_managed_courses(&$excludedcourses, &$courseareacourses) 
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareacourses) {
-    global $DB, $USER, $PAGE, $CFG, $OUTPUT;
+    global $PAGE, $OUTPUT;
 
-    $renderer = $PAGE->get_renderer('local_my');
-    $debuginfo = '';
-
-    $config = get_config('local_my');
     $debug = optional_param('showresolve', false, PARAM_INT);
-
-    $mycourses = local_get_my_authoring_courses($debuginfo);
-    if ($debug) {
-        foreach (array_keys($myauthcourses) as $cid) {
-            if ($debug == 1 || $debug == $cid) {
-                $debuginfo .= "Course Add (course $cid as author)\n";
-            }
-        }
-    }
-
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mycourses);
-    $debuginfo .= local_my_process_metas($mycourses);
-
+    $debuginfo = '';
+    $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
     $template = new StdClass();
+
+    $authoredcourses = local_get_my_authoring_courses($debuginfo, $excludedcourses);
+
     $template->widgetname = 'my_authored_courses_slider';
     $template->courselisttitlestr = get_string('myteachings', 'local_my');
 
@@ -398,13 +382,13 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
         $template->buttons = $renderer->course_creator_buttons($mycatlist);
     }
 
-    if (empty($mycourses)) {
+    if (empty($authoredcourses)) {
         $template->hascourses = false;
         $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
     } else {
         $template->hascourses = true;
-        $template->courseslider = $renderer->courses_slider(array_keys($mycourses));
-        $debuginfo .= local_my_exclude_post_display($mycourses, $excludedcourses, 'authorslider');
+        $template->courseslider = $renderer->courses_slider(array_keys($authoredcourses));
+        $debuginfo .= local_my_exclude_post_display($authoredcourses, $excludedcourses, 'authorslider');
     }
 
     if ($debug) {
@@ -420,21 +404,16 @@ function local_my_print_authored_courses_slider(&$excludedcourses, &$courseareac
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
 function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareacourses) {
-    global $DB, $USER, $PAGE, $CFG, $OUTPUT;
-
-    $renderer = $PAGE->get_renderer('local_my');
-    $debuginfo = '';
-
-    $config = get_config('local_my');
+    global $PAGE, $OUTPUT;
 
     $debug = optional_param('showresolve', false, PARAM_INT);
-
-    $mymanagedcourses = local_get_my_managed_courses($debuginfo);
-
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mymanagedcourses);
-    $debuginfo .= local_my_process_metas($mymanagedcourses);
-
+    $debuginfo = '';
+    $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
     $template = new StdClass;
+
+    $mymanagedcourses = local_get_my_managed_courses($debuginfo, $excludedcourses);
+
     $template->widgetname = 'my_managed_courses_slider';
     $template->courselisttitlestr = get_string('mymanagedcourses', 'local_my');
 
@@ -467,36 +446,25 @@ function local_my_print_managed_courses_slider(&$excludedcourses, &$courseareaco
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
-function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, $alttemplate = '') {
-    global $OUTPUT, $CFG, $DB, $USER, $PAGE;
+function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, $required = 'aslist') {
+    global $OUTPUT, $PAGE;
 
     $debug = optional_param('showresolve', false, PARAM_INT);
     $debuginfo = '';
-
-    $config = get_config('local_my');
-
     $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
+    $template = new StdClass();
 
     $coursefields = 'shortname, fullname, category, visible';
-    $teachercourses = get_user_capability_course('local/my:isteacher', $USER->id, false, $coursefields);
-    $myteachercourses = array();
-    if (!empty($teachercourses)) {
-        // Key each course with id.
-        foreach ($teachercourses as $cid => $c) {
-            $myteachercourses[$c->id] = $c;
-            if ($debug == 1 || $debug == $cid) {
-                $debuginfo .= "Course Add (course $cid as teached)\n";
-            }
-        }
-    }
+    $myteachercourses = local_my_get_myteacher_courses($debuginfo, $excludedcourses, $coursefields);
 
-    // Process exclusions
-    $debuginfo .= local_my_process_excluded($excludedcourses, $myteachercourses);
-    $debuginfo .= local_my_process_metas($myteachercourses);
-
-    $mycatlist = local_my_get_catlist('moodle/course:create');
-
-    $template = new StdClass();
+    // Default gauge settings.
+    $options = [
+        'withteachersignals' => true,
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
 
     if (!empty($config->effect_opacity)) {
         $template->withopacityeffect = 'with-opacity-effect';
@@ -506,61 +474,69 @@ function local_my_print_teacher_courses(&$excludedcourses, &$courseareacourses, 
         $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $template->hascontent = false;
-    if (!empty($mycatlist) || !empty($myteachercourses)) {
-        $template->myteachercoursesstr = get_string('myteachercourses', 'local_my');
-        $template->hascontent = true;
-    }
-
+    $mycatlist = local_my_get_catlist('moodle/course:create');
     $template->buttons = $renderer->course_creator_buttons($mycatlist);
 
-    if (!empty($myteachercourses)) {
-        $template->hascourses = true;
-        if ($alttemplate == 'teacher_courses_grid_module') {
-            foreach ($myteachercourses as $cid => $c) {
-                $coursetpl = $renderer->coursebox($c);
-                $template->coursegridelms[] = $coursetpl;
-            }
-        } else {
-            if (count($myteachercourses) < (0 + @$config->maxuncategorizedlistsize) || empty($config->printcategories)) {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => false,
-                                 'nocompletion' => true,
-                                 'gaugetype' => 'progressbar',
-                                 'gaugewidth' => '100%',
-                                 'gaugeheight' => '5px');
-            } else {
-                // Solve a performance issue for people having wide access to courses.
-                $options = array('noheading' => true,
-                                 'withcats' => true,
-                                 'nocompletion' => true,
-                                 'gaugetype' => 'progressbar',
-                                 'gaugewidth' => '100%',
-                                 'gaugeheight' => '5px');
-                $alttemplate = ''; // Reset to list mode.
-            }
-            $template->simplecourses = local_my_print_courses('myauthcourses', $myteachercourses, $options, true);
-        }
+    $template->area = 'teacher_courses';
+    $template->modulename = get_string('myteachercourses', 'local_my');
 
-        $debuginfo .= local_my_exclude_post_display($myteachercourses, $excludedcourses, 'teached');
+    if (empty($mycatlist) && empty($myteachercourses)) {
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+    }
+    if (empty($myteachercourses) && empty($template->buttons)) {
+        // In case we cannot create and all courses where gone elsewhere.
+        return '';
     }
 
+    $template->hascourses = true;
+    $template->required = $required;
+
+    local_my_resolve_viewtype($template, count($myteachercourses));
+
+    if (!empty($template->asflatlist) || !empty($template->asgrid)) {
+
+        if (!empty($template->asflatlist)) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
+        } else {
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
+        }
+
+        // Get a simple, one level list.
+        foreach ($myteachercourses as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
+        }
+
+    } else {
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($myteachercourses, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
+    }
+
+
+    $debuginfo .= local_my_exclude_post_display($myteachercourses, $excludedcourses, 'authored');
+
     if ($debug) {
+        // Update debug info if necessary.
         $template->debuginfo = $debuginfo;
     }
 
-    if (!empty($alttemplate)) {
-        $templatename = $alttemplate;
-    } else {
-        $templatename = 'teacher_courses_module';
-    }
-
-    return $OUTPUT->render_from_template('local_my/'.$templatename, $template);
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
 }
 
 function local_my_print_teacher_courses_grid(&$excludedcourses, &$courseareacourses) {
-    return local_my_print_teacher_courses($excludedcourses, $courseareacourses, 'teacher_courses_grid_module');
+    return local_my_print_teacher_courses($excludedcourses, $courseareacourses, 'asgrid');
 }
 
 /**
@@ -623,6 +599,7 @@ function local_my_print_teacher_courses_slider(&$excludedcourses, &$courseareaco
 /**
  * Print a course list of 5(hardcoded) last visited courses.
  */
+ // TRANSCODED
 function local_my_print_recent_courses() {
     global $DB, $USER, $PAGE, $OUTPUT;
 
@@ -656,12 +633,12 @@ function local_my_print_recent_courses() {
     $recentcourses = $DB->get_records_sql($sql, array($USER->id));
 
     $template = new StdClass();
-    $template->widgetname = 'recent_courses';
+    $template->area = 'recent_courses';
+    $template->modulename = get_string('recentcourses', 'local_my');
 
     $fs = get_file_storage();
 
     if (!empty($recentcourses)) {
-        $template->courselisttitlestr = get_string('recentcourses', 'local_my');
 
         foreach ($recentcourses as $c) {
 
@@ -696,91 +673,109 @@ function local_my_print_recent_courses() {
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
+ // TRANSCODED
 function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT, $CFG, $DB, $USER;
+    global $DB, $USER, $OUTPUT, $PAGE, $CFG;
 
     if (!is_dir($CFG->dirroot.'/local/coursetemplates')) {
+        // Short path if even not installed.
+        return '';
+    }
+
+    $tconfig = get_config('local_coursetemplates');
+    if ($tconfig->enabled) {
+        // Short path if even not enabled.
         return '';
     }
 
     $debug = optional_param('showresolve', false, PARAM_INT);
-    $config = get_config('local_coursetemplates');
     $debuginfo = '';
+    $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
+    $template = new StdClass;
 
-    if (!$config->templatecategory) {
-        return '';
+    $mytemplates = local_get_my_templates($debuginfo, $excludedcourses);
+
+    // Default gauge settings.
+    $options = [
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
+
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
     }
 
-    // Checks if category was deleted. Case IGS 14/09/2016.
-    if (!$DB->record_exists('course_categories', array('id' => $config->templatecategory))) {
-        return '';
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
     }
 
-    $mytemplates = local_get_my_templates($debuginfo);
+    $template->area = 'my_templates';
+    $template->modulename = get_string('mytemplates', 'local_my');
 
-    if (empty($config->templatecategory)) {
-        $debuginfo = "Template category is empty or not defined. This has to be checked in configuration.";
-        if ($debug) {
-            $template->debuginfo = $debuginfo;
-        }
-        return $OUTPUT->render_from_template('local_my/my_templates_module', $template);        return;
-    }
-
-    $templatecatcontext = context_coursecat::instance($config->templatecategory);
-
-    $canview = false;
-    if ($mytemplates) {
-        foreach ($mytemplates as $tid => $t) {
-            $coursecontext = context_course::instance($t->id);
-            if (has_capability('local/my:isauthor', $coursecontext)) {
-                $canview = true;
-            } else if (!has_capability('moodle/course:view', $coursecontext)) {
-                unset($mytemplates[$tid]);
-            }
-        }
-    }
-
+    $templatecatcontext = context_coursecat::instance($tconfig->templatecategory);
     if (has_capability('moodle/course:create', $templatecatcontext, $USER->id, true)) {
         $canview = true;
     }
 
-    if (!$canview) {
-        return '';
+    // See if there is an exiting template course to intanciate other templates.
+    $systemcontext = context_system::instance();
+    if ($DB->count_records('course', array('category' => $tconfig->templatecategory, 'visible' => 1))) {
+        $params = array('category' => $config->templatecategory, 'forceediting' => true);
+        $buttonurl = new moodle_url('/local/coursetemplates/index.php', $params);
+        $template->button = $OUTPUT->single_button($buttonurl, get_string('newtemplate', 'local_my'));
+    } else if (has_capability('moodle/site:config', $systemcontext)) {
+        $template->button = get_string('templateinitialisationadvice', 'local_my');
     }
 
-    // Post 2.5.
-    $debuginfo .= local_my_process_excluded($excludedcourses, $mytemplates);
+    if (empty($mytemplates) && empty($template->button)) {
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+    }
 
-    $template = new StdClass();
+    $template->hascourses = true;
+    $template->required = $required;
 
-    $template->mytemplatesstr = get_string('mytemplates', 'local_my');
+    local_my_resolve_viewtype($template, count($mytemplates));
 
-    if (is_dir($CFG->dirroot.'/local/coursetemplates')) {
-        $config = get_config('local_coursetemplates');
-        if ($config->enabled && $config->templatecategory) {
-            if ($DB->count_records('course', array('category' => $config->templatecategory, 'visible' => 1))) {
-                $params = array('category' => $config->templatecategory, 'forceediting' => true);
-                $buttonurl = new moodle_url('/local/coursetemplates/index.php', $params);
-                $template->button1 = $OUTPUT->single_button($buttonurl, get_string('newtemplate', 'local_my'));
-            } else {
-                $template->button1 = get_string('templateinitialisationadvice', 'local_my');
-            }
+    if ($template->asflatlist || $template->asgrid) {
+
+        if ($template->asflatlist) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
+        } else {
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
         }
+
+        // Get a simple, one level list.
+        foreach ($mytemplates as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
+        }
+    } else {
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($mytemplates, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
     }
 
-    if (!empty($mytemplates)) {
-        $options = array('noheading' => 1, 'gaugetype' => 'noprogress', 'gaugewidth' => '100%', 'gaugeheight' => '20px');
-        $template->templates = local_my_print_courses('mytemplates', $mytemplates, $options);
-
-        // Add templates to exclusions.
-        $debuginfo .= local_my_exclude_post_display($mytemplates, $excludedcourses, 'templates');
-    }
+    // Process exclusion of what has been displayed.
+    $debuginfo .= local_my_exclude_post_display($mytemplates, $excludedcourses, 'mytemplates');
 
     if ($debug) {
         $template->debuginfo = $debuginfo;
     }
 
-    return $OUTPUT->render_from_template('local_my/my_templates_module', $template);
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
 }
 
 /**
@@ -788,6 +783,7 @@ function local_my_print_my_templates(&$excludedcourses, &$courseareacourses) {
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
+ // TRANSCODED
 function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $DB, $PAGE, $USER;
 
@@ -930,6 +926,7 @@ function local_my_print_course_areas(&$excludedcourses, &$courseareacourses) {
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
+ // TRANSCODED
 function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
     global $OUTPUT, $DB, $PAGE, $USER;
 
@@ -1054,7 +1051,9 @@ function local_my_print_course_areas2(&$excludedcourses, &$courseareacourses) {
             $courseareatpl->i = $reali;
 
             // Solve a performance issue for people having wide access to courses.
-            $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas2_'.$i);
+            // $courseareatpl->coursesbycats = $renderer->courses_by_cats($areacourses, $options, 'courseareas2_'.$i);
+            $options['area'] = 'courseareas2_'.$i;
+            $courseareatpl->categories = local_my_export_courses_cats_for_template($areacourses, $options);
 
             $template->courseareas[] = $courseareatpl;
             $template->isaccordion = !empty($config->courselistaccordion);
@@ -1196,7 +1195,7 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
                 $availableareacourses = array_merge($myareacourses, $availableareacourses);
             }
             if (!empty($availableareacourses)) {
-                $courseareatpl->availables = local_my_print_courses('available', $availableareacourses, $options);
+                $courseareatpl->availables = local_my_export_courses_cats_for_template($availableareacourses, $options);
             }
 
             $template->courseareas[] = $courseareatpl;
@@ -1218,60 +1217,96 @@ function local_my_print_course_areas_and_availables(&$excludedcourses, &$coursea
  * @param arrayref &$excludedcourses and array of courses that need NOT be displayed here.
  * @param arrayref &$courseareacourses courses reserved for display in further course area boxes.
  */
+ // TRANSCODED
 function local_my_print_available_courses(&$excludedcourses, &$courseareacourses) {
-    global $OUTPUT;
+    global $OUTPUT, $PAGE;
 
-    $config = get_config('local_my');
-    $debuginfo = '';
     $debug = optional_param('showresolve', false, PARAM_INT);
+    $debuginfo = '';
+    $renderer = $PAGE->get_renderer('local_my');
+    $config = get_config('local_my');
+    $template = new StdClass();
 
-    $availablecourses = local_get_enrollable_courses();
+    $availablecourses = local_my_get_availablecourses_courses($debuginfo, $excludedcourses);
+
+    // Default gauge settings.
+    $options = [
+        'withteachersignals' => true,
+        'gaugetype' => $config->progressgaugetype,
+        'gaugewidth' => $config->progressgaugewidth,
+        'gaugeheight' => $config->progressgaugeheight
+    ];
+
+    if (!empty($config->effect_opacity)) {
+        $template->withopacityeffect = 'with-opacity-effect';
+    }
+
+    if (!empty($config->effect_halo)) {
+        $template->withhaloeffect = 'with-halo-effect';
+    }
+
+    $template->area = 'available_courses';
+    $template->modulename = get_string('availablecourses', 'local_my');
+
     if (empty($availablecourses)) {
-        return;
+        $template->hascourses = false;
+        $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
+        return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
     }
-
-    $overcount = 0;
-    if (!empty($config->maxavailablelistsize)) {
-        $overcount = (count($availablecourses) > $config->maxavailablelistsize);
-        if ($overcount) {
-            $availablecourses = array_slice($availablecourses, 0, 11);
-        }
-    }
-
-    $debuginfo .= local_my_process_excluded($excludedcourses, $availablecourses);
-
-    if (!count($availablecourses)) {
-        // No more courses to show once filtered.
+    if (empty($availablecourses)) {
+        // In case we cannot create and all courses where gone elsewhere.
         return '';
     }
 
-    if ($debug) {
-        foreach (array_keys($availablecourses) as $cid) {
-            if ($debug == 1 || $debug == $cid) {
-                $debuginfo .= "Course Add (course $cid as available)\n";
-            }
+    $template->hascourses = true;
+    $template->required = $required;
+
+    local_my_resolve_viewtype($template, count($availablecourses));
+
+    if (!empty($template->asflatlist) || !empty($template->asgrid)) {
+
+        if (!empty($template->asflatlist)) {
+            $options['gaugetype'] = 'sektor';
+            $options['gaugewidth'] = '20';
+            $options['gaugeheight'] = '20';
+        } else {
+            $options['gaugetype'] = $config-progressgaugetype;
+            $options['gaugewidth'] = $config-progressgaugewidth;
+            $options['gaugeheight'] = $config-progressgaugeheight;
         }
+
+        // Get a simple, one level list.
+        foreach ($availablecourses as $cid => $c) {
+            $coursetpl = local_my_export_course_for_template($c, $options);
+            $template->courses[] = $coursetpl;
+        }
+
+    } else {
+        // as list.
+        $template->isaccordion = !empty($config->courselistaccordion);
+        $options['gaugetype'] = 'sektor';
+        $options['gaugewidth'] = '20';
+        $options['gaugeheight'] = '20';
+        $result = local_my_export_courses_cats_for_template($availablecourses, $options);
+        $template->categories = $result->categories;
+        $template->catidlist = $result->catidlist;
     }
 
-    $options['printifempty'] = 0;
-    $options['withcats'] = 2;
-    $options['nocompletion'] = 1;
 
-    $template = new StdClass();
+    $debuginfo .= local_my_exclude_post_display($availablecourses, $excludedcourses, 'available');
 
-    $template->availablecourses = local_my_print_courses('availablecourses', $availablecourses, $options);
-    if ($overcount) {
-        $template->hastoomany = true;
-        $template->allcoursesurl = new moodle_url('/local/my/enrollable_courses.php');
-        $template->seeallliststr = get_string('seealllist', 'local_my');
+    if ($debug) {
+        // Update debug info if necessary.
+        $template->debuginfo = $debuginfo;
     }
 
-    return $OUTPUT->render_from_template('local_my/available_courses_module', $template);
+    return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
 }
 
 /**
  * Prints the news forum as a list of full deployed discussions.
  */
+ // TRANSCODED
 function local_my_print_latestnews_full() {
     global $SITE, $CFG, $SESSION, $USER;
 
@@ -1319,6 +1354,7 @@ function local_my_print_latestnews_full() {
 /**
  * Prints the news forum as simple compact list of discussion headers.
  */
+ // TRANSCODED
 function local_my_print_latestnews_headers() {
     global $PAGE, $SITE, $CFG, $OUTPUT, $USER, $SESSION;
 
@@ -1372,6 +1408,7 @@ function local_my_print_latestnews_headers() {
 /**
  * Same as "full", but removes all subscription or any discussion controls.
  */
+ // TRANSCODED
 function local_my_print_latestnews_simple() {
     global $PAGE, $SITE, $CFG, $OUTPUT, $DB, $SESSION;
 
@@ -1410,6 +1447,7 @@ function local_my_print_latestnews_simple() {
  * If index points to a recognizable profile field, will check the current user
  * profile field to display.
  */
+ // TRANSCODED
 function local_my_print_static($index) {
     global $CFG, $DB, $USER, $OUTPUT;
 
@@ -1587,6 +1625,7 @@ function local_my_print_static($index) {
 /**
  * Prints a widget with information about me.
  */
+ // TRANSCODED
 function local_my_print_me() {
     global $OUTPUT, $USER, $CFG;
 
@@ -1616,11 +1655,12 @@ function local_my_print_me() {
 /**
  * Prints a widget with more information about me.
  */
+ // TRANSCODED
 function local_my_print_fullme() {
     global $OUTPUT, $USER, $CFG;
 
     $context = context_system::instance();
-    $str = '';
+    $template = new StdClass;
 
     $identityfields = array_flip(explode(',', $CFG->showuseridentity));
 
@@ -1691,6 +1731,7 @@ function local_my_print_fullme() {
  * @param int $blockid the block id.
  * @param int $contextid the parent context.
  */
+ // TRANSCODED
 function local_my_print_block($blockid, $contextid) {
     global $DB;
 
@@ -1717,24 +1758,10 @@ function local_my_print_block($blockid, $contextid) {
 }
 
 /**
- * A utility function
- */
-function local_my_print_row($left, $right) {
-    $str = "\n".'<tr valign="top">';
-    $str .= '<th class="my-label c0" width="40%">';
-    $str .= $left;
-    $str .= '</th>';
-    $str .= '<td class="info c1" width="60%">';
-    $str .= $right;
-    $str .= '</td>';
-    $str .= '</tr>'."\n";
-    return $str;
-}
-
-/**
  * Prints a github like heat activity map on passed six months
  * @param int $userid the concerned userid
  */
+ // TRANSCODED
 function local_my_print_my_heatmap($userid = 0) {
     global $CFG, $USER, $OUTPUT;
 
@@ -1836,6 +1863,7 @@ function local_my_print_my_heatmap($userid = 0) {
 /**
  * Prints a module that is the content of the user_mnet_hosts block.
  */
+ // TRANSCODED
 function local_my_print_my_network() {
 
     $blockinstance = block_instance('user_mnet_hosts');
@@ -1879,6 +1907,7 @@ function local_my_print_my_network() {
 /**
  * prints a module that is the content of the calendar block
  */
+ // TRANSCODED
 function local_my_print_my_calendar() {
     global $PAGE;
 
@@ -1906,6 +1935,7 @@ function local_my_print_my_calendar() {
     return $str;
 }
 
+// TRANSCODED
 function local_my_print_course_search() {
     global $PAGE, $OUTPUT;
 
@@ -1933,6 +1963,7 @@ function local_my_print_course_search() {
     return $str;
 }
 
+// TRANSCODED
 function local_my_print_admin_stats() {
     global $PAGE, $OUTPUT;
 
