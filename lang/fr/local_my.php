@@ -25,6 +25,14 @@ $string['my:seecourseattributes'] = 'Voit les attributs de cours';
 // Privacy.
 $string['privacy:metadata'] = 'Le plugin local Mon Moodle Amélioré ne détient directement aucune donnée relative aux utilisateurs.';
 
+$string['me'] = 'Mon profil';
+$string['courseareas'] = 'Zones de cours (inscrits)';
+$string['latestnews'] = 'Dernières nouvelles';
+$string['static'] = 'Textes statiques';
+$string['courseareasandavailables'] = 'Zones de cours';
+$string['lefteditioncolumn'] = 'Colonne éditoriale de gauche';
+$string['defaultleftcolumntext'] = '';
+
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
 $string['allcategories'] = 'Naviguer dans les catégories';
 $string['addnewsubcategory'] = 'Ajouter une nouvelle sous-catégorie';
@@ -36,6 +44,8 @@ $string['asadminpagetitle'] = 'J\'administre';
 $string['ascoursemanagerpagetitle'] = 'Je coordonne';
 $string['asstudentpagetitle'] = 'J\'apprends';
 $string['asteacherpagetitle'] = 'J\'enseigne';
+$string['assignmentstosubmit'] = 'Devoirs à rendre';
+$string['quiztoperform'] = 'Quizzes à faire';
 $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';

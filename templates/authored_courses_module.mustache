@@ -8,7 +8,6 @@
 </pre>
 {{/debuginfo}}
 
-{{^hideifempty}}
 <div class="block block_my_authored_courses">
     <div class="header">
         <div class="title">
@@ -16,36 +15,40 @@
         </div>
     </div>
 
-    <div class="content">
-
+    {{#buttons}}
+    <div class="course-buttons">
         {{{buttons}}}
+    </div>
+    {{/buttons}}
 
-{{/hideifempty}}
-{{#hascourses}}
-        <table id="myauthoredcourselist" width="100%" class="generaltable courselist">
-            <tr valign="top">
-                <td>
-
-                    {{{overviewedcourses}}}
-
-                    {{{simplecourses}}}
-
-                    {{#debuginfo}}
-                    <pre>
-                    {{debuginfo}}
-                    </pre>
-                    {{/debuginfo}}
-                </td>
-            </tr>
-        </table>
-{{/hascourses}}
-
-{{^hideifempty}}
     {{^hascourses}}
-    {{{nocourses}}}
+    <div class="content">
+        {{{nocourses}}}
+    </div>
     {{/hascourses}}
 
+    {{#hascourses}}
+    {{#aslist}}
+    <ul class="content courselist {{#isaccordion}}is-accordion{{/isaccordion}}">
+        {{> local_my/course_with_categories}}
+    </ul>
+    {{/aslist}}
+
+    {{#asflatlist}}
+    <ul class="course-list">
+        {{#courses}}
+        {{> local_my/courserow}}
+        {{/courses}}
+    </ul>
+    {{/asflatlist}}
+
+    {{#asgrid}}
+    <div class="content course-grid">
+        {{#courses}}
+        {{> local_my/coursebox}}
+        {{/courses}}
     </div>
+    {{/asgrid}}
+    {{/hascourses}}
 </div>
-{{/hideifempty}}
 <!-- /local_my/authored_courses_module -->

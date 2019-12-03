@@ -24,20 +24,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/local/my/lib.php');
 
-// Settings default init.
-if (is_dir($CFG->dirroot.'/local/adminsettings')) {
-    // Integration driven code.
-    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
-    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
-} else {
-    // Standard Moodle code.
-    $capability = 'moodle/site:config';
-    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
-}
-
 $config = get_config('local_my');
 
-if ($hassiteconfig) {
+if (!empty($hasconfig) || $hassiteconfig) {
     // Needs this condition or there is error on login page.
     $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
     $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
@@ -177,15 +166,6 @@ if ($hassiteconfig) {
     $label = get_string('localmyshowcourseidentifier', 'local_my');
     $desc = get_string('localmyshowcourseidentifier_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $identifieroptions, PARAM_TEXT));
-
-    /*
-    // Obsolete in 3.5
-    $overviewedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20);
-    $key = 'local_my/maxoverviewedlistsize';
-    $label = get_string('localmymaxoverviewedlistsize', 'local_my');
-    $desc = get_string('localmymaxoverviewedlistsize_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $overviewedoptions, PARAM_INT));
-    */
 
     $availableoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50);
     $key = 'local_my/maxavailablelistsize';

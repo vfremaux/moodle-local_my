@@ -25,6 +25,15 @@ $string['my:seecourseattributes'] = 'See course attributes (enrol, visibility, e
 // Privacy.
 $string['privacy:metadata'] = 'The Local My plugin does not directly store any personal data about any user.';
 
+
+$string['me'] = 'Me';
+$string['courseareas'] = 'Course areas';
+$string['latestnews'] = 'Latest news';
+$string['static'] = 'Static texts';
+$string['courseareasandavailables'] = 'Course areas with availables';
+$string['lefteditioncolumn'] = 'Left edition column';
+$string['defaultleftcolumntext'] = '';
+
 $string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
 $string['allcategories'] = 'All categories';
 $string['addnewsubcategory'] = 'Add new subcategory';
@@ -36,7 +45,9 @@ $string['asadminpagetitle'] = 'Administrator';
 $string['asstudentpagetitle'] = 'Student';
 $string['asteacherpagetitle'] = 'Teacher';
 $string['ascoursemanagerpagetitle'] = 'Course manager';
+$string['assignmentstosubmit'] = 'Assignments';
 $string['available'] = 'Available';
+$string['quiztoperform'] = 'Quiz to answer';
 $string['availablecourses'] = 'Available courses for free enrol';
 $string['backtohome'] = 'Back to home page';
 $string['cachedef_heatmap'] = 'User\'s heatmap data';

@@ -40,8 +40,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             if ($('.is-accordion').length !== 0) {
                 // Is in accordion
-                $('.local-my-course').hide();
-                $('.local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
+                $('.is-accordion .local-my-course').hide();
+                $('.is-accordion .local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
             log.debug('AMD Local My cat control initialized');
@@ -165,14 +165,23 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         sektor: function(args) {
+
+            if (!('color' in args)) {
+                args['color'] = '#bD2828';
+            }
+
+            if (!('circlecolor' in args)) {
+                args['circlecolor'] = '#ddd';
+            }
+
             /* eslint-disable */
             var sektor = new Sektor(args['id'], {
               size: args['size'],
               stroke: 0,
               arc: false,
               angle: args['angle'],
-              sectorColor: '#bD2828',
-              circleColor: '#ddd',
+              sectorColor: args['color'],
+              circleColor: args['circlecolor'],
               fillCircle: true
             });
             /* eslint-enable */

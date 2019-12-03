@@ -2,9 +2,12 @@
 
 
 <!-- local_my/courseprogression_sektor -->
-{{#hasprogression}}
 <div class="sektor-course-completion {{collapseclass}}">
-<div class="sektor-image" id="sektor-progress-{{id}}"></div> {{{progression}}} %
+    <div class="sektor-image" id="sektor-progress-{{id}}" title="{{#str}}coursecompletion, completion{{/str}}"></div>
+    {{ratio}} %
+
+    {{#teacherview}}
+    &nbsp;&nbsp;&nbsp;<i class="fa fa-users"> {{{completedusers}}}</i>
+    {{/teacherview}}
 </div>
-{{/hasprogression}}
 <!-- /local_my/courseprogression_sektor -->
