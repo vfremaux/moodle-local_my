@@ -117,7 +117,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('#' + modalityid + '-' + that.val()).removeClass('local-my-hide');
         },
 
-        toggle_detail: function() {
+        toggle_detail: function(e) {
+
+            e.stopPropagation();
+            e.preventDefault();
             var that = $(this);
 
             var courseid = that.attr('id').replace('detail-handle-', '');
@@ -133,6 +136,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 that.children('i').removeClass('fa-caret-up');
                 that.children('i').addClass('fa-caret-down');
             }
+
+            return false;
         },
 
         global_area_ctl: function(e) {
