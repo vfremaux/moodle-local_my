@@ -12,11 +12,11 @@ class my_teacher_courses_module extends my_courses_module {
         $this->modulename = get_string('myteachercourses', 'local_my');
 
         $this->options['withteachersignals'] = true;
-        $this->options['noprogress'] = true;
+        $this->options['noprogress'] = false;
     }
 
     public function get_courses() {
-        global $USER, $DB, $CFG;
+        global $USER;
 
         $this->courses = enrol_get_my_courses('id, shortname, fullname');
         foreach (array_keys($this->courses) as $cid) {
@@ -30,6 +30,7 @@ class my_teacher_courses_module extends my_courses_module {
                 self::add_debuginfo("Course Add (course $cid as enrolled inside)", $cid);
             }
         }
+
         $this->process_excluded();
         $this->process_metas();
         $this->process_courseareas();

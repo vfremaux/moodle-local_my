@@ -14,7 +14,7 @@ class my_authored_courses_module extends my_courses_module {
         $this->modulename = get_string('myauthoringcourses', 'local_my');
 
         $this->options['withteachersignals'] = true;
-        $this->options['noprogress'] = true;
+        $this->options['noprogress'] = false;
     }
 
     public function get_courses() {

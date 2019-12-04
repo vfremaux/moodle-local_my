@@ -788,6 +788,80 @@ function local_my_count_quiz_to_complete($courseid, $userid) {
     return [$attempted, $total];
 }
 
+function local_my_count_users_with_quiz_to_complete($courseid) {
+    global $DB;
+
+    $uncompleteusers = 0;
+    $total = 0;
+
+    // Get all attempted quizes with user attempts.
+    $sql = "
+        SELECT
+            qa.id as qaid,
+            q.id as qid,
+            cm.id as cmid,
+            qa.userid as userid,
+            CASE WHEN qa.id IS NULL THEN 0 ELSE 1 END AS attempted
+        FROM
+            {course_modules} cm,
+            {modules} m,
+            {quiz} q
+        LEFT JOIN
+            {quiz_attempts} qa
+        ON
+            qa.quiz = q.id
+        WHERE
+            q.id = cm.instance AND
+            cm.module = m.id AND
+            m.name = ? AND
+            q.course = ? AND
+            cm.visible = 1 AND
+            cm.deletioninprogress = 0
+    ";
+    // First precheck.
+    $params = ['quiz', $courseid];
+    $attempts = [];
+    $quizzesreg = [];
+    if ($rawvisiblequizes = $DB->get_records_sql($sql, $params)) {
+        foreach ($rawvisiblequizes as $vq) {
+            // Arrange available attempts by quiz and user. Register all quizes once.
+            $quizzesreg[$vq->cmid] = 1;
+            if ($vq->userid) {
+                $attempts[$vq->userid][$vq->cmid] = 1;
+            }
+        }
+
+        $quizzes = array_keys($quizzesreg);
+        $maxavailablequizes = count($quizzes);
+
+        foreach ($attempts as $uid => $uquizzes) {
+
+            $total++; // Total counts all distinct users that have at least one attempt.
+
+            if (count($uquizzes) == $maxavailablequizes) {
+                // This user has at least an attempt for each.
+                continue;
+            }
+
+            // Some quizzes were undone. Is it justified by availability ?
+            $missings = array_diff($quizzes, array_keys($uquizzes));
+            if (!empty($missings)) {
+                foreach ($missings as $m) {
+                    if (\core_availability\info_module::is_user_visible($m, $uid, false)) {
+                        // The use can see this one, it should have done an attempt on it.
+                        $uncompleteusers += 1;
+                    }
+                }
+            } else {
+                // Should never happen as catched by first statement.
+                echo "Nothing missing. should never happen here.";
+            }
+        }
+    }
+
+    return [$uncompleteusers, $total];
+}
+
 function local_my_is_panel_empty($panelname) {
 
     $config = get_config('local_my');

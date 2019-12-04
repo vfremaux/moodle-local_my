@@ -25,6 +25,12 @@ $string['my:seecourseattributes'] = 'Voit les attributs de cours';
 // Privacy.
 $string['privacy:metadata'] = 'Le plugin local Mon Moodle Amélioré ne détient directement aucune donnée relative aux utilisateurs.';
 
+$string['completedusers'] = 'Etudiants ayant achevé';
+$string['tocompleteusers'] = 'Rest à achever (étudiants)';
+$string['coursecompletionratio'] = 'Taux d\'achèvement du cours';
+$string['mycoursecompletion'] = 'Mon taux d\'achèvement';
+$string['enrolled'] = 'Inscrits';
+
 $string['me'] = 'Mon profil';
 $string['courseareas'] = 'Zones de cours (inscrits)';
 $string['latestnews'] = 'Dernières nouvelles';
@@ -32,6 +38,9 @@ $string['static'] = 'Textes statiques';
 $string['courseareasandavailables'] = 'Zones de cours';
 $string['lefteditioncolumn'] = 'Colonne éditoriale de gauche';
 $string['defaultleftcolumntext'] = '';
+$string['unattemptedquizusers'] = 'Quizs à faire';
+$string['uncompletequizusersratio'] = 'Taux d\'achèvement des quiz (étudiants)';
+$string['uncompletequizusers'] = 'Etudiants avec des quiz à terminer';
 
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
 $string['allcategories'] = 'Naviguer dans les catégories';
@@ -45,7 +54,7 @@ $string['ascoursemanagerpagetitle'] = 'Je coordonne';
 $string['asstudentpagetitle'] = 'J\'apprends';
 $string['asteacherpagetitle'] = 'J\'enseigne';
 $string['assignmentstosubmit'] = 'Devoirs à rendre';
-$string['quiztoperform'] = 'Quizzes à faire';
+$string['quiztoperform'] = 'Reste à passer';
 $string['available'] = 'Disponibles';
 $string['availablecourses'] = 'Cours disponibles en inscription libre';
 $string['backtohome'] = 'Retour à ma page d\'accueil';

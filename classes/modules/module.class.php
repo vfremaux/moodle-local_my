@@ -25,7 +25,7 @@ abstract class module {
     /**
      * List of course areas ids
      */
-    public static $courseareacourses;
+    public static $courseareascourses;
 
     /**
      * courseareas structure by name
@@ -96,8 +96,8 @@ abstract class module {
             }
         }
 
-        if (is_null(self::$courseareacourses)) {
-            self::$courseareacourses = [];
+        if (is_null(self::$courseareascourses)) {
+            self::$courseareascourses = [];
             self::$courseareas = [];
         }
 
@@ -293,8 +293,8 @@ abstract class module {
         // First pre process course areas
 
         self::prefetch_course_areas();
-        if (!empty(self::$courseareacourses)) {
-            $courseareaskeys = array_keys(self::$courseareacourses);
+        if (!empty(self::$courseareascourses)) {
+            $courseareaskeys = array_keys(self::$courseareascourses);
             local_my_scalar_array_merge(self::$excludedcourses, $courseareaskeys);
 
             foreach ($courseareaskeys as $cid) {
@@ -350,27 +350,42 @@ abstract class module {
             }
         }
 
+        self::add_debuginfo("prefetch all courseareas");
         $prefetchareacourses = [];
-
         // Get the first coursearea zone exclusions.
-        if (in_array('course_areas', self::$modules) || in_array('course_areas_and_availables', self::$modules)) {
+        if (array_key_exists('course_areas', self::$modules) || array_key_exists('course_areas_and_availables', self::$modules)) {
             self::add_debuginfo("prefetch courseareas");
 
             for ($i = 0; $i < self::$config->courseareas; $i++) {
                 $courseareakey = 'coursearea'.$i;
-                self::$courseareascourses += self::get_coursearea_courses($courseareakey, $allmycourses, true);
+                $areacourses = self::get_coursearea_courses($courseareakey, $allmycourses, true);
+                if (!empty($areacourses)) {
+                    foreach ($areacourses as $cid) {
+                        if (!in_array($cid, self::$courseareascourses)) {
+                            self::$courseareascourses[] = $cid;
+                        }
+                    }
+                }
             }
         }
 
         // Add the second coursearea zone exclusions.
-        if (in_array('course_areas2', self::$modules)) {
+        if (array_key_exists('course_areas2', self::$modules)) {
 
             self::add_debuginfo("prefetch courseareas 2");
             for ($i = 0; $i < self::$config->courseareas2; $i++) {
-                $coursearea = 'coursearea2_'.$i;
-                self::$courseareascourses += self::get_coursearea_courses($coursearea, $allmycourses, true);
+                $courseareakey = 'coursearea2_'.$i;
+                $areacourses = self::get_coursearea_courses($courseareakey, $allmycourses, true);
+                if (!empty($areacourses)) {
+                    foreach ($areacourses as $cid) {
+                        if (!in_array($cid, self::$courseareascourses)) {
+                            self::$courseareascourses[] = $cid;
+                        }
+                    }
+                }
             }
         }
+        self::add_debuginfo("Course area list : ". implode(',', self::$courseareascourses));
     }
 
     // Excludes courses
@@ -389,8 +404,8 @@ abstract class module {
     // Excludes courses that will be printed in courseareas.
     protected function process_courseareas() {
 
-        if (!empty(self::$courseareacourses)) {
-            foreach (self::$courseareacourses as $cid) {
+        if (!empty(self::$courseareascourses)) {
+            foreach (self::$courseareascourses as $cid) {
                 if (!empty($cid)) {
                     self::add_debuginfo("Course Remove (rejected $cid as in coursearea)", $cid);
                     unset($this->courses[$cid]);
@@ -546,8 +561,11 @@ abstract class module {
         $context = context_course::instance($course->id);
 
         // Course capabilitites
-        $coursetpl->isstudent = has_capability('local/my:isstudent', $context);
-        $coursetpl->isteacher = has_capability('local/my:isteacher', $context);
+        $coursetpl->isstudent = has_capability('local/my:isstudent', $context, $USER->id, false);
+        $coursetpl->isteacher = has_capability('local/my:isteacher', $context, $USER->id, false);
+        $coursetpl->isauthor = has_capability('local/my:isauthor', $context, $USER->id, false);
+        $coursetpl->iscoursemanager = has_capability('local/my:iscoursemanager', $context, $USER->id, false);
+        $coursetpl->hasteachingrole = $coursetpl->isauthor || $coursetpl->isteacher || $coursetpl->iscoursemanager;
 
         // Process summary info.
         $coursetpl->shortname = $course->shortname;
@@ -650,7 +668,7 @@ abstract class module {
         // Get completion for students.
         $coursetpl->hasprogression = false;
         $coursetpl->caneditclass = '';
-        if (!has_capability('moodle/course:manageactivities', $context, $USER->id, false)) {
+        if (has_capability('local/my:isstudent', $context, $USER->id, false)) {
 
             // Completion signal.
             if (!array_key_exists('noprogress', $this->options)) {
@@ -659,7 +677,14 @@ abstract class module {
                     $coursetpl->hasprogression = true;
                     $ratio = round(\core_completion\progress::get_course_progress_percentage($stdcourse));
                     $coursetpl->ratio = 0 + $ratio;
-                    $coursetpl->progression = self::$renderer->course_completion_gauge($course, 'sektor', $this->options);
+                    $coursetpl->coursecompletionstr = get_string('mycoursecompletion', 'local_my');
+                    $sektorparams = [
+                        'id' => '#sektor-progress-'.$course->id,
+                        'angle' => round($ratio * 360 / 100),
+                        'size' => 20,
+                        // height not used.
+                    ];
+                    $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', [$sektorparams]);
                 }
             }
 
@@ -696,31 +721,65 @@ abstract class module {
                 $coursetpl->quizzes = ($total - $attempted).' / '.$total;
             }
 
-        } else {
-            $coursetpl->caneditclass = 'can-edit';
+        } else if ($coursetpl->hasteachingrole) {
+            if (has_any_capability(['local/my:isauthor', 'local/my:iscoursemanager'], $context, $USER->id, false)) {
+                $coursetpl->caneditclass = 'can-edit';
+            }
 
-            $enrolled = get_users_by_capability($context, 'local_my:isstudent');
-            $coursetpl->enrolled = count($enrolled);
+            $enrolled = get_users_by_capability($context, 'local/my:isstudent', 'u.id');
+            if (!empty($enrolled)) {
+                $coursetpl->enrolled = count($enrolled);
+            } else {
+                $coursetpl->enrolled = 0;
+            }
 
-            if (!array_key_exists('noprogress', $this->options)) {
+            if (empty($this->options['noprogress'])) {
                 $completion = new completion_info($course);
                 if ($completion->is_enabled(null)) {
                     $select = "
                         course = :courseid AND
                         timecompleted IS NOT NULL
                     ";
-                    $completed = 0 + $DB->count_records_select('course_completions', $select, ['courseid' => $course->id]);
-                    $ratio = ($coursetpl->enrolled) ? min($completed / $coursetpl->enrolled, 1) : 0;
-                    $coursetpl->hasprogression = true;
 
-                    $coursetpl->teacherview = true;
-                    $coursetpl->completedusers = 0 + $completed;
+                    $completed = 0 + $DB->count_records_select('course_completions', $select, ['courseid' => $course->id]);
+                    $ratio = ($coursetpl->enrolled) ? min(($completed / $coursetpl->enrolled) * 100, 100) : 0;
+
+                    $coursetpl->hasprogression = true;
                     $coursetpl->id = $course->id;
-                    $coursetpl->ratio = '' . (int)$ratio;
+                    $coursetpl->ratio = (int)$ratio;
                     $sektorparams = [
                         'id' => '#sektor-progress-'.$course->id,
-                        'angle' => round($ratio * 360 / 100),
+                        'angle' => round($ratio * 360 / 200),
                         'size' => 20,
+                        // height not used.
+                    ];
+                    $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', [$sektorparams]);
+                    $coursetpl->coursecompletionstr = get_string('coursecompletionratio', 'local_my');
+
+                    if ($ratio <= 70) {
+                        $coursetpl->completiondirclass = 'upcount';
+                        $coursetpl->completedusers = 0 + $completed;
+                        $coursetpl->completionusersstr = get_string('completedusers', 'local_my');
+                    } else {
+                        $coursetpl->completiondirclass = 'downcount';
+                        $coursetpl->completedusers = max(0, $coursetpl->enrolled - $completed); // Use max to avoid boundary errors.
+                        $coursetpl->completionusersstr = get_string('tocompleteusers', 'local_my');
+                    }
+                }
+
+
+                // Quiz signals (count attempts for all.
+                list($uncomplete, $totalattempted) = local_my_count_users_with_quiz_to_complete($course->id);
+
+                if ($coursetpl->enrolled) {
+                    $coursetpl->hasquizspending = true;
+                    $coursetpl->uncompleteusers = $uncomplete;
+                    $coursetpl->uncompleteusersratio = round(($coursetpl->enrolled - $uncomplete) / $coursetpl->enrolled * 100);
+                    $sektorparams = [
+                        'id' => '#sektor-unattempted-quiz-users-'.$course->id,
+                        'angle' => round(($coursetpl->enrolled - $uncomplete) * 360 / $coursetpl->enrolled),
+                        'size' => 20,
+                        'color' => '#008800',
                         // height not used.
                     ];
                     $PAGE->requires->js_call_amd('local_my/local_my', 'sektor', [$sektorparams]);

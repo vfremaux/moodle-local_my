@@ -37,6 +37,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('.local-my-cat-collapse').bind('click', this.toggle_cat_state);
             $('.local-my-modality-chooser').bind('change', this.toggle_modality);
             $('.local-my-area-ctls').bind('click', this.global_area_ctl);
+            $('.detail-handle').bind('click', this.toggle_detail);
 
             if ($('.is-accordion').length !== 0) {
                 // Is in accordion
@@ -116,6 +117,24 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             $('#' + modalityid + '-' + that.val()).removeClass('local-my-hide');
         },
 
+        toggle_detail: function() {
+            var that = $(this);
+
+            var courseid = that.attr('id').replace('detail-handle-', '');
+            var panelid = '#details-indicators-' + courseid;
+            if ($(panelid).css('visibility') === 'hidden') {
+                $(panelid).css('visibility', 'visible');
+                that.attr('aria-expanded', true);
+                that.children('i').removeClass('fa-caret-down');
+                that.children('i').addClass('fa-caret-up');
+            } else {
+                $(panelid).css('visibility', 'hidden');
+                that.attr('aria-expanded', false);
+                that.children('i').removeClass('fa-caret-up');
+                that.children('i').addClass('fa-caret-down');
+            }
+        },
+
         global_area_ctl: function(e) {
 
             var that = $(this);
@@ -167,7 +186,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         sektor: function(args) {
 
             if (!('color' in args)) {
-                args['color'] = '#bD2828';
+                args['color'] = '#bb3030';
             }
 
             if (!('circlecolor' in args)) {

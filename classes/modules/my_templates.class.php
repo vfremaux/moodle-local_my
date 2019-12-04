@@ -8,6 +8,7 @@ class my_templates_module extends my_courses_module {
         module::__construct();
         $this->area = 'my_templates';
         $this->modulename = get_string('mytemplates', 'local_my');
+        $this->options['noprogress'] = true;
     }
 
     public function get_courses() {

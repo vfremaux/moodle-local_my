@@ -611,8 +611,9 @@ li.local-my-course {
 .attributes-container,
 .local-my-fp-learning-indicators {
     display:flex;
+    flex-wrap: wrap;
     justify-content: space-evenly;
-    width: 100%;
+    width: 80%;
 }
 
 .local-my-fp-learning-indicators-line {
@@ -620,14 +621,54 @@ li.local-my-course {
     justify-content: flex-start;
 }
 
-.local-my-fp-learning-indicators-line div {
-    margin-right: 20px;
+.local-my-fp-learning-indicators-line > div {
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-bottom: 5px;
 }
 
+.local-my-fp-learning-indicators > div {
+    margin-left: 10px;
+    margin-bottom: 5px;
+}
+
+.local-my-fp-learning-indicators .details {
+    padding: 10px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    position: absolute;
+    top: 1.5em;
+    left: -2em;
+    max-width: 250px;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: #fff;
+}
+
+.local-my-fp-learning-indicators .details.hidden {
+    display: none !important;
+}
+
+.local-my-fp-learning-indicators-line > div,
+.local-my-fp-learning-indicators > div {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.slick-slide img.icon,
+.local-my-fp-learning-indicators img {
+    display:inline;
+}
+
+.local-my-fp-learning-indicators .enrolled-students,
 .local-my-fp-learning-indicators-line .enrolled-students {
     font-size: 110%;
 }
 
+.local-my-fp-learning-indicators .enrolled-students:before,
 .local-my-fp-learning-indicators-line .enrolled-students:before {
     font-size: 110%;
     color: #818cb4;
@@ -1061,6 +1102,13 @@ li.local-my-course {
 .sektor-course-completion {
     display: flex;
     align-items: center;
+}
+
+.sektor-course-completion .fa-users.downcount {
+    color: #D81B1B;
+}
+.sektor-course-completion .fa-users.upcount {
+    color: #37CB27;
 }
 
 .sektor-image {

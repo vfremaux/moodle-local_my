@@ -43,6 +43,8 @@ class my_courses_module extends module {
         $template->area = $this->area;
         $template->modulename = $this->modulename;
         $template->buttons = $this->get_buttons();
+        $template->assignicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'assign'), 'mod_assign');
+        $template->quizicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'quiz'), 'mod_quiz');
 
         if (!$this->has_content($template)) {
             $template->hascourses = false;

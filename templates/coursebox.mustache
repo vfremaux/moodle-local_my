@@ -20,13 +20,30 @@
 
             <div class="attributes-container">
                 <div class="local-my-fp-learning-indicators">
-                    {{#hasprogression}}
-                    <div class="local-my-fp-progression">
-                        {{{progression}}}
+                    {{#hasteachingrole}}
+                    <div class="enrolled-students {{collapseclass}}">
+                        <i class="fa fa-users enrolled-students" title="{{#str}}enrolled, local_my{{/str}}"> {{enrolled}}</i>
                     </div>
+                    {{/hasteachingrole}}
+
+                    {{#hasprogression}}
+                    {{> local_my/courseprogression_sektor}}
                     {{/hasprogression}}
+
+                    {{#isstudent}}
                     {{> local_my/assignments_to_submit}}
                     {{> local_my/quiz_to_perform}}
+                    {{/isstudent}}
+
+                    {{#hasteachingrole}}
+                    <div class="detail-control">
+                        <a  id="detail-handle-{{id}}" href="" class="detail-handle" aria-expanded="false"><i class="fa fa-caret-down"></i></a>
+                    </div>
+                    <div id="details-indicators-{{id}}" class="details hidden">
+                    {{> local_my/missing_assign_submissions}}
+                    {{> local_my/unattempted_quiz_users}}
+                    </div>
+                    {{/hasteachingrole}}
                 </div>
                 {{#hasattributes}}
                 <div class="local-my-fp-attributes">

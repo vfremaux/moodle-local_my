@@ -3,11 +3,11 @@
 
 <!-- local_my/courseprogression_sektor -->
 <div class="sektor-course-completion {{collapseclass}}">
-    <div class="sektor-image" id="sektor-progress-{{id}}" title="{{#str}}coursecompletion, completion{{/str}}"></div>
+    <div class="sektor-image" id="sektor-progress-{{id}}" title="{{coursecompletionstr}}"></div>
     {{ratio}} %
 
-    {{#teacherview}}
-    &nbsp;&nbsp;&nbsp;<i class="fa fa-users"> {{{completedusers}}}</i>
-    {{/teacherview}}
+    {{#hasteachingrole}}
+    &nbsp;&nbsp;&nbsp;<i class="fa fa-users {{completiondirclass}}" title="{{completionusersstr}}"> {{{completedusers}}}</i>
+    {{/hasteachingrole}}
 </div>
 <!-- /local_my/courseprogression_sektor -->

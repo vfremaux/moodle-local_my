@@ -25,6 +25,14 @@ $string['my:seecourseattributes'] = 'See course attributes (enrol, visibility, e
 // Privacy.
 $string['privacy:metadata'] = 'The Local My plugin does not directly store any personal data about any user.';
 
+$string['completedusers'] = 'Completed users';
+$string['tocompleteusers'] = 'Users yet having to complete';
+$string['coursecompletionratio'] = 'Course completion ratio';
+$string['mycoursecompletion'] = 'My completion ratio';
+$string['enrolled'] = 'Enrolled students';
+$string['unattemptedquizusers'] = 'Students with unattempted quizs';
+$string['uncompletequizusersratio'] = 'Quiz completion ratio (users)';
+$string['uncompletequizusers'] = 'Users with quiz yet to do';
 
 $string['me'] = 'Me';
 $string['courseareas'] = 'Course areas';
