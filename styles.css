@@ -613,7 +613,6 @@ li.local-my-course {
     display:flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    width: 80%;
 }
 
 .local-my-fp-learning-indicators-line {
@@ -621,13 +620,13 @@ li.local-my-course {
     justify-content: flex-start;
 }
 
-.local-my-fp-learning-indicators-line > div {
+.local-my-fp-learning-indicators-line .indicator {
     margin-right: 10px;
     margin-left: 10px;
     margin-bottom: 5px;
 }
 
-.local-my-fp-learning-indicators > div {
+.local-my-fp-learning-indicators .indicator {
     margin-left: 10px;
     margin-bottom: 5px;
 }
@@ -636,21 +635,17 @@ li.local-my-course {
     padding: 10px;
     border: 1px solid #888;
     border-radius: 8px;
-    position: absolute;
-    top: 1.5em;
-    left: -2em;
+    position: relative;
+    top: 0;
+    right: -10em;
     max-width: 250px;
     display: flex;
     flex-wrap: wrap;
     background-color: #fff;
 }
 
-.local-my-fp-learning-indicators .details.hidden {
-    display: none !important;
-}
-
-.local-my-fp-learning-indicators-line > div,
-.local-my-fp-learning-indicators > div {
+.local-my-fp-learning-indicators-line div.indicator,
+.local-my-fp-learning-indicators div.indicator {
     display: flex;
     align-items: center;
     border: 1px solid #ddd;

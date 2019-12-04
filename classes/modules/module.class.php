@@ -767,14 +767,17 @@ abstract class module {
                     }
                 }
 
+                // Assign signals (count submissions).
+
 
                 // Quiz signals (count attempts for all.
                 list($uncomplete, $totalattempted) = local_my_count_users_with_quiz_to_complete($course->id);
 
                 if ($coursetpl->enrolled) {
                     $coursetpl->hasquizspending = true;
+                    $coursetpl->hasdetails = true;
                     $coursetpl->uncompleteusers = $uncomplete;
-                    $coursetpl->uncompleteusersratio = round(($coursetpl->enrolled - $uncomplete) / $coursetpl->enrolled * 100);
+                    $coursetpl->completequizusersratio = round(($coursetpl->enrolled - $uncomplete) / $coursetpl->enrolled * 100);
                     $sektorparams = [
                         'id' => '#sektor-unattempted-quiz-users-'.$course->id,
                         'angle' => round(($coursetpl->enrolled - $uncomplete) * 360 / $coursetpl->enrolled),

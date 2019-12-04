@@ -126,12 +126,12 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             var courseid = that.attr('id').replace('detail-handle-', '');
             var panelid = '#details-indicators-' + courseid;
             if ($(panelid).css('visibility') === 'hidden') {
-                $(panelid).css('visibility', 'visible');
+                $(panelid).css('display', 'flex');
                 that.attr('aria-expanded', true);
                 that.children('i').removeClass('fa-caret-down');
                 that.children('i').addClass('fa-caret-up');
             } else {
-                $(panelid).css('visibility', 'hidden');
+                $(panelid).css('display', 'none');
                 that.attr('aria-expanded', false);
                 that.children('i').removeClass('fa-caret-up');
                 that.children('i').addClass('fa-caret-down');

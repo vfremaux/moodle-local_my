@@ -21,7 +21,7 @@
             <div class="attributes-container">
                 <div class="local-my-fp-learning-indicators">
                     {{#hasteachingrole}}
-                    <div class="enrolled-students {{collapseclass}}">
+                    <div class="indicator enrolled-students {{collapseclass}}">
                         <i class="fa fa-users enrolled-students" title="{{#str}}enrolled, local_my{{/str}}"> {{enrolled}}</i>
                     </div>
                     {{/hasteachingrole}}
@@ -36,14 +36,11 @@
                     {{/isstudent}}
 
                     {{#hasteachingrole}}
+                    {{#hasdetails}}
                     <div class="detail-control">
                         <a  id="detail-handle-{{id}}" href="#" class="detail-handle" aria-expanded="false"><i class="fa fa-caret-down"></i></a>
                     </div>
-                    <div id="details-indicators-{{id}}" class="details hidden">
-                    {{> local_my/missing_assign_submissions}}
-                    {{> local_my/unattempted_quiz_users}}
-                    </div>
-                    {{/hasteachingrole}}
+                    {{/hasdetails}}
                 </div>
                 {{#hasattributes}}
                 <div class="local-my-fp-attributes">
@@ -54,6 +51,15 @@
                     {{{editingattribute}}}
                 </div>
                 {{/hasattributes}}
+
+                {{#hasteachingrole}}
+                {{#hasdetails}}
+                <div id="details-indicators-{{id}}" class="details" style="display: none">
+                    {{> local_my/missing_assign_submissions}}
+                    {{> local_my/unattempted_quiz_users}}
+                </div>
+                {{/hasdetails}}
+                {{/hasteachingrole}}
             </div>
 
         </div>
