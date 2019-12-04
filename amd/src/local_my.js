@@ -125,7 +125,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             var courseid = that.attr('id').replace('detail-handle-', '');
             var panelid = '#details-indicators-' + courseid;
-            if ($(panelid).css('visibility') === 'hidden') {
+            if ($(panelid).css('display') === 'none') {
                 $(panelid).css('display', 'flex');
                 that.attr('aria-expanded', true);
                 that.children('i').removeClass('fa-caret-down');
