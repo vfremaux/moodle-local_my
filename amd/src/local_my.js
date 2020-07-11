@@ -20,8 +20,9 @@
  * @package    block_multicourse_navigation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// jshint unused: true, undef:true
-define(['jquery', 'core/config', 'core/log'], function($, config, log) {
+// jshint unused: false, undef:false
+/* eslint-disable no-undef no-unused-vars */
+define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     /**
      * SectionControl class.
@@ -30,19 +31,49 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
      */
     var localmy = {
 
+        usereloadwaiter: false,
+
         init: function() {
 
-            // Attach togglestate handler to all handles in page.
-            $('.local-my-cat-collapse').bind('click', this.toggle_cat_state);
-            $('.local-my-modality-chooser').bind('change', this.toggle_modality);
-            $('.local-my-area-ctls').bind('click', this.global_area_ctl);
+            // Attach delegated togglestate handler to all handles in page.
+            $('#mydashboard .block').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
+            $('#mydashboard .block').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
+            $('#mydashboard .block').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
+            $('#mydashboard .block').on('click', '.detail-handle', [], this.toggle_detail);
+            $('#mydashboard .block').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
+            $('#mydashboard .block').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
+
+            $('#mydashboard .block').on('click', '.course-filter', [], this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-sort', [], this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-display', [], this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-time', [], this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.reload-areas', [], this.refresh_course_list);
 
             if ($('.is-accordion').length !== 0) {
-                $('.local-my-course').hide();
+                // Is in accordion
+                $('.is-accordion .local-my-course').hide();
+                $('.is-accordion .local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
             }
 
-            log.debug('AMD Local my cat control initialized');
+            // Launch lazy loading of all area place-holders.
+            $('.reload-areas').each(function() {
+                log.debug("Launching refresh on " + $(this).attr('data-widget') + '-' + $(this).attr('data-uid'));
+                $(this).trigger('click');
+            });
+            this.usereloadwaiter = true;
 
+            log.debug('AMD Local My initialized');
+
+        },
+
+        // Refreshes all handler bindings when something is reloaded.
+        postreset: function() {
+
+            if ($('.is-accordion').length !== 0) {
+                // Is in accordion
+                $('.is-accordion .local-my-course').hide();
+                $('.is-accordion .local-my-cat-collapse > h3 > a').attr('aria-expanded', 'false');
+            }
         },
 
         hide_home_nav: function() {
@@ -65,27 +96,22 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
             log.debug('Working for cat ' + catid + ' in area ' + area);
 
-            if (that.closest('.is-accordion').length == 0) {
+            if (that.closest('.is-accordion').length === 0) {
                 // This is the previous close/open mode.
-                var url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                var url = cfg.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catid=' + catid;
 
-                var handlesrc = $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src');
                 var hide = 0;
 
                 if ($('.local-my-course-' + area + '.cat-' + area + '-' + catid).first().hasClass('collapsed')) {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).removeClass('collapsed');
-                    handlesrc = handlesrc.replace('collapsed', 'expanded');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'true');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
                     log.debug('Expanding ' + area + ' in area ' + catid);
                     hide = 0;
                 } else {
                     $('.local-my-course-' + area + '.cat-' + area + '-' + catid).addClass('collapsed');
-                    handlesrc = handlesrc.replace('expanded', 'collapsed');
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button > img').attr('src', handlesrc);
-                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > button').attr('aria-expanded', 'false');
+                    $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'false');
                     log.debug('Closing ' + area + ' in area ' + catid);
                     hide = 1;
                 }
@@ -98,7 +124,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             } else {
                 // This is the accordion mode.
                 $('.local-my-course-' + area).slideUp("normal");
+                $('.local-my-cat-collapse-' + area + ' > h3 > a').attr('aria-expanded', 'false');
                 $('.local-my-course-' + area + '.cat-' + area + '-' + catid).slideDown("normal");
+                $('#local-my-cathandle-' + area + '-' + catid + ' > h3 > a').attr('aria-expanded', 'true');
             }
 
             return false;
@@ -114,6 +142,29 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             var modalityid = that.attr('id').replace('local-my-static-select-', 'local-my-static-modal-');
             $('.local-my-statictext-modals').addClass('local-my-hide');
             $('#' + modalityid + '-' + that.val()).removeClass('local-my-hide');
+        },
+
+        toggle_detail: function(e) {
+
+            e.stopPropagation();
+            e.preventDefault();
+            var that = $(this);
+
+            var courseid = that.attr('id').replace('detail-handle-', '');
+            var panelid = '#details-indicators-' + courseid;
+            if ($(panelid).css('display') === 'none') {
+                $(panelid).css('display', 'flex');
+                that.attr('aria-expanded', true);
+                that.children('i').removeClass('fa-caret-down');
+                that.children('i').addClass('fa-caret-up');
+            } else {
+                $(panelid).css('display', 'none');
+                that.attr('aria-expanded', false);
+                that.children('i').removeClass('fa-caret-up');
+                that.children('i').addClass('fa-caret-down');
+            }
+
+            return false;
         },
 
         global_area_ctl: function(e) {
@@ -139,7 +190,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     handlesrc = handlesrc.replace('expanded', 'collapsed');
                     element.src = handlesrc;
                 });
-                url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                url = cfg.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catids=' + $('#local-my-areacategories-' + area).html();
                 url += '&what=collapseall';
@@ -153,7 +204,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     element.src = handlesrc;
                 });
 
-                url = config.wwwroot + '/local/my/ajax/stateregister.php?';
+                url = cfg.wwwroot + '/local/my/ajax/stateregister.php?';
                 url += 'item=' + area;
                 url += '&catids=' + $('#local-my-areacategories-' + area).html();
                 url += '&what=expandall';
@@ -162,6 +213,168 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }
 
             return false;
+        },
+
+        sektor: function(args) {
+
+            if (!('color' in args)) {
+                args['color'] = '#bb3030';
+            }
+
+            if (!('circlecolor' in args)) {
+                args['circlecolor'] = '#ddd';
+            }
+
+            /* eslint-disable */
+            var sektor = new Sektor(args['id'], {
+              size: args['size'],
+              stroke: 0,
+              arc: false,
+              angle: args['angle'],
+              sectorColor: args['color'],
+              circleColor: args['circlecolor'],
+              fillCircle: true
+            });
+            /* eslint-enable */
+        },
+
+        add_to_favorites: function() {
+
+            var that = $(this);
+
+            var courseid = that.attr('data-course');
+            var islight = that.hasClass('light');
+
+            var url = cfg.wwwroot + '/local/my/ajax/service.php';
+            url += '?what=addtofavorites';
+            url += '&courseid=' + courseid;
+            that.removeClass('fa-star-o');
+            that.addClass('fa-star');
+            if (islight) {
+                that.removeClass('add-to-favorites-handle');
+                that.addClass('remove-from-favorites-handle');
+            }
+
+            log.debug("Adding course " + courseid + " to favorites");
+            $.get(url);
+
+            // Find and reload favorites.
+            var favorites = $('.favorite-courses');
+            if (favorites.length) {
+                favorites.each(function() {
+                    // find the reload-areas direct child and apply reload.
+                    $(this).children('.reload-areas').trigger('click');
+                });
+            }
+        },
+
+        remove_from_favorites: function() {
+
+            var that = $(this);
+
+            var courseid = that.attr('data-course');
+            var islight = that.hasClass('light');
+
+            var url = cfg.wwwroot + '/local/my/ajax/service.php';
+            url += '?what=removefromfavorites';
+            url += '&courseid=' + courseid;
+
+            log.debug("Removing course " + courseid + " from favorites");
+            $.get(url);
+
+            // find on screen icon-favorites of this course and change class.
+            $('.icon-favorite[data-course="' + courseid + '"]').removeClass('fa-star');
+            $('.icon-favorite[data-course="' + courseid + '"]').addClass('fa-star-o');
+            if (islight) {
+                that.removeClass('fa-star');
+                that.addClass('fa-star-o');
+                that.removeClass('remove-from-favorites-handle');
+                that.addClass('add-to-favorites-handle');
+            }
+
+            // Find and reload favorites.
+            var favorites = $('.favorite-courses');
+            if (favorites.length) {
+                favorites.each(function() {
+                    // find the reload-areas direct child and apply reload.
+                    $(this).children('.reload-areas').trigger('click');
+                });
+            }
+        },
+
+        /**
+         * finds widget UID in sort or filter and refresh content of the whole widget content.
+         */
+        refresh_course_list: function() {
+            var that = $(this);
+
+            // Collect filter and sort state.
+            var uid = that.attr('data-uid');
+            var view = that.attr('data-view');
+            var widget = that.attr('data-widget');
+
+            log.debug("Activating sort/filter/display option on " + uid);
+
+            var filters = $('.course-filters-' + uid + '.active');
+
+            var url = cfg.wwwroot + '/local/my/ajax/service.php';
+            url += '?what=getcourses';
+            url += '&widget=' + widget;
+            url += '&uid=' + uid;
+            url += '&view=' + view;
+            if (!that.attr('data-sort')) {
+                var activesort = $('.course-sort-' + uid + '.active');
+                if (activesort) {
+                    // Add sort if exists.
+                    url += '&sort=' + activesort.attr('data-sort');
+                }
+            } else {
+                url += '&sort=' + that.attr('data-sort');
+            }
+
+            if (!that.attr('data-display')) {
+                var activedisplay = $('.course-display-' + uid + '.active');
+                if (activedisplay) {
+                    // Add display if exists.
+                    url += '&display=' + activedisplay.attr('data-display');
+                }
+            } else {
+                url += '&display=' + that.attr('data-display');
+            }
+
+            if (!that.attr('data-time')) {
+                var activetime = $('.course-time-' + uid + '.active');
+                if (activetime) {
+                    // Add time selector if exists.
+                    url += '&schedule=' + activedisplay.attr('data-time');
+                }
+            } else {
+                url += '&schedule=' + that.attr('data-time');
+            }
+
+            // Process if clicked item was a filter option.
+            var currentdatafilter;
+            if (that.attr('data-filter')) {
+                currentdatafilter = that.attr('data-filter');
+                url += '&' + that.attr('data-filter') + '=' + that.attr('data-filter-value');
+            }
+
+            if (filters.length) {
+                // Add all filters of the widget. Avoid contradicting a clicked filter.
+                for (var filter in filters) {
+                    if (filter.attr('data-filter') != currentdatafilter) {
+                        url += '&' + filter.attr('data-filter') + '=' + filter.attr('data-filter-value');
+                    }
+                }
+            }
+
+            if (localmy.usereloadwaiter) {
+                $('#content-' + uid).html('<img src="' + cfg.wwwroot + '/pix/i/loading.gif">');
+            }
+
+            $.get(url, function(data) {
+                $('#area-courses-' + uid).html(data);
+            }, 'html');
         }
     };
 

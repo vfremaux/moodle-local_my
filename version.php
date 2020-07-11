@@ -25,11 +25,26 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2019051300;   // The (date) version of this plugin.
+$plugin->version  = 2019112500;   // The (date) version of this plugin.
 $plugin->requires = 2019051100;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '3.7.0 (Build 2019051300)';
+$plugin->release = '3.7.0 (Build 2019112500)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.7.0008';
+$plugin->codeincrement = '3.7.0012';
+$plugin->privacy = 'dualrelease';
+$plugin->profiles = [
+    'classes/modules/course_areas.class.php',
+    'classes/modules/course_areas_and_availables.class.php',
+    'classes/modules/course_areas2.class.php',
+    'classes/modules/my_templates.class.php',
+    'classes/modules/my_network.class.php',
+    'classes/modules/statictext.class.php',
+    'classes/modules/available_courses_slider.class.php',
+    'classes/modules/my_courses_slider.class.php',
+    'classes/modules/my_authored_courses_slider.class.php',
+    'classes/modules/my_managed_courses_slider.class.php',
+    'classes/modules/my_favorite_courses_slider.class.php',
+    'classes/modules/courses_slider.class.php',
+];

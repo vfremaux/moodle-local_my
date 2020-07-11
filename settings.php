@@ -22,6 +22,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/local/my/lib.php');
+
 // Settings default init.
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
     // Integration driven code.
@@ -35,7 +37,7 @@ if (is_dir($CFG->dirroot.'/local/adminsettings')) {
 
 $config = get_config('local_my');
 
-if ($hassiteconfig) {
+if (!empty($hasconfig) || $hassiteconfig) {
     // Needs this condition or there is error on login page.
     $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
     $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
@@ -62,6 +64,12 @@ if ($hassiteconfig) {
     $desc = get_string('localskipmymetas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
+
+    $key = 'local_my/addcourseindexlink';
+    $label = get_string('localmyaddcourseindexlink', 'local_my');
+    $desc = get_string('localmyaddcourseindexlink_desc', 'local_my');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+    $displaysettings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 
     $key = 'local_my/excludedcourses';
     $label = get_string('localmyexcludedcourses', 'local_my');
@@ -129,7 +137,7 @@ if ($hassiteconfig) {
 
     global $SITE;
 
-    $categoryoptions = \core_course_category::make_categories_list();
+    $categoryoptions = local_my_get_catlist();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas; $i++) {
@@ -150,7 +158,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $options, PARAM_INT));
 
-    $categoryoptions = \core_course_category::make_categories_list();
+    $categoryoptions = local_my_get_catlist();
     $categoryoptions[0] = $SITE->fullname;
     asort($categoryoptions);
     for ($i = 0; $i < @$config->courseareas2; $i++) {
@@ -159,6 +167,12 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
+
+    $key = 'local_my/enablerolecontrolincourseareas';
+    $label = get_string('localmyenablerolecontrolincourseareas', 'local_my');
+    $desc = get_string('localmyenablerolecontrolincourseareas_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $settings->add(new admin_setting_heading('header3', get_string('categorysettings', 'local_my'), ''));
 
@@ -175,15 +189,6 @@ if ($hassiteconfig) {
     $label = get_string('localmyshowcourseidentifier', 'local_my');
     $desc = get_string('localmyshowcourseidentifier_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $identifieroptions, PARAM_TEXT));
-
-    /*
-    // Obsolete in 3.5
-    $overviewedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20);
-    $key = 'local_my/maxoverviewedlistsize';
-    $label = get_string('localmymaxoverviewedlistsize', 'local_my');
-    $desc = get_string('localmymaxoverviewedlistsize_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $overviewedoptions, PARAM_INT));
-    */
 
     $availableoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50);
     $key = 'local_my/maxavailablelistsize';
@@ -223,9 +228,41 @@ if ($hassiteconfig) {
     $desc = get_string('localmymaxuncategorizedlistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $uncategorizedoptions, PARAM_INT));
 
-    $key = 'local_my/courselistaccordion';
-    $label = get_string('localmycourselistaccordion', 'local_my');
-    $desc = get_string('localmycourselistaccordion_desc', 'local_my');
+    $settings->add(new admin_setting_heading('header3', get_string('courselistssettings', 'local_my'), ''));
+
+    $key = 'local_my/withsort';
+    $label = get_string('localmywithsort', 'local_my');
+    $desc = get_string('localmywithsort_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/withtimeselector';
+    $label = get_string('localmywithtimeselector', 'local_my');
+    $desc = get_string('localmywithtimeselector_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/withdisplay';
+    $label = get_string('localmywithdisplay', 'local_my');
+    $desc = get_string('localmywithdisplay_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursedisplayoption';
+    $label = get_string('localmydefaultcoursedisplayoption', 'local_my');
+    $desc = get_string('localmydefaultcoursedisplayoption_desc', 'local_my');
+    $default = 0;
+    $displayoptions = [
+        'displayauto' => get_string('displayauto', 'local_my'),
+        'displaycards' => get_string('displaycards', 'local_my'),
+        'displaylist' => get_string('displaylist', 'local_my'),
+        'displaysummary' => get_string('displaysummary', 'local_my'),
+    ];
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
+
+    $key = 'local_my/lightfavorites';
+    $label = get_string('locallightfavorites', 'local_my');
+    $desc = get_string('locallightfavorites_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
@@ -236,6 +273,16 @@ if ($hassiteconfig) {
     $label = get_string('localmyheatmaprange', 'local_my');
     $desc = get_string('localmyheatmaprange_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 6, $heatmapoptions, PARAM_INT));
+
+    $settings->add(new admin_setting_heading('header42', get_string('categoryareasettings', 'local_my'), ''));
+
+    for ($i = 0; $i < 2; $i++) {
+        $key = 'local_my/categoryarea'.$i;
+        $label = get_string('localmycategoryarea', 'local_my').' A '.$i;
+        $settings->add(new admin_setting_configtext($key, $label, '', PARAM_TEXT));
+        $displaysettings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
+    }
+
 
     $settings->add(new admin_setting_heading('header5', get_string('visualsettings', 'local_my'), ''));
 
@@ -256,6 +303,12 @@ if ($hassiteconfig) {
     $options = array('' => get_string('notrim', 'local_my'), 'chars' => get_string('trimchars', 'local_my'), 'words' => get_string('trimwords', 'local_my'));
     $default = 'chars';
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
+
+    $key = 'local_my/courseboxheight';
+    $label = get_string('localcourseboxheight', 'local_my');
+    $desc = '';
+    $default = '500px';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
 
     $key = 'local_my/trimlength1';
     $label = get_string('localmytrimlength1', 'local_my');

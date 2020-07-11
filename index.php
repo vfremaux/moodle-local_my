@@ -35,15 +35,14 @@
 defined('MOODLE_INTERNAL') || die();
 
 // Overrides the customisation if not enabled and return back to standard behaviour....
-$config = get_config('local_my');
-
-if (empty($config->enable)) {
-    return -1;
-}
 
 require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
 require_once($CFG->dirroot.'/local/vflibs/jqplotlib.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+
+use \local_my\module\module;
 
 local_vflibs_require_jqplot_libs();
 
@@ -63,6 +62,7 @@ if (isguestuser()) {
     $USER->editing = $edit = 0;  // Just in case.
     $context = context_system::instance();
     $PAGE->set_context($context);
+    $PAGE->set_pagelayout('mydashboard');
     $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // Unlikely :).
     $header = "$SITE->shortname: $strmymoodle (GUEST)";
 
@@ -71,8 +71,17 @@ if (isguestuser()) {
     $userid = $USER->id;  // Owner of the page.
     $context = context_user::instance($USER->id);
     $PAGE->set_context($context);
+    $PAGE->set_pagelayout('mydashboard');
     $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
     $header = "$SITE->shortname: $strmymoodle";
+}
+
+$PAGE->requires->js('/local/my/js/sektor/sektor.js');
+$PAGE->requires->css('/local/my/css/slick.css');
+
+module::static_init();
+if (empty(module::get_config('enable'))) {
+    return -1;
 }
 
 // Get the My Moodle page info.  Should always return something unless the database is broken.
@@ -87,7 +96,6 @@ if (!$currentpage->userid) {
 // Start setting up the page.
 $params = array();
 $PAGE->set_url('/my/index.php', $params);
-$PAGE->set_pagelayout('mydashboard');
 $PAGE->set_pagetype('my-index');
 $PAGE->blocks->add_region('content');
 $PAGE->set_subpage($currentpage->id);
@@ -99,12 +107,8 @@ $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 $PAGE->requires->js_call_amd('local_my/local_my', 'init');
-if (!empty($config->slick)) {
-    $PAGE->requires->js_call_amd('local_my/slick', 'init');
-    $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
-}
-$PAGE->requires->css('/local/my/css/slick.css');
-$PAGE->requires->skip_link_to('localmymaincontent', '');
+
+$PAGE->requires->skip_link_to('localmymaincontent', get_string('tocontent', 'access'));
 
 if (get_home_page() != HOMEPAGE_MY) {
     if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
@@ -114,8 +118,6 @@ if (get_home_page() != HOMEPAGE_MY) {
         $PAGE->settingsnav->get('usercurrentsettings')->add(get_string('makethismyhome'), $linkurl, navigation_node::TYPE_SETTING);
     }
 }
-
-$renderer = $PAGE->get_renderer('local_my');
 
 // Toggle the editing state and switches.
 if ($PAGE->user_allowed_editing()) {
@@ -177,137 +179,29 @@ if ($currentpage->userid == 0) {
 }
 
 // Get exclusions startup from config.
-$excludedcourses = explode(',', @$config->excludedcourses);
-if ($showresolve && !empty($excludedcourses)) {
-    echo "<pre>\n";
-    foreach ($excludedcourses as $cid) {
-        if ($showresolve == 1 || $showresolve == $cid) {
-            mtrace("Course exclude : (Initial exclude $cid)\n");
-        }
-    }
-    echo "</pre>\n";
-}
+
 // Get user status.
 // TODO : change dynamically wether using teacher_courses or authored_courses in settings.
-list($view, $isstudent, $isteacher, $iscoursemanager, $isadmin) = local_my_resolve_view();
-$teachercap = 'local/my:isteacher';
+list($view, $isstudent, $isteacher, $iscoursemanager, $isadmin) = module::resolve_view();
 
-// Get and clean modules names.
+$renderer = module::get_renderer();
+$tabs = $renderer->tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
+
+module::fetch_modules($view);
+// debug_trace("Processing exclusions");
+module::pre_process_exclusions($view);
 
 echo $OUTPUT->header();
 
-// We need prefetch tabs as it may resolve view.
-$tabs = $renderer->tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
-
-list($modules, $mymodules, $myleftmodules) = local_my_fetch_modules($view);
-
-if (in_array('my_caption', $mymodules)) {
-    if (file_exists($CFG->dirroot.'/local/staticguitexts/lib.php')) {
-        include_once($CFG->dirroot.'/local/staticguitexts/lib.php');
-        local_print_static_text('my_caption_static_text', new moodle_url('/my/index.php'));
-    } else {
-        echo $OUTPUT->notification(get_string('nostaticguitexts', 'local_my', 'my_caption'));
-    }
-}
-
 echo $tabs;
-echo $OUTPUT->box_start('', 'my-content');
-
-$fooarray = null;
-$courseareacourses = array();
-
-$courseareaskeys = array();
-
-// Calculate course areas content for exclusions.
-$courseareacourses = local_my_prefetch_course_areas($isadmin, $isteacher, $iscoursemanager, $modules, $excludedcourses);
-if (!empty($courseareacourses)) {
-    $courseareaskeys = array_keys($courseareacourses);
-    local_my_scalar_array_merge($excludedcourses, $courseareaskeys);
-
-    if ($showresolve) {
-        echo "<pre>\n";
-        foreach ($courseareaskeys as $cid) {
-            if ($showresolve == 1 || $showresolve == $cid) {
-                mtrace("Course remove : (coursearea prefetch $cid)\n");
-            }
-        }
-        echo "</pre>\n";
-    }
-}
-
-// Examine the other panel constraints on excluded courses.
-
-if ($view == 'asstudent' && $isteacher) {
-    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
-    $debuginfo = '';
-    $prefetchcourses = local_get_my_authoring_courses($debuginfo, 'id', $teachercap);
-    if ($showresolve && !empty($debuginfo)) {
-        echo "<pre>prefetch authored(\n".$debuginfo."\n)</pre>";
-    }
-    $prefetchkeys = array_keys($prefetchcourses);
-    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
-}
-
-if ($view == 'asstudent' && $iscoursemanager) {
-    // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
-    $prefetchcourses = local_get_my_managed_courses($debuginfo, 'id');
-    if ($showresolve && !empty($debuginfo)) {
-        echo "<pre>prefetch managed(\n".$debuginfo."\n)</pre>";
-    }
-    $prefetchkeys = array_keys($prefetchcourses);
-    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
-}
-
-if ($view == 'asteacher' && $iscoursemanager) {
-
-    // If i am teacher and viewing the student tab, prefech managed courses to exclude them.
-    $prefetchcourses = local_get_my_managed_courses($debuginfo, 'id');
-    if ($showresolve && !empty($debuginfo)) {
-        echo "<pre>prefetch managed(\n".$debuginfo."\n)</pre>";
-    }
-    $prefetchkeys = array_keys($prefetchcourses);
-    local_my_scalar_array_merge($excludedcourses, $prefetchkeys);
-    if ($showresolve && !empty($debuginfo)) {
-        echo "<pre>excluded after prefetch(\n".json_encode($excludedcourses)."\n)</pre>";
-    }
-}
 
 // Render dahsboard.
-
-echo $OUTPUT->box_start('container-fluid', 'mydashboard'); // Table.
-echo $OUTPUT->box_start('row-fluid', 'mydashboard-row'); // Row.
-
-if (in_array('left_edition_column', $mymodules)) {
-    $spanclass = 'span6 col-md-6 col-xs-12';
-    echo $OUTPUT->box_start('span6 col-md-6 col-xs-12', 'my-dashboard-left');
-
-    if (function_exists('local_print_static_text')) {
-        // In case the local_staticguitexts is coming with.
-        local_print_static_text('my_caption_left_column_static_text', $CFG->wwwroot.'/my/index.php');
-    }
-
-    if (!empty($myleftmodules)) {
-        foreach ($myleftmodules as $m) {
-            local_my_render_module($m, $excludedcourses, $courseareacourses);
-        }
-    }
-
-    echo $OUTPUT->box_end();
-} else {
-    $spanclass = 'span12 col-xs-12';
-}
+// debug_trace("Rendering all dashboard");
+echo module::render_dashboard();
 
 // The main overview in the middle of the page.
 
-echo $OUTPUT->box_start($spanclass, 'my-dashboard-right');
-foreach ($mymodules as $m) {
-    local_my_render_module($m, $excludedcourses, $courseareacourses);
-}
-echo $OUTPUT->box_end();
-
-echo $OUTPUT->box_end();
-echo $OUTPUT->box_end();
-echo $OUTPUT->box_end();
-
+// Ask for rendering js sektor code in main page.
+$PAGE->requires->js_amd_inline($renderer->render_js_code(false));
 echo $OUTPUT->footer();
 die;

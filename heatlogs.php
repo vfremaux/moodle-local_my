@@ -23,6 +23,10 @@
 
 require('../../config.php');
 
+if (!defined('AJAX_SCRIPT')) {
+    define('AJAX_SCRIPT', true);
+}
+
 $userid = required_param('id', PARAM_INT);
 
 // Security.

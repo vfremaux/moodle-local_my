@@ -1,0 +1,27 @@
+
+
+{{!
+    Indirect call by my_course_module.mustache.
+}}
+<!-- local_my/categorybox -->
+<div class="local-my-promowrap">
+    <div class="local-my-fp-categorybox {{hiddenclass}} {{withopacityeffect}} {{withhaloeffect}}" {{{heightstyle}}}>
+        <div class="local-my-fp-categorythumb">
+            <div class="local-my-fp-categoryinfo">
+                <h3>
+                    <a href="{{{categoryurl}}}" data-toggle="tooltip" data-placement="bottom">
+                        <div class="categorytitle">{{trimtitle}}</div>
+                        <img aria-hidden="true" src="{{{imgurl}}}">
+                        <div class="category-overlay">
+                            <!-- i class="fa fa-arrow-circle-right" aria-hidden="true"></i -->
+                        </div>
+                     </a>
+                </h3>
+            </div>
+            {{#withsummary}}
+            <div class="local-my-fp-summary">{{{summary}}}</div>
+            {{/withsummary}}
+        </div>
+    </div>
+</div>
+<!-- /local_my/categorybox -->

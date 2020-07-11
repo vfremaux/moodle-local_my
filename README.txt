@@ -55,3 +55,8 @@ Add manager as being an author when assigned in some context
 
 Add more settings to control some elements visibility on widgets. Add
 capability to hide/show course attributes on grid/boxed views.
+
+3.5.0011
+=========================================
+
+Privatize some widgets and the detailed pedagogic output.

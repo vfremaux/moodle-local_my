@@ -14,39 +14,42 @@
 {{/courseareas}}
 </div>
 
-<table id="mycourseareas" width="100%">
-    <tr valign="top">
+<div class="mycourseareas">
 
     {{#courseareas}}
 
-    {{#coljump}}
-    </tr><tr valign="top">
-    {{/coljump}}
+    <div id="local-my-coursearea-{{i}}" class="block coursearea">
 
-        <td width="{{colwidth}}%">
-
-            <div class="headingblock header">
-                <a name="local-my-coursearea-{{i}}"></a>
+        <div class="header">
+            <div class="title">
                 <h2>{{catname}}</h2>
             </div>
+        </div>
 
-            <div class="block">
-                <table id="courselistarea{{i}}" width="100%" class="courselist generaltable {{#isaccordion}}is-accordion{{/isaccordion}}">
-                    <tr valign="top">
-                        <td>
-                            {{{courseoverview}}}
-
-                            {{{coursesbycats}}}
-
-                            {{{availables}}}
-                        </td>
-                    </tr>
-                </table>
+        <div id="courselistarea{{i}}">
+            {{#aslist}}
+            <div class="content" data-resolved="aslist">
+                <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
+                    {{> local_my/courses_with_categories}}
+                </ul>
             </div>
+            {{/aslist}}
 
-        </td>
+            {{#asflatlist}}
+            <div class="content" data-resolved="asflatlist">
+                <ul class="course-list">
+                    {{#courses}}
+                    {{> local_my/courserow}}
+                    {{/courses}}
+                </ul>
+            </div>
+            {{/asflatlist}}
+
+            {{{availables}}}
+        </div>
+
+    </div>
     {{/courseareas}}
 
-    </tr>
-</table>
+</div>
 <!-- /local_my/courseareas_module -->
