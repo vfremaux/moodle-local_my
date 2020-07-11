@@ -44,7 +44,6 @@ if (is_dir($CFG->dirroot.'/theme/fordson_fel')) {
         const COURSECAT_TYPE_COURSE = 1;
 
         public $basecategoryid;
-        public static $favorites;
 
         public static $jscode = [];
     }
@@ -64,7 +63,6 @@ if (is_dir($CFG->dirroot.'/theme/fordson_fel')) {
         const COURSECAT_TYPE_COURSE = 1;
 
         public $basecategoryid;
-        public static $favorites;
 
         public static $jscode = [];
     }
@@ -211,12 +209,6 @@ trait local_my_renderer_overrides {
             $params = array('view' => 'asstudent');
             $taburl = new moodle_url('/my/index.php', $params);
             $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
-        }
-
-        if (!empty($config->addcourseindexlink)) {
-            $tabname = get_string('courseindex', 'local_my');
-            $taburl = new moodle_url('/course/index.php');
-            $rows[0][] = new tabobject('courseindex', $taburl, $tabname);
         }
 
         if (!empty($rows) && count($rows[0]) > 1) {
@@ -401,15 +393,24 @@ trait local_my_renderer_overrides {
         return $this->render_from_template('local_my/add_category_link', $template);
     }
 
-    public function add_favorite_icon($courseid, $light = '') {
+    public function add_favorite_icon($courseid) {
+        global $DB, $USER;
+        static $favorites = null; // a memory cached value of favorites.
 
-        $this->init_favorites();
-
-        if (in_array($courseid, self::$favorites)) {
+        if (is_null($favorites)) {
+            $favoriteids = $DB->get_field('user_preferences', 'value', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+            if (!$favoriteids) {
+                // Ensure we will NOT fetch again an unset preferences.
+                $favorites = [];
+            } else {
+                $favorites = explode(',', $favoriteids);
+            }
+        }
+        if (in_array($courseid, $favorites)) {
             return '<i class="icon icon-favorite fa fas fa-star" data-course="'.$courseid.'"></i>';
         } else {
             $addstr = get_string('addtofavorites', 'local_my');
-            $attrs = ['class' => 'icon add-to-favorites-handle icon-favorite fa fa-star-o far '.$light,
+            $attrs = ['class' => 'icon add-to-favorites-handle icon-favorite fa fa-star-o far',
                       'data-course' => $courseid,
                       'data-paste-target' => 'local_my_favorites',
                       'title' => $addstr];
@@ -417,23 +418,9 @@ trait local_my_renderer_overrides {
         }
     }
 
-    public function init_favorites() {
-        global $DB, $USER;
-
-        if (is_null(self::$favorites)) {
-            $favoriteids = $DB->get_field('user_preferences', 'value', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
-            if (!$favoriteids) {
-                // Ensure we will NOT fetch again an unset preferences.
-                self::$favorites = [];
-            } else {
-                self::$favorites = explode(',', $favoriteids);
-            }
-        }
-    }
-
-    public function remove_favorite_icon($courseid, $faicon = 'fa-trash') {
+    public function remove_favorite_icon($courseid) {
         $deletestr = get_string('removefromfavorites', 'local_my');
-        $attrs = ['data-course' => $courseid, 'class' => 'icon remove-from-favorites-handle fa '.$faicon.' fa-fw', 'title' => $deletestr];
+        $attrs = ['data-course' => $courseid, 'class' => 'icon remove-from-favorites-handle fa fa-trash fa-fw', 'title' => $deletestr];
         return html_writer::tag('i', '', $attrs);
     }
 
@@ -830,9 +817,9 @@ trait local_my_renderer_overrides {
     }
 
     public function is_favorite($courseid) {
-
-        $this->init_favorites();
-
+        if (!is_array(self::$favorites)) {
+            self::$favorites = [];
+        }
         return in_array($courseid, self::$favorites);
     }
 }

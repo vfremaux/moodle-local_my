@@ -4,7 +4,7 @@ In use in "pro" versions only.
 }}
 <!-- local_my/indicators -->
 <div class="attributes-container">
-    <div class="local-my-fp-learning-indicators">
+    <div id="local-my-indicators-{{id}}" class="local-my-fp-learning-indicators">
         {{#hasteachingrole}}
         <div class="indicator enrolled-students {{collapseclass}}">
             <i class="fa fa-users enrolled-students" title="{{#str}}enrolled, local_my{{/str}}"> {{enrolled}}</i>
@@ -40,15 +40,6 @@ In use in "pro" versions only.
         {{{editingattribute}}}
     </div>
     {{/hasattributes}}
-
-    {{#hasteachingrole}}
-    {{#hasdetails}}
-    <div id="details-indicators-{{id}}" class="details" style="display: none">
-        {{> local_my/missing_assign_submissions}}
-        {{> local_my/unattempted_quiz_users}}
-    </div>
-    {{/hasdetails}}
-    {{/hasteachingrole}}
 </div>
 <!-- /local_my/indicators -->
 

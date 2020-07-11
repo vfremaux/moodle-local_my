@@ -3634,7 +3634,7 @@ class core_course_external extends external_api {
      * @return external_function_parameters
      */
     public static function get_enrolled_courses_by_timeline_classification_parameters() {
-        // PATCH+ : Ajax issue in alternative local_my.
+        // PATCH+ : Ajax issue in alternative local_my
         return new external_function_parameters(
             array(
                 'classification' => new external_value(PARAM_ALPHA, 'future, inprogress, or past', VALUE_DEFAULT, 'future'),

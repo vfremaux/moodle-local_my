@@ -442,7 +442,11 @@ abstract class module {
             // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
             $mymanagedmodule = new my_managed_courses_module();
             $prefetchcourses = $mymanagedmodule->get_courses();
-            $prefetchkeys = array_keys($prefetchcourses);
+            if (!empty($prefetchcourses)) {
+                $prefetchkeys = array_keys($prefetchcourses);
+            } else {
+                $prefetchkeys = [];
+            }
             local_my_scalar_array_merge(self::$excludedcourses, $prefetchkeys);
         }
     }
@@ -518,7 +522,7 @@ abstract class module {
     }
 
     /**
-     * Given the ocurse list, and the current view, filter courses that are not
+     * Given the course list, and the current view, filter courses that are not
      * matching the panel capability.
      */
     public function process_role_filtering() {
@@ -837,21 +841,11 @@ abstract class module {
             $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), self::$config->trimlength1);
         }
 
-        // Using my_favorites widget.
         if (local_my_is_using_favorites() && empty($this->options['nofavorable'])) {
             if (!empty($this->options['isfavorite'])) {
                 $coursetpl->favoritectl = $renderer->remove_favorite_icon($course->id);
             } else {
                 $coursetpl->favoritectl = $renderer->add_favorite_icon($course->id);
-            }
-        }
-
-        // Using light favorite taggings.
-        if (!empty($config->lightfavorites) && empty($this->options['nofavorable'])) {
-            if ($renderer->is_favorite($courseid)) {
-                $coursetpl->favoritectl = $renderer->remove_favorite_icon($course->id, 'fas fa-star light');
-            } else {
-                $coursetpl->favoritectl = $renderer->add_favorite_icon($course->id, 'light');
             }
         }
 
@@ -1253,10 +1247,10 @@ abstract class module {
      */
     public function sortbyfavorites($a, $b) {
         if (self::$renderer->is_favorite($a->id) && !self::$renderer->is_favorite($b->id)) {
-            return -1;
+            return 1;
         }
         if (!self::$renderer->is_favorite($a->id) && self::$renderer->is_favorite($b->id)) {
-            return 1;
+            return -1;
         }
         return $this->sortbyname($a, $b);
     }

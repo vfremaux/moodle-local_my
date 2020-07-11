@@ -237,8 +237,6 @@ class my_courses_module extends module {
     protected function get_course_sort_option_templates() {
 
         $defaultsortoption = get_config('local_my', 'defaultcoursesortoption');
-        $lightfavorites = get_config('local_my', 'lightfavorites');
-
         if (empty($defaultsortoption)) {
             $defaultsortoption = 'byname';
         }
@@ -250,7 +248,7 @@ class my_courses_module extends module {
             'bylastaccess',
         ];
 
-        if ($lightfavorites) {
+        if (!local_my_is_using_favorites()) {
             $options[] = 'byfavorites';
         }
 

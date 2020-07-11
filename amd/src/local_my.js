@@ -36,18 +36,18 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
         init: function() {
 
             // Attach delegated togglestate handler to all handles in page.
-            $('#mydashboard .block').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
-            $('#mydashboard .block').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
-            $('#mydashboard .block').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
-            $('#mydashboard .block').on('click', '.detail-handle', [], this.toggle_detail);
-            $('#mydashboard .block').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
-            $('#mydashboard .block').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
+            $('#mydashboard .block').on('click', '.local-my-cat-collapse', this.toggle_cat_state);
+            $('#mydashboard .block').on('change', '.local-my-modality-chooser', this.toggle_modality);
+            $('#mydashboard .block').on('click', '.local-my-area-ctls', this.global_area_ctl);
+            $('#mydashboard .block').on('click', '.detail-handle', this.toggle_detail);
+            $('#mydashboard .block').on('click', '.add-to-favorites-handle', this.add_to_favorites);
+            $('#mydashboard .block').on('click', '.remove-from-favorites-handle', this.remove_from_favorites);
 
-            $('#mydashboard .block').on('click', '.course-filter', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-sort', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-display', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-time', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.reload-areas', [], this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-filter', this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-sort', this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-display', this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.course-time', this.refresh_course_list);
+            $('#mydashboard .block').on('click', '.reload-areas', this.refresh_course_list);
 
             if ($('.is-accordion').length !== 0) {
                 // Is in accordion
@@ -243,17 +243,12 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
             var that = $(this);
 
             var courseid = that.attr('data-course');
-            var islight = that.hasClass('light');
 
             var url = cfg.wwwroot + '/local/my/ajax/service.php';
             url += '?what=addtofavorites';
             url += '&courseid=' + courseid;
             that.removeClass('fa-star-o');
             that.addClass('fa-star');
-            if (islight) {
-                that.removeClass('add-to-favorites-handle');
-                that.addClass('remove-from-favorites-handle');
-            }
 
             log.debug("Adding course " + courseid + " to favorites");
             $.get(url);
@@ -273,7 +268,6 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
             var that = $(this);
 
             var courseid = that.attr('data-course');
-            var islight = that.hasClass('light');
 
             var url = cfg.wwwroot + '/local/my/ajax/service.php';
             url += '?what=removefromfavorites';
@@ -285,12 +279,6 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
             // find on screen icon-favorites of this course and change class.
             $('.icon-favorite[data-course="' + courseid + '"]').removeClass('fa-star');
             $('.icon-favorite[data-course="' + courseid + '"]').addClass('fa-star-o');
-            if (islight) {
-                that.removeClass('fa-star');
-                that.addClass('fa-star-o');
-                that.removeClass('remove-from-favorites-handle');
-                that.addClass('add-to-favorites-handle');
-            }
 
             // Find and reload favorites.
             var favorites = $('.favorite-courses');

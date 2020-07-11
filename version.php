@@ -26,13 +26,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version  = 2019112500;   // The (date) version of this plugin.
-$plugin->requires = 2019051100;   // Requires this Moodle version.
+$plugin->requires = 2019111200;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '3.7.0 (Build 2019112500)';
+$plugin->release = '3.8.0 (Build 2019112500)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.7.0012';
+$plugin->codeincrement = '3.8.0012';
 $plugin->privacy = 'dualrelease';
 $plugin->profiles = [
     'classes/modules/course_areas.class.php',
@@ -45,6 +45,5 @@ $plugin->profiles = [
     'classes/modules/my_courses_slider.class.php',
     'classes/modules/my_authored_courses_slider.class.php',
     'classes/modules/my_managed_courses_slider.class.php',
-    'classes/modules/my_favorite_courses_slider.class.php',
     'classes/modules/courses_slider.class.php',
 ];
