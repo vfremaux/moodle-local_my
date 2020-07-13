@@ -65,6 +65,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
+    $key = 'local_my/addcourseindexlink';
+    $label = get_string('localmyaddcourseindexlink', 'local_my');
+    $desc = get_string('localmyaddcourseindexlink_desc', 'local_my');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+    $displaysettings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
     $key = 'local_my/excludedcourses';
     $label = get_string('localmyexcludedcourses', 'local_my');
     $desc = get_string('localmyexcludedcourses_desc', 'local_my');
@@ -254,6 +260,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     ];
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
 
+    $key = 'local_my/lightfavorites';
+    $label = get_string('locallightfavorites', 'local_my');
+    $desc = get_string('locallightfavorites_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $settings->add(new admin_setting_heading('header4', get_string('heatmapsettings', 'local_my'), ''));
 
     $heatmapoptions = array(1 => 1, 2 => 2, 3 => 3, 4 => 4, 6 => 6, 8 => 8, 10 => 10, 12 => 12);
@@ -315,6 +327,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $desc = get_string('localmyhidedescriptions_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    /*
+    $key = 'local_my/hideprogression';
+    $label = get_string('localmyhideprogression', 'local_my');
+    $desc = get_string('localmyhideprogression_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+    */
 
     $key = 'local_my/adddetailindicators';
     $label = get_string('localmyadddetailindicators', 'local_my');
