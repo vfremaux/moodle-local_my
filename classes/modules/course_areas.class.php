@@ -1,6 +1,28 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * @package    local_my
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_my\module;
+
+defined('MOODLE_INTERNAL') or die();
 
 use \StdClass;
 use \moodle_url;
@@ -30,10 +52,16 @@ class course_areas_module extends module {
 
         // Resolve retained categories from the config
 
-        for ($i = 0; $i < self::$config->{self::$areakey}; $i++) {
+        $currentclass = get_class($this);
+        $classvars = get_class_vars($currentclass);
+        $this->currentareakey = $classvars['areakey'];
+        $this->currentareaconfigkey = $classvars['areaconfigkey'];
+        $this->currentconfigvalue = self::$config->{$this->currentareakey};
+
+        for ($i = 0; $i < self::$config->{$this->currentareakey}; $i++) {
 
             // Process each area.
-            $key = self::$areaconfigkey.$i;
+            $key = $this->currentareaconfigkey.$i;
 
             if (empty(self::$config->$key)) {
                 continue;
@@ -54,7 +82,7 @@ class course_areas_module extends module {
     public function render($required = 'aslist') {
         global $OUTPUT, $DB, $PAGE, $USER;
 
-        if (empty(self::$config->{self::$areakey})) {
+        if (empty(self::$config->{$this->currentareakey})) {
             // Performance quick trap if no areas defined at all.
             return;
         }
@@ -67,18 +95,18 @@ class course_areas_module extends module {
         $template->isaccordion = !empty(self::$config->courselistaccordion);
 
         $colwidth = false;
-        if (self::$config->{self::$areakey} % 3 == 0) {
+        if (self::$config->{$this->currentareakey} % 3 == 0) {
             $colwidth = 33;
         }
 
         if (!$colwidth) {
-            if (self::$config->{self::$areakey} % 2 == 0) {
+            if (self::$config->{$this->currentareakey} % 2 == 0) {
                 $colwidth = 50;
             }
         }
 
         if (!$colwidth) {
-            switch (self::$config->{self::$areakey}) {
+            switch (self::$config->{$this->currentareakey}) {
                 case 1:
                     $colwidth = 100;
                     break;
@@ -91,13 +119,13 @@ class course_areas_module extends module {
         }
 
         $reali = 1;
-        for ($i = 0; $i < self::$config->{self::$areakey}; $i++) {
+        for ($i = 0; $i < self::$config->{$this->currentareakey}; $i++) {
 
             // Process each area.
-            $key = self::$areaconfigkey.$i;
+            $key = $this->currentareaconfigkey.$i;
 
             // Filter courses of this area.
-            $retainedcategories = $this->retainedcategories[$key];
+            $retainedcategories = @$this->retainedcategories[$key];
 
             $areacourses = [];
             foreach ($this->courses as $c) {
@@ -108,32 +136,35 @@ class course_areas_module extends module {
                 $hasteachingactivity = has_capability('local/my:isteacher', $context, $USER, false);
                 $hasmanageractivity = has_capability('local/my:iscoursemanager', $context, $USER, false);
 
-                // Filter out non editing.
-                if ($view == 'asteacher') {
-                    if (!$hasteachingactivity) {
-                        self::add_debuginfo("Course {$c->id} excluded because non teaching course and teaching panel", $c->id);
-                        continue;
-                    }
-                } else if ($view == 'ascoursemanager') {
-                    if (!$hasmanageractivity) {
-                        self::add_debuginfo("Course {$c->id} excluded because non managed course and manager panel", $c->id);
-                        continue;
-                    }
-                } else {
-                    if ($hasteachingactivity || $hasmanageractivity) {
-                        self::add_debuginfo("Course {$c->id} excluded because managed/teached course and student panel", $c->id);
-                        continue;
+                if (!empty(self::$config->enablerolecontrolincourseareas)) {
+                    // Filter out non editing.
+                    if ($view == 'asteacher') {
+                        if (!$hasteachingactivity) {
+                            self::add_debuginfo("Course {$c->id} excluded because non teaching course and teaching panel", $c->id);
+                            continue;
+                        }
+                    } else if ($view == 'ascoursemanager') {
+                        if (!$hasmanageractivity) {
+                            self::add_debuginfo("Course {$c->id} excluded because non managed course and manager panel", $c->id);
+                            continue;
+                        }
+                    } else {
+                        if ($hasteachingactivity || $hasmanageractivity) {
+                            self::add_debuginfo("Course {$c->id} excluded because managed/teached course and student panel", $c->id);
+                            continue;
+                        }
                     }
                 }
 
                 if (is_null($retainedcategories)) {
-                    debugging("null retained cat");
-                }
-                if (in_array($c->category, $retainedcategories)) {
-                    $areacourses[$c->id] = $c;
-                    self::add_debuginfo("Course Add ({$c->id} in course area $key", $c->id);
-                    module::$excludedcourses[] = $c->id;
-                    self::add_debuginfo("Course exclude {$c->id} after display in coursearea $key", $c->id);
+                    // debugging("null retained cat for area $key");
+                } else {
+                    if (in_array($c->category, $retainedcategories)) {
+                        $areacourses[$c->id] = $c;
+                        self::add_debuginfo("Course Add ({$c->id} in course area $key", $c->id);
+                        module::$excludedcourses[] = $c->id;
+                        self::add_debuginfo("Course exclude {$c->id} after display in coursearea $key", $c->id);
+                    }
                 }
             }
 
@@ -151,8 +182,9 @@ class course_areas_module extends module {
                 $courseareatpl->i = $reali;
 
                 // Solve a performance issue for people having wide access to courses.
-                $courseareatpl->area = self::$areakey.'_'.$i;
+                $courseareatpl->area = $this->currentareakey.'_'.$i;
 
+                $this->options['noprogress'] = self::$config->progressgaugetype == 'noprogress';
                 if (!empty($courseareatpl->asflatlist)) {
 
                     $this->options['gaugetype'] = 'sektor';
@@ -199,5 +231,7 @@ class course_areas_module extends module {
             $params = array('userid' => $USER->id, 'courseid' => $id);
             $c->lastaccess = $DB->get_field('user_lastaccess', 'timeaccess', $params);
         }
+        $this->process_metas();
+        $this->process_excluded();
     }
 }

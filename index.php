@@ -34,13 +34,14 @@
 // This is a customscript include.
 defined('MOODLE_INTERNAL') || die();
 
-// Overrides the customisation if not enabled and return back to standard behaviour....
+// Overrides the customisation if not enabled and return back to standard behaviour
 
 require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
 require_once($CFG->dirroot.'/local/vflibs/jqplotlib.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
 require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
 use \local_my\module\module;
 
@@ -77,6 +78,7 @@ if (isguestuser()) {
 }
 
 $PAGE->requires->js('/local/my/js/sektor/sektor.js');
+$PAGE->requires->css('/local/my/css/slick.css');
 
 module::static_init();
 if (empty(module::get_config('enable'))) {
@@ -187,7 +189,7 @@ $renderer = module::get_renderer();
 $tabs = $renderer->tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
 
 module::fetch_modules($view);
-debug_trace("Processing exclusions");
+// debug_trace("Processing exclusions");
 module::pre_process_exclusions($view);
 
 echo $OUTPUT->header();
@@ -195,10 +197,12 @@ echo $OUTPUT->header();
 echo $tabs;
 
 // Render dahsboard.
-debug_trace("Rendering all dashboard");
+// debug_trace("Rendering all dashboard");
 echo module::render_dashboard();
 
 // The main overview in the middle of the page.
 
+// Ask for rendering js sektor code in main page.
+$PAGE->requires->js_amd_inline($renderer->render_js_code(false));
 echo $OUTPUT->footer();
 die;

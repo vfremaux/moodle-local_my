@@ -25,8 +25,52 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/local/my/lib.php');
+require_once($CFG->dirroot.'/course/renderer.php');
 
-class local_my_renderer extends plugin_renderer_base {
+if (is_dir($CFG->dirroot.'/theme/fordson_fel')) {
+    require_once($CFG->dirroot.'/theme/fordson_fel/classes/output/core/course_renderer.php');
+
+    class local_my_renderer extends theme_fordson_fel\output\core\course_renderer {
+        use local_my_renderer_overrides;
+
+        const COURSECAT_SHOW_COURSES_NONE = 0; /* do not show courses at all */
+        const COURSECAT_SHOW_COURSES_COUNT = 5; /* do not show courses but show number of courses next to category name */
+        const COURSECAT_SHOW_COURSES_COLLAPSED = 10;
+        const COURSECAT_SHOW_COURSES_AUTO = 15; /* will choose between collapsed and expanded automatically */
+        const COURSECAT_SHOW_COURSES_EXPANDED = 20;
+        const COURSECAT_SHOW_COURSES_EXPANDED_WITH_CAT = 30;
+
+        const COURSECAT_TYPE_CATEGORY = 0;
+        const COURSECAT_TYPE_COURSE = 1;
+
+        public $basecategoryid;
+        public static $favorites;
+
+        public static $jscode = [];
+    }
+} else {
+
+    class local_my_renderer extends \core_course_renderer {
+        use local_my_renderer_overrides;
+
+        const COURSECAT_SHOW_COURSES_NONE = 0; /* do not show courses at all */
+        const COURSECAT_SHOW_COURSES_COUNT = 5; /* do not show courses but show number of courses next to category name */
+        const COURSECAT_SHOW_COURSES_COLLAPSED = 10;
+        const COURSECAT_SHOW_COURSES_AUTO = 15; /* will choose between collapsed and expanded automatically */
+        const COURSECAT_SHOW_COURSES_EXPANDED = 20;
+        const COURSECAT_SHOW_COURSES_EXPANDED_WITH_CAT = 30;
+
+        const COURSECAT_TYPE_CATEGORY = 0;
+        const COURSECAT_TYPE_COURSE = 1;
+
+        public $basecategoryid;
+        public static $favorites;
+
+        public static $jscode = [];
+    }
+}
+
+trait local_my_renderer_overrides {
 
     /**
      * Prints a progression progress bar or gauge in a div or a table cell
@@ -103,55 +147,6 @@ class local_my_renderer extends plugin_renderer_base {
         return $progression;
     }
 
-    /*
-    public function course_table_row($course, $options) {
-        global $DB, $USER;
-
-        $config = get_config('local_my');
-
-        $template = new StdClass;
-
-        $template->courseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-
-        if (!isset($course->summary)) {
-            $course->summary = $DB->get_field('course', 'summary', array('id' => $course->id));
-            $course->summaryformat = $DB->get_field('course', 'summaryformat', array('id' => $course->id));
-        }
-
-        $template->editingicon = $this->editing_icon($course);
-        if (!empty($config->showcourseidentifier)) {
-            if ($config->showcourseidentifier == 'idnumber') {
-                $template->cid = $course->idnumber;
-            } else {
-                $template->cid = $course->shortname;
-            }
-        }
-        $template->fullname = format_string($course->fullname);
-        $context = context_course::instance($course->id);
-        $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
-        $template->summary = format_text($summary);
-        if (!empty($options['withdescription'])) {
-            $template->hasdescription = true;
-        }
-
-        // Only non teachers can see progression.
-        if (!array_key_exists('gaugewidth', $options)) {
-            debugging('Missing option');
-        }
-        if (!array_key_exists('gaugetype', $options)) {
-            debugging('Missing option');
-        }
-        $this->course_completion_gauge($course, $options['gaugewidth'], $options['gaugeheight'],
-                                       $options['gaugetype'], $template);
-
-        $template->hiddenclass = (local_my_is_visible_course($course)) ? '' : 'dimmed';
-        $template->selfenrolclass = (local_my_is_selfenrolable_course($course)) ? 'selfenrol' : '';
-        $template->guestenrolclass = (local_my_is_guestenrolable_course($course)) ? 'guestenrol' : '';
-
-        return $this->output->render_from_template('local_my/coursetablerow', $template);
-    }
-    */
-
     public function editing_icon(&$course) {
         $context = context_course::instance($course->id);
         if (has_capability('moodle/course:manageactivities', $context)) {
@@ -160,125 +155,6 @@ class local_my_renderer extends plugin_renderer_base {
             return '<div class="editing-icon pull-right">'.$pix.'</div>';
         }
     }
-
-    /**
-     * Print a list style course list
-     */
-    /*
-    public function courses_list($title = 'mycourses', $courses, $options = array()) {
-        global $OUTPUT, $DB, $PAGE;
-
-        $config = get_config('local_my');
-
-        $str = '';
-
-        // Be sure we have something in lastaccess.
-        foreach ($courses as $cid => $c) {
-            $courses[$cid]->lastaccess = 0 + @$courses[$cid]->lastaccess;
-        }
-
-        if (empty($courses)) {
-            if (!empty($options['printifempty']) && empty($options['noheading'])) {
-                $str .= $OUTPUT->box_start('header');
-                $str .= $OUTPUT->box_start('title');
-                $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-                $str .= $OUTPUT->box_end();
-                $str .= $OUTPUT->box_end();
-                $str .= $OUTPUT->box(get_string('nocourses', 'local_my'), 'content');
-            }
-        } else {
-            if (empty($options['noheading'])) {
-                $str .= $OUTPUT->box_start('header');
-                $str .= $OUTPUT->box_start('title');
-                $str .= '<h2>'.get_string($title, 'local_my').'</h2>';
-                $str .= $OUTPUT->box_end();
-                $str .= $OUTPUT->box_end();
-                $str .= $OUTPUT->box_start('content');
-            }
-
-            $str .= '<table class="courselist" width="100%">';
-            if (!empty($options['withoverview'])) {
-                // Old overviewed. OBSOLETE.
-                // $str .= $renderer->course_overview($courses, $options);
-            } else if (!empty($options['withcats'])) {
-                // Structured list.
-                $str .= $this->courses_by_cats($courses, $options, $title);
-            } else {
-                // Flat list.
-                foreach ($courses as $c) {
-                    $c->idnumber = $DB->get_field('course', 'idnumber', array('id' => $c->id));
-                    $str .= $this->course_table_row($c, $options);
-                }
-            }
-            $str .= '</table>';
-
-            if (empty($options['noheading'])) {
-                $str .= $OUTPUT->box_end();
-            }
-        }
-
-        return $str;
-    }
-    */
-
-    /*
-    public function course_as_box($c) {
-
-        $config = get_config('local_my');
-
-        $template = new StdClass;
-
-        $context = context_course::instance($c->id);
-        $template->courseurl = new moodle_url('/course/view.php', array('id' => $c->id));
-        $fs = get_file_storage();
-
-        $template->css = $c->visible ? '' : 'dimmed';
-        $template->fullname = format_string($c->fullname);
-        if ($config->trimmode == 'words') {
-            if (empty($config->trimlength1)) {
-                $config->trimlength1 = 20;
-            }
-            $template->fullname = local_my_course_trim_words($template->fullname, $config->trimlength1);
-        } else if ($config->trimmode == 'chars') {
-            if (empty($config->trimlength1)) {
-                $config->trimlength1 = 80;
-            }
-            $template->fullname = local_my_course_trim_char($template->fullname, $config->trimlength1);
-        }
-
-        $template->shortname = $c->shortname;
-
-        $template->editingicon = $this->editing_icon($c);
-
-        $context = context_course::instance($c->id);
-        $images = $fs->get_area_files($context->id, 'course', 'overviewfiles', 0);
-        if ($image = array_pop($images)) {
-            $coursefileurl = moodle_url::make_pluginfile_url($context->id, 'course', 'overviewfiles', '',
-                                                             $image->get_filepath(), $image->get_filename());
-            $template->coursefileurl = $coursefileurl;
-            $template->hasimage = true;
-        } else {
-            $template->summary = format_text($c->summary);
-            if ($config->trimmode == 'words') {
-                if (empty($config->trimlength2)) {
-                    $config->trimlength2 = 100;
-                }
-                $template->summary = local_my_course_trim_words($template->summary, $config->trimlength2);
-            } else if ($config->trimmode == 'chars') {
-                if (empty($config->trimlength2)) {
-                    $config->trimlength2 = 500;
-                }
-                $template->summary = local_my_course_trim_char($template->summary, $config->trimlength2);
-            }
-        }
-
-        $this->course_completion_gauge($course,
-                                       $config->progressgaugewidth, $config->progressgaugeheight,
-                                       $config->progressgaugetype, $template);
-
-        return $this->output->render_from_template('local_my/coursebox', $template);
-    }
-    */
 
     public function print_forum_link($forum, &$forumname) {
         global $SITE;
@@ -335,6 +211,12 @@ class local_my_renderer extends plugin_renderer_base {
             $params = array('view' => 'asstudent');
             $taburl = new moodle_url('/my/index.php', $params);
             $rows[0][] = new tabobject('asstudent', $taburl, $tabname);
+        }
+
+        if (!empty($config->addcourseindexlink)) {
+            $tabname = get_string('courseindex', 'local_my');
+            $taburl = new moodle_url('/course/index.php');
+            $rows[0][] = new tabobject('courseindex', $taburl, $tabname);
         }
 
         if (!empty($rows) && count($rows[0]) > 1) {
@@ -517,5 +399,460 @@ class local_my_renderer extends plugin_renderer_base {
         $template->addsubcaturl = new moodle_url('/course/editcategory.php', array('parent' => $categoryid));
         $template->newsubcategorystr = get_string('addnewsubcategory', 'local_my');
         return $this->render_from_template('local_my/add_category_link', $template);
+    }
+
+    public function add_favorite_icon($courseid, $light = '') {
+
+        $this->init_favorites();
+
+        if (in_array($courseid, self::$favorites)) {
+            return '<i class="icon icon-favorite fa fas fa-star" data-course="'.$courseid.'"></i>';
+        } else {
+            $addstr = get_string('addtofavorites', 'local_my');
+            $attrs = ['class' => 'icon add-to-favorites-handle icon-favorite fa fa-star-o far '.$light,
+                      'data-course' => $courseid,
+                      'data-paste-target' => 'local_my_favorites',
+                      'title' => $addstr];
+            return html_writer::tag('i', '', $attrs);
+        }
+    }
+
+    public function init_favorites() {
+        global $DB, $USER;
+
+        if (is_null(self::$favorites)) {
+            $favoriteids = $DB->get_field('user_preferences', 'value', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+            if (!$favoriteids) {
+                // Ensure we will NOT fetch again an unset preferences.
+                self::$favorites = [];
+            } else {
+                self::$favorites = explode(',', $favoriteids);
+            }
+        }
+    }
+
+    public function remove_favorite_icon($courseid, $faicon = 'fa-trash') {
+        $deletestr = get_string('removefromfavorites', 'local_my');
+        $attrs = ['data-course' => $courseid, 'class' => 'icon remove-from-favorites-handle icon-favorite fa '.$faicon.' fa-fw', 'title' => $deletestr];
+        return html_writer::tag('i', '', $attrs);
+    }
+
+    /**
+     * Renders HTML to display particular course category - list of it's subcategories and courses
+     *
+     * Invoked from /course/index.php
+     *
+     * @param int|stdClass|core_course_category $category
+     */
+    public function course_category($category) {
+        global $CFG, $PAGE;
+
+        // Register for deeper calls.
+        $this->set_basecategoryid($category->basecategoryid);
+
+        $coursecat = core_course_category::get(is_object($category) ? $category->id : $category);
+        $site = get_site();
+        $output = '';
+
+        if (can_edit_in_category($coursecat->id)) {
+            // Add 'Manage' button if user has permissions to edit this category.
+            $managebutton = $this->single_button(new moodle_url('/course/management.php',
+                array('categoryid' => $coursecat->id)), get_string('managecourses'), 'get');
+            $this->page->set_button($managebutton);
+        }
+        if (!$coursecat->id) {
+            if (core_course_category::count_all() == 1) {
+                // There exists only one category in the system, do not display link to it
+                $coursecat = core_course_category::get_default();
+                $strfulllistofcourses = get_string('fulllistofcourses');
+                $this->page->set_title("$site->shortname: $strfulllistofcourses");
+            } else {
+                $strcategories = get_string('categories');
+                $this->page->set_title("$site->shortname: $strcategories");
+            }
+        } else {
+            $title = $site->shortname;
+            if (core_course_category::count_all() > 1) {
+                $title .= ": ". $coursecat->get_formatted_name();
+            }
+            $this->page->set_title($title);
+
+            // Print the category selector
+            if (core_course_category::count_all() > 1) {
+                $output .= html_writer::start_tag('div', array('class' => 'categorypicker'));
+                $select = new single_select(new moodle_url('/local/my/categories.php', ['basecategoryid' => $category->basecategoryid]), 'categoryid',
+                        local_get_cat_branch_rec($category->basecategoryid), $coursecat->id, null, 'switchcategory');
+                $select->set_label(get_string('categories').':');
+                $output .= $this->render($select);
+                $output .= html_writer::end_tag('div'); // .categorypicker
+            }
+        }
+
+        // Print current category description
+        $chelper = new coursecat_helper();
+        if ($description = $chelper->get_category_formatted_description($coursecat)) {
+            $output .= $this->box($description, array('class' => 'generalbox info'));
+        }
+
+        // Prepare parameters for courses and categories lists in the tree
+        $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_AUTO)
+                ->set_attributes(array('class' => 'category-browse category-browse-'.$coursecat->id));
+
+        $coursedisplayoptions = array();
+        $catdisplayoptions = array();
+        $browse = optional_param('browse', null, PARAM_ALPHA);
+        $perpage = optional_param('perpage', $CFG->coursesperpage, PARAM_INT);
+        $page = optional_param('page', 0, PARAM_INT);
+        $baseurl = new moodle_url('/local/my/categories.php');
+        if ($coursecat->id) {
+            $baseurl->param('categoryid', $coursecat->id);
+        }
+        if ($perpage != $CFG->coursesperpage) {
+            $baseurl->param('perpage', $perpage);
+        }
+        $coursedisplayoptions['limit'] = $perpage;
+        $catdisplayoptions['limit'] = $perpage;
+        if ($browse === 'courses' || !$coursecat->has_children()) {
+            $coursedisplayoptions['offset'] = $page * $perpage;
+            $coursedisplayoptions['paginationurl'] = new moodle_url($baseurl, array('browse' => 'courses'));
+            $catdisplayoptions['nodisplay'] = true;
+            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'categories'));
+            $catdisplayoptions['viewmoretext'] = new lang_string('viewallsubcategories');
+        } else if ($browse === 'categories' || !$coursecat->has_courses()) {
+            $coursedisplayoptions['nodisplay'] = true;
+            $catdisplayoptions['offset'] = $page * $perpage;
+            $catdisplayoptions['paginationurl'] = new moodle_url($baseurl, array('browse' => 'categories'));
+            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'courses'));
+            $coursedisplayoptions['viewmoretext'] = new lang_string('viewallcourses');
+        } else {
+            // we have a category that has both subcategories and courses, display pagination separately
+            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'courses', 'page' => 1));
+            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'categories', 'page' => 1));
+        }
+        $chelper->set_courses_display_options($coursedisplayoptions)->set_categories_display_options($catdisplayoptions);
+        // Add course search form.
+        // $output .= $this->course_search_form();
+
+        // Display course category tree.
+        $output .= $this->coursecat_tree($chelper, $coursecat);
+
+        // $output .= $this->container_end();
+
+        return $output;
+    }
+
+    /**
+     * Returns HTML to display the subcategories and courses in the given category
+     *
+     * This method is re-used by AJAX to expand content of not loaded category
+     *
+     * @param coursecat_helper $chelper various display options
+     * @param coursecat $coursecat
+     * @param int $depth depth of the category in the current tree
+     * @return string
+     */
+    protected function coursecat_category(coursecat_helper $chelper, $coursecat, $depth) {
+        // open category tag
+        $classes = array('category');
+        if (empty($coursecat->visible)) {
+            $classes[] = 'dimmed_category';
+        }
+        if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) {
+            // do not load content
+            $categorycontent = '';
+            $classes[] = 'notloaded';
+            if ($coursecat->get_children_count() ||
+                    ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) {
+                $classes[] = 'with_children';
+                $classes[] = 'collapsed';
+            }
+        } else {
+            // load category content
+            $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth);
+            $classes[] = 'loaded';
+            if (!empty($categorycontent)) {
+                $classes[] = 'with_children';
+                // Category content loaded with children.
+                $this->categoryexpandedonload = true;
+            }
+        }
+
+        // Make sure JS file to expand category content is included.
+        $this->coursecat_include_js();
+
+        $content = html_writer::start_tag('div', array(
+            'class' => join(' ', $classes),
+            'data-categoryid' => $coursecat->id,
+            'data-depth' => $depth,
+            'data-showcourses' => $chelper->get_show_courses(),
+            'data-type' => self::COURSECAT_TYPE_CATEGORY,
+        ));
+
+        // category name
+        $categoryname = $coursecat->get_formatted_name();
+        $categoryname = html_writer::link(new moodle_url('/local/my/categories.php',
+                array(
+                    'categoryid' => $coursecat->id,
+                    'basecategoryid' => $this->basecategoryid
+                )),
+                $categoryname);
+        if ($chelper->get_show_courses() == self::COURSECAT_SHOW_COURSES_COUNT
+                && ($coursescount = $coursecat->get_courses_count())) {
+            $categoryname .= html_writer::tag('span', ' ('. $coursescount.')',
+                    array('title' => get_string('numberofcourses'), 'class' => 'numberofcourse'));
+        }
+        $content .= html_writer::start_tag('div', array('class' => 'info'));
+
+        $content .= html_writer::tag(($depth > 1) ? 'h4' : 'h3', $categoryname, array('class' => 'categoryname'));
+        $content .= html_writer::end_tag('div'); // .info
+
+        // add category content to the output
+        $content .= html_writer::tag('div', $categorycontent, array('class' => 'content'));
+
+        $content .= html_writer::end_tag('div'); // .category
+
+        // Return the course category tree HTML
+        return $content;
+    }
+
+    /**
+     * Renders the list of subcategories in a category
+     *
+     * @param coursecat_helper $chelper various display options
+     * @param core_course_category $coursecat
+     * @param int $depth depth of the category in the current tree
+     * @return string
+     */
+    protected function coursecat_subcategories(coursecat_helper $chelper, $coursecat, $depth) {
+        global $CFG;
+        $subcategories = array();
+        if (!$chelper->get_categories_display_option('nodisplay')) {
+            $subcategories = $coursecat->get_children($chelper->get_categories_display_options());
+        }
+        $totalcount = $coursecat->get_children_count();
+        if (!$totalcount) {
+            // Note that we call core_course_category::get_children_count() AFTER core_course_category::get_children()
+            // to avoid extra DB requests.
+            // Categories count is cached during children categories retrieval.
+            return '';
+        }
+
+        // prepare content of paging bar or more link if it is needed
+        $paginationurl = $chelper->get_categories_display_option('paginationurl');
+        $paginationallowall = $chelper->get_categories_display_option('paginationallowall');
+        if ($totalcount > count($subcategories)) {
+            if ($paginationurl) {
+                $paginationurl->param('basecategoryid', $this->basecategoryid);
+                // the option 'paginationurl was specified, display pagingbar
+                $perpage = $chelper->get_categories_display_option('limit', $CFG->coursesperpage);
+                $page = $chelper->get_categories_display_option('offset') / $perpage;
+                $pagingbar = $this->paging_bar($totalcount, $page, $perpage,
+                        $paginationurl->out(false, array('perpage' => $perpage)));
+                if ($paginationallowall) {
+                    $pagingbar .= html_writer::tag('div', html_writer::link($paginationurl->out(false, array('perpage' => 'all')),
+                            get_string('showall', '', $totalcount)), array('class' => 'paging paging-showall'));
+                }
+            } else if ($viewmoreurl = $chelper->get_categories_display_option('viewmoreurl')) {
+                // the option 'viewmoreurl' was specified, display more link (if it is link to category view page, add category id)
+                if ($viewmoreurl->compare(new moodle_url('/local/my/categories.php'), URL_MATCH_BASE)) {
+                    $viewmoreurl->params(['categoryid', $coursecat->id, 'basecategoryid' => $this->basecategoryid]);
+                }
+                $viewmoretext = $chelper->get_categories_display_option('viewmoretext', new lang_string('viewmore'));
+                $morelink = html_writer::tag('div', html_writer::link($viewmoreurl, $viewmoretext),
+                        array('class' => 'paging paging-morelink'));
+            }
+        } else if (($totalcount > $CFG->coursesperpage) && $paginationurl && $paginationallowall) {
+            // there are more than one page of results and we are in 'view all' mode, suggest to go back to paginated view mode
+            $pagingbar = html_writer::tag('div', html_writer::link($paginationurl->out(false, array('perpage' => $CFG->coursesperpage)),
+                get_string('showperpage', '', $CFG->coursesperpage)), array('class' => 'paging paging-showperpage'));
+        }
+
+        // display list of subcategories
+        $content = html_writer::start_tag('div', array('class' => 'subcategories'));
+
+        if (!empty($pagingbar)) {
+            $content .= $pagingbar;
+        }
+
+        foreach ($subcategories as $subcategory) {
+            $content .= $this->coursecat_category($chelper, $subcategory, $depth + 1);
+        }
+
+        if (!empty($pagingbar)) {
+            $content .= $pagingbar;
+        }
+        if (!empty($morelink)) {
+            $content .= $morelink;
+        }
+
+        $content .= html_writer::end_tag('div');
+        return $content;
+    }
+
+    /**
+     * Serves requests to /course/category.ajax.php
+     *
+     * In this renderer implementation it may expand the category content or
+     * course content.
+     *
+     * @return string
+     * @throws coding_exception
+     */
+    public function coursecat_ajax() {
+        global $DB, $CFG;
+
+        $type = required_param('type', PARAM_INT);
+
+        if ($type === self::COURSECAT_TYPE_CATEGORY) {
+            // This is a request for a category list of some kind.
+            $categoryid = required_param('categoryid', PARAM_INT);
+            $showcourses = required_param('showcourses', PARAM_INT);
+            $depth = required_param('depth', PARAM_INT);
+
+            $category = core_course_category::get($categoryid);
+
+            $chelper = new coursecat_helper();
+            $params = [
+                'categoryid' => $categoryid,
+                'basecategoryid' => $this->basecategoryid,
+            ];
+            $baseurl = new moodle_url('/local/my/categories.php', $params);
+            $coursedisplayoptions = array(
+                'limit' => $CFG->coursesperpage,
+                'viewmoreurl' => new moodle_url($baseurl, array('browse' => 'courses', 'page' => 1))
+            );
+            $catdisplayoptions = array(
+                'limit' => $CFG->coursesperpage,
+                'viewmoreurl' => new moodle_url($baseurl, array('browse' => 'categories', 'page' => 1))
+            );
+            $chelper->set_show_courses($showcourses)->
+                    set_courses_display_options($coursedisplayoptions)->
+                    set_categories_display_options($catdisplayoptions);
+
+            return $this->coursecat_category_content($chelper, $category, $depth);
+        } else if ($type === self::COURSECAT_TYPE_COURSE) {
+            // This is a request for the course information.
+            $courseid = required_param('courseid', PARAM_INT);
+
+            $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+
+            $chelper = new coursecat_helper();
+            $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED);
+            return $this->coursecat_coursebox_content($chelper, $course);
+        } else {
+            throw new coding_exception('Invalid request type');
+        }
+    }
+
+    public function set_basecategoryid($coursecatid) {
+        global $SESSION;
+        $SESSION->basecategoryid = $coursecatid;
+        $this->basecategoryid = $coursecatid;
+    }
+
+    public function render_ajax_widget($uid, $widgetclass) {
+        global $CFG;
+
+        // Get sort and filter values.
+
+        // Get class for widget.
+
+        $display = optional_param('display', '', PARAM_TEXT);
+        if ($display == 'displaylist' || $display == 'displaysummary') {
+            // Fallback to standard list course widget.
+            $widgetclass = str_replace('_grid', '', $widgetclass);
+            $widgetclass = str_replace('_slider', '', $widgetclass);
+        }
+
+        $classname = $widgetclass.'_module';
+        $fqclassname = '\\local_my\\module\\'.$widgetclass.'_module';
+        include_once($CFG->dirroot.'/local/my/classes/modules/'.$widgetclass.'.class.php');
+        $instance = new $fqclassname();
+        $instance->set_uid($uid); // Ensures we keep the original uid.
+        $instance->set_option('sort', optional_param('sort', '', PARAM_TEXT));
+        $instance->set_option('display', optional_param('display', '', PARAM_TEXT));
+        $instance->set_option('schedule', optional_param('schedule', '', PARAM_TEXT));
+
+        // Render.
+
+        return $instance->render();
+
+    }
+
+    public function render_js_code($outcode) {
+        if ($outcode) {
+            $str = '<script type="text/javascript" >'."\n";
+        } else {
+            $str = '';
+        }
+        $str .= implode("\n", self::$jscode);
+        if ($outcode) {
+            $str .= '</script>';
+        }
+
+        return $str;
+    }
+
+    /**
+     * Renders an explicit expression of the filtering values of the course filter.
+     */
+    public function render_filter_states($uid, $widget) {
+
+        $config = get_config('local_my');
+        $states = local_my_get_filter_states($uid, $widget);
+
+        $str = get_string('youaredisplaying', 'local_my').': ';
+        foreach ($states as $statekey => $statevalue) {
+            if ($statevalue == '*') {
+                // For better string resolution.
+                $statevalue = 'all';
+            }
+            $str .= '<span class="filter-state filter-'.$statekey.'">'.get_string($statevalue, 'local_my').'</span> ';
+        }
+
+        return $str;
+    }
+
+    /**
+     * This function creates a minimal JS script that requires and calls a single function from an AMD module with arguments.
+     * If it is called multiple times, it will be executed multiple times.
+     *
+     * @param string $fullmodule The format for module names is <component name>/<module name>.
+     * @param string $func The function from the module to call
+     * @param array $params The params to pass to the function. They will be json encoded, so no nasty classes/types please.
+     */
+    public function js_call_amd($fullmodule, $func, $params = array()) {
+        global $CFG;
+
+        list($component, $module) = explode('/', $fullmodule, 2);
+
+        $component = clean_param($component, PARAM_COMPONENT);
+        $module = clean_param($module, PARAM_ALPHANUMEXT);
+        $func = clean_param($func, PARAM_ALPHANUMEXT);
+
+        $jsonparams = array();
+        foreach ($params as $param) {
+            $jsonparams[] = json_encode($param);
+        }
+        $strparams = implode(', ', $jsonparams);
+        if ($CFG->debugdeveloper) {
+            $toomanyparamslimit = 2048;
+            if (strlen($strparams) > $toomanyparamslimit) {
+                debugging('Too much data passed as arguments to js_call_amd("' . $fullmodule . '", "' . $func .
+                        '"). Generally there are better ways to pass lots of data from PHP to JavaScript, for example via Ajax, data attributes, ... . ' .
+                        'This warning is triggered if the argument string becomes longer than ' . $toomanyparamslimit . ' characters.', DEBUG_DEVELOPER);
+            }
+        }
+
+        $js = 'require(["' . $component . '/' . $module . '"], function(amd) { amd.' . $func . '(' . $strparams . '); });';
+
+        self::$jscode[] = $js;
+    }
+
+    public function is_favorite($courseid) {
+
+        $this->init_favorites();
+
+        return in_array($courseid, self::$favorites);
     }
 }

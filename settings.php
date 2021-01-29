@@ -24,6 +24,17 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/local/my/lib.php');
 
+// Settings default init.
+if (is_dir($CFG->dirroot.'/local/adminsettings')) {
+    // Integration driven code.
+    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
+    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
+} else {
+    // Standard Moodle code.
+    $capability = 'moodle/site:config';
+    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
+}
+
 $config = get_config('local_my');
 
 if (!empty($hasconfig) || $hassiteconfig) {
@@ -53,6 +64,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $desc = get_string('localskipmymetas_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
+
+    $key = 'local_my/addcourseindexlink';
+    $label = get_string('localmyaddcourseindexlink', 'local_my');
+    $desc = get_string('localmyaddcourseindexlink_desc', 'local_my');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+    $displaysettings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
 
     $key = 'local_my/excludedcourses';
     $label = get_string('localmyexcludedcourses', 'local_my');
@@ -151,6 +168,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
 
+    $key = 'local_my/enablerolecontrolincourseareas';
+    $label = get_string('localmyenablerolecontrolincourseareas', 'local_my');
+    $desc = get_string('localmyenablerolecontrolincourseareas_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $settings->add(new admin_setting_heading('header3', get_string('categorysettings', 'local_my'), ''));
 
     $key = 'local_my/printcategories';
@@ -205,9 +228,56 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $desc = get_string('localmymaxuncategorizedlistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 10, $uncategorizedoptions, PARAM_INT));
 
-    $key = 'local_my/courselistaccordion';
-    $label = get_string('localmycourselistaccordion', 'local_my');
-    $desc = get_string('localmycourselistaccordion_desc', 'local_my');
+    $settings->add(new admin_setting_heading('header3', get_string('courselistssettings', 'local_my'), ''));
+
+    $key = 'local_my/withsort';
+    $label = get_string('localmywithsort', 'local_my');
+    $desc = get_string('localmywithsort_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursesortoption';
+    $label = get_string('localmydefaultcoursesortoption', 'local_my');
+    $desc = get_string('localmydefaultcoursesortoption_desc', 'local_my');
+    $default = 0;
+    $sortoptions = local_my_get_course_sort_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $sortoptions));
+
+    $key = 'local_my/withtimeselector';
+    $label = get_string('localmywithtimeselector', 'local_my');
+    $desc = get_string('localmywithtimeselector_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursetimeoption';
+    $label = get_string('localmydefaultcoursetimeoption', 'local_my');
+    $desc = get_string('localmydefaultcoursetimeoption_desc', 'local_my');
+    $default = 0;
+    $timeoptions = local_my_get_course_time_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $timeoptions));
+
+    $key = 'local_my/withdisplay';
+    $label = get_string('localmywithdisplay', 'local_my');
+    $desc = get_string('localmywithdisplay_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursedisplayoption';
+    $label = get_string('localmydefaultcoursedisplayoption', 'local_my');
+    $desc = get_string('localmydefaultcoursedisplayoption_desc', 'local_my');
+    $default = 0;
+    $displayoptions = local_my_get_course_display_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
+
+    $key = 'local_my/showfilterstates';
+    $label = get_string('localmyshowfilterstates', 'local_my');
+    $desc = get_string('localmyshowfilterstates_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/lightfavorites';
+    $label = get_string('locallightfavorites', 'local_my');
+    $desc = get_string('locallightfavorites_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
@@ -218,6 +288,16 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $label = get_string('localmyheatmaprange', 'local_my');
     $desc = get_string('localmyheatmaprange_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 6, $heatmapoptions, PARAM_INT));
+
+    $settings->add(new admin_setting_heading('header42', get_string('categoryareasettings', 'local_my'), ''));
+
+    for ($i = 0; $i < 2; $i++) {
+        $key = 'local_my/categoryarea'.$i;
+        $label = get_string('localmycategoryarea', 'local_my').' A '.$i;
+        $settings->add(new admin_setting_configtext($key, $label, '', PARAM_TEXT));
+        $displaysettings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
+    }
+
 
     $settings->add(new admin_setting_heading('header5', get_string('visualsettings', 'local_my'), ''));
 
@@ -238,6 +318,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $options = array('' => get_string('notrim', 'local_my'), 'chars' => get_string('trimchars', 'local_my'), 'words' => get_string('trimwords', 'local_my'));
     $default = 'chars';
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
+
+    $key = 'local_my/courseboxheight';
+    $label = get_string('localcourseboxheight', 'local_my');
+    $desc = '';
+    $default = '500px';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
 
     $key = 'local_my/trimlength1';
     $label = get_string('localmytrimlength1', 'local_my');
@@ -264,6 +350,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
     */
+
+    $key = 'local_my/adddetailindicators';
+    $label = get_string('localmyadddetailindicators', 'local_my');
+    $desc = get_string('localmyadddetailindicators_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $key = 'local_my/progressgaugetype';
     $label = get_string('localmyprogressgaugetype', 'local_my');

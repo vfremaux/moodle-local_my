@@ -4,15 +4,15 @@
 
 {{#error}}
 <div class="block">
-    {{{errorbadblocknotification}}}
+    {{{error}}}
 </div>
 {{/error}}
 
 {{^error}}
-<div class="block">
-    <div class="header">';
+<div id="local-my-block-{{blockname}}-{{blockid}}" class="block local-my-block-{{blockname}}">
+    <div class="header">
         <div class="title">
-            <h2>{{title}}</h2>
+            <h2>{{{title}}}</h2>
         </div>
     </div>
 

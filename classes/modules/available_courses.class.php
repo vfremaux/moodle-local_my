@@ -1,6 +1,28 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * @package    local_my
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_my\module;
+
+defined('MOODLE_INTERNAL') or die();
 
 class available_courses_module extends my_courses_module {
 
@@ -30,6 +52,7 @@ class available_courses_module extends my_courses_module {
             } else {
                 $catlist = $this->options['incategories'];
             }
+            self::add_debuginfo("Getting available courses in ".implode(', ', $catlist));
 
             list($insql, $inparams) = $DB->get_in_or_equal($catlist, SQL_PARAMS_NAMED);
             $categoryclause = " AND c.category $insql ";
@@ -112,6 +135,10 @@ class available_courses_module extends my_courses_module {
                     }
                 }
 
+                if ($e->enrol == 'apply') {
+                    $pass++;
+                }
+
                 if (!$pass && $nopass) {
                     // If none is passing, but one at least retriction method fired, then discard.
                     continue;
@@ -138,9 +165,10 @@ class available_courses_module extends my_courses_module {
         if (!empty($this->courses)) {
             uasort($this->courses, 'local_sort_by_ccc');
         }
-
-        $this->process_excluded();
-        $this->process_metas();
-        $this->process_courseareas();
+        if (empty($this->options['noexcludefromstream'])) {
+            $this->process_excluded();
+            $this->process_metas();
+            $this->process_courseareas();
+        }
     }
 }

@@ -3,7 +3,11 @@
 <!-- local_my/missing_assign_submissions -->
 {{#hasassignments}}
 <div class="sektor-missing-assign-submissions indicator {{collapseclass}}">
-    {{{assignicon}}}<b>:</b>&nbsp;&nbsp; <div class="sektor-image" id="sektor-missing-submissions-{{id}}" title="{{#str}}pendingassignsto submit, local_my{{/str}}"></div> {{{assignmentstosubmit}}}
+    {{{assignicon}}}<b>:</b>&nbsp;&nbsp; <div class="sektor-image" id="sektor-missing-submissions-{{id}}" title="{{#str}}pendingassignstosubmit, local_my{{/str}} {{assignmentstosubmitratio}}%"></div>
+
+    &nbsp;&nbsp; {{{assigntosubmiticon}}} {{assignmentstosubmit}} / {{submissionstotal}}
+    &nbsp;&nbsp;<i class="fa fa-users" title="{{#str}}uncompleteassignusers, local_my{{/str}}"> {{{distinctunsubmittedusers}}} / {{assignuserstotal}}</i>
 </div>
+
 {{/hasassignments}}
 <!-- /local_my/missing_assign_submissions -->
