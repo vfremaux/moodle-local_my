@@ -45,5 +45,6 @@ $plugin->profiles = [
     'classes/modules/my_courses_slider.class.php',
     'classes/modules/my_authored_courses_slider.class.php',
     'classes/modules/my_managed_courses_slider.class.php',
+    'classes/modules/my_favorite_courses_slider.class.php',
     'classes/modules/courses_slider.class.php',
 ];

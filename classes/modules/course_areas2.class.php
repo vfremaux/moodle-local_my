@@ -24,32 +24,23 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-use \context_course;
+require_once($CFG->dirroot.'/local/my/classes/modules/course_areas.class.php');
 
-/**
- * common code to all "favorite" wigdets
- */
-trait my_favorite {
-    public function get_courses() {
-        global $USER, $DB, $CFG;
+use \StdClass;
+use \moodle_url;
 
-        $params = ['userid' => $USER->id, 'name' => 'local_my_favorite_courses'];
-        $favorites = $DB->get_field('user_preferences', 'value', $params);
-        if (empty($favorites)) {
-            return;
-        }
-        $favoriteids = explode(',', $favorites);
-        foreach ($favoriteids as $fc) {
-            if (!empty($fc)) {
-                $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
-            }
-        }
+class course_areas2_module extends course_areas_module {
 
-        // Renormalise the list in case of mistake.
-        $DB->set_field('user_preferences', 'value', implode(',', array_keys($this->courses)), $params);
+    public static $areakey = 'courseareas2';
+    public static $areaconfigkey = 'coursearea2_';
 
-        $this->process_excluded();
-        $this->process_metas();
-        // $this->process_courseareas();
+    public function __construct() {
+        parent::__construct();
+        $this->area = 'course_areas2';
+        $this->modulename = get_string('courseareas', 'local_my');
+
+        self::$areakey = 'courseareas2';
+        self::$areaconfigkey = 'coursearea2_';
     }
+
 }

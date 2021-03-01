@@ -32,6 +32,7 @@ $string['addnewsubcategory'] = 'Add new subcategory';
 $string['addtofavorites'] = 'Add to favorites';
 $string['adminview'] = '<span class="tinytext">This content is only visible if user profile {$a->field} is "{$a->value}</span>"';
 $string['allcategories'] = 'All categories';
+$string['allcourses'] = 'Courses';
 $string['asadmin'] = 'Administrator';
 $string['asadminpagetitle'] = 'Administrator';
 $string['ascoursemanager'] = 'Course manager';
@@ -74,8 +75,6 @@ $string['defaultleftcolumntext'] = '';
 $string['editing'] = 'You can edit this course';
 $string['effecthalo'] = "Halo effect";
 $string['effectopacity'] = "Opacity effect";
-$string['emulatecommunity'] = 'Emulate the community version.';
-$string['emulatecommunity_desc'] = 'Switches the code to the community version. The result will be more compatible, but some features will not be available anymore.';
 $string['enabledusers'] = 'Active accounts';
 $string['enrollablecourses'] = 'Courses you can self enrol in';
 $string['enrolled'] = 'Enrolled students';
@@ -103,11 +102,6 @@ $string['inner'] = "Between {down} and {up}";
 $string['ishidden'] = "Is hidden";
 $string['latestnews'] = 'Latest news';
 $string['lefteditioncolumn'] = 'Left edition column';
-$string['licensekey'] = 'Pro license key';
-$string['licensekey_desc'] = 'Input here the product license key you got from your provider';
-$string['licenseprovider'] = 'Pro License provider';
-$string['licenseprovider_desc'] = 'Input here your provider key';
-$string['licensestatus'] = 'Pro License status';
 $string['localcourseboxheight'] = 'Course box height';
 $string['localmyadddetailindicators'] = 'Add detail indicators';
 $string['localmyadddetailindicators_desc'] = '';
@@ -118,6 +112,8 @@ $string['localmycourselistaccordion'] = 'Use accordion behaviour of course lists
 $string['localmycourselistaccordion_desc'] = 'Use accordion behaviour of course lists';
 $string['localmycoursemanagermodules'] = 'Course manager panel modules';
 $string['localmyenable'] = 'Enable customized my';
+$string['locallightfavorites'] = 'Enable light favorites';
+$string['locallightfavorites_desc'] = 'Uses the light favorite system in course lists and sorting by preference.';
 $string['categoryareasettings'] = 'Course categories areas settings';
 $string['localmycategoryareas'] = 'Course category areas';
 $string['localmycategoryarea'] = 'Category area course categories';
@@ -142,6 +138,8 @@ $string['localmyprogressgaugetype'] = 'Progress bar type';
 $string['localmyprogressgaugetype_desc'] = '';
 $string['localmyprogressgaugewidth'] = 'Progress bar width';
 $string['localmyprogressgaugewidth_desc'] = '';
+$string['localmyshowfilterstates'] = 'show filter states';
+$string['localmyshowfilterstates_desc'] = 'If enabled, the state of all activated filters will be explicitely shown on screen';
 $string['localmyshowcourseidentifier'] = 'Show course identifier';
 $string['localmyshowcourseidentifier_desc'] = 'If enabled, adds the course identifier to the course list output';
 $string['localmyslick'] = 'Enable slider';
@@ -165,12 +163,19 @@ $string['localprofilefieldforcelistvalues_desc'] = '';
 $string['localskipmymetas'] = 'Skip my metacourses';
 $string['localmydefaultcoursedisplayoption'] = 'Default display mode for course lists';
 $string['localmydefaultcoursedisplayoption_desc'] = '';
+$string['localmydefaultcoursetimeoption'] = 'Default time option for course lists';
+$string['localmydefaultcoursetimeoption_desc'] = '';
+$string['localmydefaultcoursesortoption'] = 'Default sort options for course lists';
+$string['localmydefaultcoursesortoption_desc'] = '';
 $string['localmywithdisplay'] = 'Enable course list manual display control';
 $string['localmywithsort'] = 'Enable course list sorting';
 $string['localmywithtimeselector'] = 'Enable course list time selector';
 $string['localmywithdisplay_desc'] = '';
 $string['localmywithsort_desc'] = '';
 $string['localmywithtimeselector_desc'] = '';
+$string['localmyaddcourseindexlink'] = 'Add tab linked to global course index';
+$string['localmyaddcourseindexlink_desc'] = '';
+$string['courseindex'] = 'Course index';
 $string['lower'] = "Less than {min} {name}";
 $string['managemycourses'] = 'Manage my courses';
 $string['me'] = 'Me';
@@ -237,6 +242,7 @@ $string['uncompletequizusersratio'] = 'Quiz completion ratio (users)';
 $string['uncompleteassignusers'] = 'Users with pending assigns to submit';
 $string['unknownmodule'] = 'Unknown output module {$a}';
 $string['upper'] = "More than {max} {name}";
+$string['youaredisplaying'] = 'You are displaying';
 $string['visualsettings'] = "Visual settings";
 $string['all'] = 'All';
 $string['passed'] = 'Passed courses';
@@ -320,10 +326,4 @@ $string['localskipmymetas_desc'] = 'Skip metacourses in my if enabled';
 
 $string['localmyexcludedcourses_desc'] = 'Enter a list of course ids';
 
-$string['plugindist'] = 'Plugin distribution';
-$string['plugindist_desc'] = '
-<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
-core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
-and improvement effort.</p>
-<p>Please contact one of our distributors to get "Pro" version support.</p>
-<p><a href="http://www.mylearningfactory.com/index.php/documentation/Distributeurs?lang=en_utf8">MyLF Distributors</a></p>';
+include(__DIR__.'/pro_additional_strings.php');

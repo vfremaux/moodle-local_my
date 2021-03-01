@@ -25,22 +25,24 @@
             {{/filters}}
         </div>
         {{/hasfilters}}
+
         {{#hastimeselector}}
         <div class="local-my-course-time">
             {{> local_my/time}}
         </div>
         {{/hastimeselector}}
+
         <div class="local-my-course-sortanddisplay">
-        {{#hassort}}
-        <div class="local-my-course-sort">
-            {{> local_my/sort}}
-        </div>
-        {{/hassort}}
-        {{#hasdisplay}}
-        <div class="local-my-course-display">
-        {{> local_my/display}}
-        </div>
-        {{/hasdisplay}}
+            {{#hassort}}
+            <div class="local-my-course-sort">
+                {{> local_my/sort}}
+            </div>
+            {{/hassort}}
+            {{#hasdisplay}}
+            <div class="local-my-course-display">
+            {{> local_my/display}}
+            </div>
+            {{/hasdisplay}}
         </div>
     </div>
     {{/hassortorfilter}}

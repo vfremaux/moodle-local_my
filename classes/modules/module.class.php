@@ -23,8 +23,6 @@
 namespace local_my\module;
 
 require_once($CFG->dirroot.'/local/my/lib.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
 use \StdClass;
 use \moodle_url;
@@ -121,6 +119,11 @@ abstract class module {
      * A set of rendering options.
      */
     protected $options;
+
+    /**
+     * Some modules may have definitions for specific filters.
+     */
+    public $filters;
 
     public function __construct() {
         static $uidseed = 0;
@@ -671,7 +674,8 @@ abstract class module {
 
         $coursecount = count($courses);
 
-        if ($coursecount > self::$config->maxuncategorizedlistsize) {
+        $isauto = !empty($this->options['display']) && $this->options['display'] == 'displayauto';
+        if ($coursecount > self::$config->maxuncategorizedlistsize && $isauto) {
             $template->aslist = true;
             $template->resolved = 'aslist';
             $template->rule = 'bysize';
@@ -809,6 +813,10 @@ abstract class module {
             $courseid = $courseorid;
         }
 
+        if (empty($courseid)) {
+            return;
+        }
+
         $coursetpl = new StdClass;
         $course = get_course($courseid);
         $context = context_course::instance($course->id);
@@ -841,11 +849,21 @@ abstract class module {
             $coursetpl->trimtitle = local_my_course_trim_char(format_string($course->fullname), self::$config->trimlength1);
         }
 
+        // Using my_favorites widget.
         if (local_my_is_using_favorites() && empty($this->options['nofavorable'])) {
             if (!empty($this->options['isfavorite'])) {
                 $coursetpl->favoritectl = $renderer->remove_favorite_icon($course->id);
             } else {
                 $coursetpl->favoritectl = $renderer->add_favorite_icon($course->id);
+            }
+        }
+
+        // Using light favorite taggings.
+        if (!empty($config->lightfavorites) && empty($this->options['nofavorable'])) {
+            if ($renderer->is_favorite($courseid)) {
+                $coursetpl->favoritectl = $renderer->remove_favorite_icon($course->id, 'fas fa-star light');
+            } else {
+                $coursetpl->favoritectl = $renderer->add_favorite_icon($course->id, 'light');
             }
         }
 
@@ -980,8 +998,10 @@ abstract class module {
 
                     // Other signals. Defer to Pro Decorator.
                     if (local_my_supports_feature('widgets/indicators')) {
-                        include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
-                        pro_modules_additions::add_teacher_indicators($coursetpl, $course);
+                        if (!empty($config->adddetailindicators)) {
+                            include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
+                            pro_modules_additions::add_teacher_indicators($coursetpl, $course);
+                        }
                     }
                 }
             }
@@ -1009,8 +1029,10 @@ abstract class module {
 
                 // Other signals. Defer to Pro Decorator.
                 if (local_my_supports_feature('widgets/indicators')) {
-                    include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
-                    pro_modules_additions::add_student_indicators($coursetpl, $course);
+                    if (!empty($config->adddetailindicators)) {
+                        include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
+                        pro_modules_additions::add_student_indicators($coursetpl, $course);
+                    }
                 }
             }
         }
@@ -1247,21 +1269,25 @@ abstract class module {
      */
     public function sortbyfavorites($a, $b) {
         if (self::$renderer->is_favorite($a->id) && !self::$renderer->is_favorite($b->id)) {
-            return 1;
+            return -1;
         }
         if (!self::$renderer->is_favorite($a->id) && self::$renderer->is_favorite($b->id)) {
-            return -1;
+            return 1;
         }
         return $this->sortbyname($a, $b);
     }
 
     protected function get_filter_templates($filter) {
 
+        $config = get_config('local_my');
+
         $defaultfilteroption = '*';
 
         $filtertpl = new StdClass;
         $filtertpl->filtername = $filter->name;
         $filtertpl->filterlabelstr = get_string($filter->name, 'local_my');
+        $filtertpl->currentvalue = $filter->currentvalue;
+        $filtertpl->showstates = $config->showfilterstates;
 
         foreach ($filter->options as $option) {
             $opttpl = new StdClass;
@@ -1288,6 +1314,14 @@ abstract class module {
     }
 
     public function catch_filters() {
+        if (!empty($this->filters)) {
+            foreach ($this->filters as $filter) {
+                $filter->catchvalue();
+            }
+        }
+    }
+
+    public function get_filter_states() {
         if (!empty($this->filters)) {
             foreach ($this->filters as $filter) {
                 $filter->catchvalue();

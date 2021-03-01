@@ -65,6 +65,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
     $displaysettings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
 
+    $key = 'local_my/addcourseindexlink';
+    $label = get_string('localmyaddcourseindexlink', 'local_my');
+    $desc = get_string('localmyaddcourseindexlink_desc', 'local_my');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+    $displaysettings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
     $key = 'local_my/excludedcourses';
     $label = get_string('localmyexcludedcourses', 'local_my');
     $desc = get_string('localmyexcludedcourses_desc', 'local_my');
@@ -230,11 +236,25 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $default = 1;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
+    $key = 'local_my/defaultcoursesortoption';
+    $label = get_string('localmydefaultcoursesortoption', 'local_my');
+    $desc = get_string('localmydefaultcoursesortoption_desc', 'local_my');
+    $default = 0;
+    $sortoptions = local_my_get_course_sort_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $sortoptions));
+
     $key = 'local_my/withtimeselector';
     $label = get_string('localmywithtimeselector', 'local_my');
     $desc = get_string('localmywithtimeselector_desc', 'local_my');
     $default = 1;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursetimeoption';
+    $label = get_string('localmydefaultcoursetimeoption', 'local_my');
+    $desc = get_string('localmydefaultcoursetimeoption_desc', 'local_my');
+    $default = 0;
+    $timeoptions = local_my_get_course_time_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $timeoptions));
 
     $key = 'local_my/withdisplay';
     $label = get_string('localmywithdisplay', 'local_my');
@@ -246,13 +266,20 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $label = get_string('localmydefaultcoursedisplayoption', 'local_my');
     $desc = get_string('localmydefaultcoursedisplayoption_desc', 'local_my');
     $default = 0;
-    $displayoptions = [
-        'displayauto' => get_string('displayauto', 'local_my'),
-        'displaycards' => get_string('displaycards', 'local_my'),
-        'displaylist' => get_string('displaylist', 'local_my'),
-        'displaysummary' => get_string('displaysummary', 'local_my'),
-    ];
+    $displayoptions = local_my_get_course_display_options();
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
+
+    $key = 'local_my/showfilterstates';
+    $label = get_string('localmyshowfilterstates', 'local_my');
+    $desc = get_string('localmyshowfilterstates_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/lightfavorites';
+    $label = get_string('locallightfavorites', 'local_my');
+    $desc = get_string('locallightfavorites_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $settings->add(new admin_setting_heading('header4', get_string('heatmapsettings', 'local_my'), ''));
 
@@ -315,6 +342,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $desc = get_string('localmyhidedescriptions_desc', 'local_my');
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    /*
+    $key = 'local_my/hideprogression';
+    $label = get_string('localmyhideprogression', 'local_my');
+    $desc = get_string('localmyhideprogression_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+    */
 
     $key = 'local_my/adddetailindicators';
     $label = get_string('localmyadddetailindicators', 'local_my');

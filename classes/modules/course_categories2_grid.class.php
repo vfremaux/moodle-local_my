@@ -21,35 +21,25 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_my\module;
+require_once($CFG->dirroot.'/local/my/classes/modules/course_categories2.class.php');
 
 defined('MOODLE_INTERNAL') or die();
 
+use \StdClass;
+use \moodle_url;
 use \context_course;
 
-/**
- * common code to all "favorite" wigdets
- */
-trait my_favorite {
-    public function get_courses() {
-        global $USER, $DB, $CFG;
+class course_categories2_grid_module extends course_categories2_module {
 
-        $params = ['userid' => $USER->id, 'name' => 'local_my_favorite_courses'];
-        $favorites = $DB->get_field('user_preferences', 'value', $params);
-        if (empty($favorites)) {
-            return;
-        }
-        $favoriteids = explode(',', $favorites);
-        foreach ($favoriteids as $fc) {
-            if (!empty($fc)) {
-                $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
-            }
-        }
+    public function __construct() {
+        global $DB;
 
-        // Renormalise the list in case of mistake.
-        $DB->set_field('user_preferences', 'value', implode(',', array_keys($this->courses)), $params);
+        parent::__construct();
+        $this->area = 'course_categories2_grid';
+        $this->options['withicons'] = true;
+    }
 
-        $this->process_excluded();
-        $this->process_metas();
-        // $this->process_courseareas();
+    public function render($required = 'aslist') {
+        return parent::render('asgrid');
     }
 }

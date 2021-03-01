@@ -24,32 +24,29 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-use \context_course;
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
-/**
- * common code to all "favorite" wigdets
- */
-trait my_favorite {
-    public function get_courses() {
-        global $USER, $DB, $CFG;
+class my_managed_courses_slider_module extends my_managed_courses_module {
 
-        $params = ['userid' => $USER->id, 'name' => 'local_my_favorite_courses'];
-        $favorites = $DB->get_field('user_preferences', 'value', $params);
-        if (empty($favorites)) {
-            return;
-        }
-        $favoriteids = explode(',', $favorites);
-        foreach ($favoriteids as $fc) {
-            if (!empty($fc)) {
-                $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
-            }
+    public function __construct() {
+        global $PAGE;
+
+        parent::__construct();
+        $this->area = 'my_managed_courses_slider';
+        if (!self::$isslickrendered) {
+            $renderer = self::get_renderer();
+            $renderer->js_call_amd('local_my/slick', 'init');
+            $renderer->js_call_amd('local_my/slickinit', 'init');
+            $PAGE->requires->css('/local/my/css/slick.css');
+            self::$isslickrendered = true;
         }
 
-        // Renormalise the list in case of mistake.
-        $DB->set_field('user_preferences', 'value', implode(',', array_keys($this->courses)), $params);
+        $this->options['gaugetype'] = 'sektor';
+        $this->options['gaugewidth'] = '20';
+        $this->options['gaugeheight'] = '20';
+    }
 
-        $this->process_excluded();
-        $this->process_metas();
-        // $this->process_courseareas();
+    public function render($required = 'aslist') {
+        return parent::render('asgrid');
     }
 }

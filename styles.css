@@ -195,8 +195,7 @@ div.mycourseareas h4 {
     float: none;
     vertical-align: bottom;
     min-height: 250px;
-    max-width: 320px;
-    min-width: 250px;
+    width: 300px;
 }
 
 .local-my-promowrap h3 {
@@ -217,6 +216,7 @@ div.mycourseareas h4 {
     text-align: center;
     padding: 5px;
     clear: both;
+    width: 300px;
 }
 
 .local-my-fp-courseinfo > h3,
@@ -229,6 +229,7 @@ div.mycourseareas h4 {
     margin: auto auto 10px auto;
     height: 150px !important;
     width:100%;
+    /* object-fit: cover; */
 }
 
 .local-my-fp-coursebox,
@@ -464,12 +465,10 @@ li.local-my-course {
     min-height: 150px;
 }
 
-.category-grid > div {
-   flex-basis: 25%;
-}
-
-.course-grid > div {
-    flex-basis: 20%;
+@media all and (min-width: 576px) and (max-width: 1280px) {
+    .course-grid > div {
+        flex-basis: 20%;
+    }
 }
 
 /*
@@ -598,7 +597,7 @@ li.local-my-course {
     display:flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    z-index: 10000;
+    z-index: 1020; /* need remain under the navbar */
 }
 
 .local-my-fp-learning-indicators-line {
@@ -623,7 +622,6 @@ li.local-my-course {
     border-radius: 8px;
     position: relative;
     top: 0;
-    right: -10em;
     max-width: 250px;
     display: flex;
     flex-wrap: wrap;
@@ -713,23 +711,27 @@ li.local-my-course {
     margin-bottom: 10px;
 }
 
-@media all and (max-width:480px) {
+@media all and (max-width:576px) {
     .coursetitle {
         margin-top: 20px;
     }
 
     .local-my-fp-coursebox {
-        height: 250px;
-        max-height: 250px;
+        max-height: 300px;
         min-height: 250px;
+    }
+
+    .local-my-promowrap {
+        margin: 0;
     }
 }
 
 .area-buttons {
-    padding: 10px;
+    padding: 10px 0;
 }
 
-.add-to-favorites-handle {
+.add-to-favorites-handle,
+.remove-from-favorites-handle {
     cursor: pointer;
 }
 
@@ -743,6 +745,7 @@ li.local-my-course {
 }
 
 .course-filter.active,
+.course-time.active,
 .course-sort.active,
 .course-display.active {
     color: white !important;
@@ -752,3 +755,50 @@ li.local-my-course {
     background-color: white;
     box-shadow: 0 1px 4px 0 rgba(0,0,0,.4);
 }
+
+.filter-states {
+    padding-top: 10px;
+}
+
+.filter-state {
+    font-style: italic;
+    padding: 0 10px;
+}
+
+/*
+.filter-state {
+    background-color: #eee;
+    display: inline-block;
+    padding: 10px 20px 0 20px;
+    border-radius: 30px;
+    color: #666;
+    margin: 0 10px;
+}
+*/
+
+/* generic, applies as default */
+/*
+.filter-state::before {
+    content: "\f0b0 ";
+    font-family: "fontAwesome";
+    margin-right: 10px;
+}
+
+.filter-sort::before {
+    content: "\f0dc ";
+    font-family: "fontAwesome";
+    margin-right: 10px;
+}
+
+.filter-time::before {
+    content: "\f017 ";
+    font-family: "fontAwesome";
+    margin-right: 10px;
+}
+
+.filter-display::before {
+    content: "\f00a ";
+    font-family: "fontAwesome";
+    margin-right: 10px;
+}
+*/

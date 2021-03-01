@@ -28,6 +28,7 @@ $string['privacy:metadata'] = 'Le plugin local Mon Moodle Amélioré ne détient
 $string['ariaviewselectoroption'] = 'Tri {$a}';
 $string['ariaviewfilteroption'] = 'Filtrer les {$a}';
 $string['ariaviewtimeoption'] = 'Filtrer les {$a}';
+$string['allcourses'] = 'Tous les cours';
 $string['addnewsubcategory'] = 'Ajouter une nouvelle sous-catégorie';
 $string['addtofavorites'] = 'Ajouter aux favoris';
 $string['adminview'] = '<span class="tinytext">Ce contenu n\'est visible que si le champ de profil {$a->field} vaut "{$a->value}</span>"';
@@ -79,8 +80,6 @@ $string['displaysummary'] = 'Résumés';
 $string['editing'] = 'Vous avez les droits d\'édition sur ce cours';
 $string['effecthalo'] = "Effet de halo";
 $string['effectopacity'] = "Effet d'opacité";
-$string['emulatecommunity'] = 'Emuler la version communautaire';
-$string['emulatecommunity_desc'] = 'Bascule le code sur la version communautaire. Le résultat est plus compatible avec d\'autres installations, mais certaines fonctionnalités avancées ne seront plus disponibles.';
 $string['enabledusers'] = 'Comptes actifs';
 $string['enrollablecourses'] = 'Cours en inscription libre';
 $string['enrolled'] = 'Inscrits';
@@ -102,17 +101,14 @@ $string['inner'] = 'Entre {down} et {up}';
 $string['ishidden'] = "Cours caché";
 $string['latestnews'] = 'Dernières nouvelles';
 $string['lefteditioncolumn'] = 'Colonne éditoriale de gauche';
-$string['licensekey'] = 'Clef de license pro';
-$string['licensekey_desc'] = 'Entrez ici la clef de produit que vous avez reçu de votre distributeur.';
-$string['licenseprovider'] = 'Fournisseur version Pro';
-$string['licenseprovider_desc'] = 'Entrez la clef de votre distributeur.';
-$string['licensestatus'] = 'Etat de la license d\'exploitation';
-$string['localcourseboxheight'] = 'Heuteur de boite de cours';
+$string['localcourseboxheight'] = 'Hauteur de boite de cours';
 $string['localmyadddetailindicators'] = 'Ajouter les indicateurs détaillés';
 $string['localmyadddetailindicators_desc'] = '';
 $string['localmyadminmodules'] = 'Modules actifs pour les administrateurs';
 $string['localmycoursearea'] = 'Aire de cours ';
 $string['localmycourseareas'] = 'Aires de cours specifiques';
+$string['locallightfavorites'] = 'Activer les favoris "légers"';
+$string['locallightfavorites_desc'] = 'Active le mode "léger" des favoris dans les listes de cours avec une option de tri.';
 $string['categoryareasettings'] = 'Réglage des zones de catégories de cours';
 $string['localmycategoryareas'] = 'Zone de catégorie de cours';
 $string['localmycategoryarea'] = 'Catégories dela zone';
@@ -158,12 +154,21 @@ $string['localprofilefieldforcelistvalues_desc'] = '';
 $string['localskipmymetas'] = 'Ignorer les metacours';
 $string['localmydefaultcoursedisplayoption'] = 'Mode d\'affichage par défaut pour les listes de cours';
 $string['localmydefaultcoursedisplayoption_desc'] = '';
+$string['localmydefaultcoursetimeoption'] = 'Option de date par défaut pour les listes de cours';
+$string['localmydefaultcoursetimeoption_desc'] = '';
+$string['localmydefaultcoursesortoption'] = 'Option de tri par défaut pour les listes de cours';
+$string['localmydefaultcoursesortoption_desc'] = '';
 $string['localmywithdisplay'] = 'Activer le contrôle manuel du mode d\'affichage';
 $string['localmywithsort'] = 'Activer le tri';
 $string['localmywithsort'] = 'Activer le filtre par date';
 $string['localmywithdisplay_desc'] = '';
 $string['localmywithsort_desc'] = '';
 $string['localmywithtimeselector_desc'] = '';
+$string['localmyaddcourseindexlink'] = 'Ajouter un onglet vers l\'index général des cours';
+$string['localmyaddcourseindexlink_desc'] = '';
+$string['localmyshowfilterstates'] = 'Afficher l\'état des filtres';
+$string['localmyshowfilterstates_desc'] = 'Si activé, l\'état courant des filtres sera explicitement affiché à l\'écran';
+$string['courseindex'] = 'Plan du site';
 $string['lower'] = 'Moins que {min} {name}';
 $string['managemycourses'] = 'Gérer mes cours';
 $string['me'] = 'Mon profil';
@@ -227,7 +232,8 @@ $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrat
 utilisateurs puissent créer les leurs.';
 $string['upper'] = 'Plus que {max} {name}';
 $string['visualsettings'] = "Réglages graphiques";
-$string['all'] = 'Tous les cours';
+$string['youaredisplaying'] = 'Votre choix d\'affichage ';
+$string['all'] = 'Tous';
 $string['passed'] = 'Cours passés';
 $string['current'] = 'Cours ouverts';
 $string['future'] = 'Cours futurs';
@@ -313,10 +319,4 @@ $string['rendererimages_desc'] = 'Toutes les images par défaut pour l\'interfac
 
 $string['localmyexcludedcourses_desc'] = 'Entrez une liste d\'identifiants de cours séparés par des virgules.';
 
-$string['plugindist'] = 'Distribution du plugin';
-$string['plugindist_desc'] = '
-<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
-correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugin existe et est distribuée
-sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
-<p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
-<p><a href="http://www.mylearningfactory.com/index.php/documentation/Distributeurs?lang=fr_utf8">Distributeurs MyLF</a></p>';
+include(__DIR__.'/pro_additional_strings.php');

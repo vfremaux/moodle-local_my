@@ -21,35 +21,31 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_my\module;
+require_once($CFG->dirroot.'/local/my/classes/modules/course_categories.class.php');
 
 defined('MOODLE_INTERNAL') or die();
 
+use \StdClass;
+use \moodle_url;
 use \context_course;
 
-/**
- * common code to all "favorite" wigdets
- */
-trait my_favorite {
+class course_categories2_module extends course_categories_module {
+
+    public function __construct() {
+        global $DB;
+
+        parent::__construct();
+        $this->area = 'course_categories2';
+        $this->modulename = get_string('categories', 'local_my');
+
+        $this->options = array();
+        $this->options['withicons'] = false;
+
+        // Get categories to display.
+        $this->categories = explode(',', self::$config->categoryarea1);
+    }
+
     public function get_courses() {
-        global $USER, $DB, $CFG;
-
-        $params = ['userid' => $USER->id, 'name' => 'local_my_favorite_courses'];
-        $favorites = $DB->get_field('user_preferences', 'value', $params);
-        if (empty($favorites)) {
-            return;
-        }
-        $favoriteids = explode(',', $favorites);
-        foreach ($favoriteids as $fc) {
-            if (!empty($fc)) {
-                $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
-            }
-        }
-
-        // Renormalise the list in case of mistake.
-        $DB->set_field('user_preferences', 'value', implode(',', array_keys($this->courses)), $params);
-
-        $this->process_excluded();
-        $this->process_metas();
-        // $this->process_courseareas();
+        assert(1);
     }
 }

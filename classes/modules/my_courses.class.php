@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') or die();
 
 require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
 
-use Stdclass;
+use StdClass;
 use context_course;
 use html_writer;
 
@@ -80,6 +80,7 @@ class my_courses_module extends module {
             $template->shortdisplay = true;
         }
 
+        $template->showstates = get_config('local_my', 'showfilterstates');
         $template->assignicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'assign'), 'mod_assign');
         $template->quizicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'quiz'), 'mod_quiz');
         $template->assigntosubmiticon = $OUTPUT->pix_icon('assignstosubmit', get_string('pendingassignstosubmit', 'local_my'), 'local_my');
@@ -137,6 +138,7 @@ class my_courses_module extends module {
             }
 
             // Get a simple, one level list.
+            $template->courses = [];
             foreach ($this->courses as $cid => $c) {
                 $coursetpl = $this->export_course_for_template($c);
                 $template->courses[] = $coursetpl;
@@ -237,27 +239,24 @@ class my_courses_module extends module {
     protected function get_course_sort_option_templates() {
 
         $defaultsortoption = get_config('local_my', 'defaultcoursesortoption');
+        $lightfavorites = get_config('local_my', 'lightfavorites');
+
         if (empty($defaultsortoption)) {
             $defaultsortoption = 'byname';
         }
 
-        $options = [
-            'byname',
-            'byenddate',
-            'bycompletion',
-            'bylastaccess',
-        ];
+        $options = local_my_get_course_sort_options();
 
-        if (!local_my_is_using_favorites()) {
+        if ($lightfavorites) {
             $options[] = 'byfavorites';
         }
 
         $opttpls = [];
 
-        foreach ($options as $option) {
+        foreach ($options as $option => $optionslabel) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = get_string($option, 'local_my');
+            $opttpl->optionlabelstr = $optionslabel;
             $opttpl->active = $defaultsortoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewselectoroption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
@@ -268,26 +267,20 @@ class my_courses_module extends module {
 
     protected function get_course_time_option_templates() {
 
-        $defaultsortoption = get_config('local_my', 'defaultcoursesortoption');
-        if (empty($defaultsortoption)) {
-            $defaultsortoption = 'all';
+        $defaulttimeoption = get_config('local_my', 'defaultcoursetimeoption');
+        if (empty($defaulttimeoption)) {
+            $defaulttimeoption = 'all';
         }
 
-        $options = [
-            'all',
-            'passed',
-            'current',
-            'future',
-            'hidden',
-        ];
+        $options = local_my_get_course_time_options();
 
         $opttpls = [];
 
-        foreach ($options as $option) {
+        foreach ($options as $option => $optionlabel) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = get_string($option, 'local_my');
-            $opttpl->active = $defaultsortoption == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->optionlabelstr = $optionlabel;
+            $opttpl->active = $defaulttimeoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewtimeoption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
         }
@@ -298,23 +291,18 @@ class my_courses_module extends module {
     protected function get_course_display_option_templates() {
 
         $defaultdisplayoption = get_config('local_my', 'defaultcoursedisplayoption');
-        if (empty($defaultsortoption)) {
+        if (empty($defaultdisplayoption)) {
             $defaultdisplayoption = 'displaycards';
         }
 
-        $options = [
-            'displayauto',
-            'displaycards',
-            'displaylist',
-            'displaysummary',
-        ];
+        $options = local_my_get_course_display_options();
 
         $opttpls = [];
 
-        foreach ($options as $option) {
+        foreach ($options as $option => $optionlabel) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = get_string($option, 'local_my');
+            $opttpl->optionlabelstr = $optionlabel;
             $opttpl->active = $defaultdisplayoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('to'.$option, 'local_my');
             $opttpls[] = $opttpl;
