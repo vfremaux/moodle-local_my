@@ -29,16 +29,14 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
      *
      * @param {String} selector The selector for the page region containing the actions panel.
      */
-    var localmy = {
-
-        usereloadwaiter: false,
+    var localmycourseindex = {
 
         init: function() {
 
             // Attach delegated togglestate handler to all handles in page.
-            $('#mydashboard .block').on('click', '.detail-handle', [], this.toggle_detail);
-            $('#mydashboard .block').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
-            $('#mydashboard .block').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
+            $('.course_category_tree').on('click', '.detail-handle', [], this.toggle_detail);
+            $('.course_category_tree').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
+            $('.course_category_tree').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
 
             if ($('.is-accordion').length !== 0) {
                 // Is in accordion
@@ -111,6 +109,6 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     };
 
-    return localmy;
+    return localmycourseindex;
 
 });

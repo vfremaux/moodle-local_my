@@ -229,7 +229,7 @@ div.mycourseareas h4 {
     margin: auto auto 10px auto;
     height: 150px !important;
     width:100%;
-    /* object-fit: cover; */
+    object-fit: cover;
 }
 
 .local-my-fp-coursebox,
@@ -463,6 +463,10 @@ li.local-my-course {
 
 .category-grid .local-my-promowrap {
     min-height: 150px;
+}
+
+.category-grid > div {
+   flex-basis: 25%;
 }
 
 @media all and (min-width: 576px) and (max-width: 1280px) {
@@ -717,7 +721,8 @@ li.local-my-course {
     }
 
     .local-my-fp-coursebox {
-        max-height: 300px;
+        height: 250px;
+        max-height: 250px;
         min-height: 250px;
     }
 
@@ -764,41 +769,3 @@ li.local-my-course {
     font-style: italic;
     padding: 0 10px;
 }
-
-/*
-.filter-state {
-    background-color: #eee;
-    display: inline-block;
-    padding: 10px 20px 0 20px;
-    border-radius: 30px;
-    color: #666;
-    margin: 0 10px;
-}
-*/
-
-/* generic, applies as default */
-/*
-.filter-state::before {
-    content: "\f0b0 ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-sort::before {
-    content: "\f0dc ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-time::before {
-    content: "\f017 ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-display::before {
-    content: "\f00a ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-*/

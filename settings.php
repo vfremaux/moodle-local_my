@@ -39,9 +39,11 @@ $config = get_config('local_my');
 
 if (!empty($hasconfig) || $hassiteconfig) {
     // Needs this condition or there is error on login page.
-    $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
+    $settings = new admin_settingpage('localsettingmy', get_string('pluginname', 'local_my'));
     $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
     $ADMIN->add('localplugins', $settings);
+
+    $config = get_config('local_my');
     if (!empty($config->enable)) {
         $ADMIN->add('appearance', $displaysettings);
     }
@@ -201,6 +203,8 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $fieldoptions = $DB->get_records_select_menu('user_info_field', $select, $inparams, 'shortname, name');
 
     if (!empty($fieldoptions)) {
+        $fieldoptions = ['' => get_string('unset', 'local_my')] + $fieldoptions;
+
         $key = 'local_my/profilefieldforcelistmode';
         $label = get_string('localprofilefieldforcelistmode', 'local_my');
         $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
@@ -239,7 +243,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/defaultcoursesortoption';
     $label = get_string('localmydefaultcoursesortoption', 'local_my');
     $desc = get_string('localmydefaultcoursesortoption_desc', 'local_my');
-    $default = 0;
+    $default = 'byname';
     $sortoptions = local_my_get_course_sort_options();
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $sortoptions));
 
@@ -252,7 +256,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/defaultcoursetimeoption';
     $label = get_string('localmydefaultcoursetimeoption', 'local_my');
     $desc = get_string('localmydefaultcoursetimeoption_desc', 'local_my');
-    $default = 0;
+    $default = 'all';
     $timeoptions = local_my_get_course_time_options();
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $timeoptions));
 
@@ -265,7 +269,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/defaultcoursedisplayoption';
     $label = get_string('localmydefaultcoursedisplayoption', 'local_my');
     $desc = get_string('localmydefaultcoursedisplayoption_desc', 'local_my');
-    $default = 0;
+    $default = 'displayauto';
     $displayoptions = local_my_get_course_display_options();
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
 

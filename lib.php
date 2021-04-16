@@ -918,7 +918,9 @@ function local_my_is_using_favorites() {
 }
 
 /**
- * Get all states of all filters.
+ * Get all states of all filters for a particular user and a particular local_my widget
+ * @param int $uid the user id
+ * @param string $widget the widget name
  */
 function local_my_get_filter_states($uid, $widget) {
     global $SESSION, $USER, $CFG;

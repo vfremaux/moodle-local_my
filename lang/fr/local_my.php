@@ -231,6 +231,7 @@ $string['uncompleteassignusers'] = 'Etudiants avec des devoirs à remettre';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';
 $string['upper'] = 'Plus que {max} {name}';
+$string['unset'] = "-- Non défini --";
 $string['visualsettings'] = "Réglages graphiques";
 $string['youaredisplaying'] = 'Votre choix d\'affichage ';
 $string['all'] = 'Tous';

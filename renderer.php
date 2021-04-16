@@ -24,6 +24,9 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+// We are being called from within a function so all globals are NOT there.
+global $CFG;
+
 require_once($CFG->dirroot.'/local/my/lib.php');
 require_once($CFG->dirroot.'/course/renderer.php');
 
@@ -94,7 +97,17 @@ trait local_my_renderer_overrides {
 
         $progression = '';
 
-        $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
+        if (is_dir($CFG->dirroot.'/mod/learningtimecheck')) {
+            // Let assume mod/learningtimecheck/xlib.php is already included.
+            if (learningtimecheck_course_has_ltc_tracking($course->id)) {
+                $ratio = learningtimecheck_get_course_ltc_completion($course->id, $USER->id, $mandatory = true);
+            }
+        }
+
+        if (!isset($ratio)) {
+            // Last strategy when not LTC driven.
+            $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
+        }
 
         if ($type == 'gauge') {
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');

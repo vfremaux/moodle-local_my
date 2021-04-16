@@ -245,6 +245,8 @@ class my_courses_module extends module {
             $defaultsortoption = 'byname';
         }
 
+        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-sort', $defaultsortoption);
+
         $options = local_my_get_course_sort_options();
 
         if ($lightfavorites) {
@@ -257,7 +259,7 @@ class my_courses_module extends module {
             $opttpl = new StdClass;
             $opttpl->value = $option;
             $opttpl->optionlabelstr = $optionslabel;
-            $opttpl->active = $defaultsortoption == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewselectoroption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
         }
@@ -272,6 +274,8 @@ class my_courses_module extends module {
             $defaulttimeoption = 'all';
         }
 
+        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-time', $defaulttimeoption);
+
         $options = local_my_get_course_time_options();
 
         $opttpls = [];
@@ -280,7 +284,7 @@ class my_courses_module extends module {
             $opttpl = new StdClass;
             $opttpl->value = $option;
             $opttpl->optionlabelstr = $optionlabel;
-            $opttpl->active = $defaulttimeoption == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewtimeoption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
         }
@@ -295,6 +299,8 @@ class my_courses_module extends module {
             $defaultdisplayoption = 'displaycards';
         }
 
+        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-display', $defaultdisplayoption);
+
         $options = local_my_get_course_display_options();
 
         $opttpls = [];
@@ -303,7 +309,7 @@ class my_courses_module extends module {
             $opttpl = new StdClass;
             $opttpl->value = $option;
             $opttpl->optionlabelstr = $optionlabel;
-            $opttpl->active = $defaultdisplayoption == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('to'.$option, 'local_my');
             $opttpls[] = $opttpl;
         }

@@ -242,6 +242,7 @@ $string['uncompletequizusersratio'] = 'Quiz completion ratio (users)';
 $string['uncompleteassignusers'] = 'Users with pending assigns to submit';
 $string['unknownmodule'] = 'Unknown output module {$a}';
 $string['upper'] = "More than {max} {name}";
+$string['unset'] = "-- Unset --";
 $string['youaredisplaying'] = 'You are displaying';
 $string['visualsettings'] = "Visual settings";
 $string['all'] = 'All';
