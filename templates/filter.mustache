@@ -1,0 +1,40 @@
+
+
+<!-- local-my/filter -->
+<!-- form name="filter-{{uid}}" id="form-filter-{{uid}}" method="POST" action="{{{url}}}" class="local-my-course-filter">
+    {{#isboolean}}
+    {{label}} <input class="course-filters-{{uid}}" type="checkbox" data-uid="{{uid}}" name="{{filter}}" value="1" {{checked}} >
+    {{/isboolean}}
+    {{#isscalar}}
+    {{label}} {{{filterselect}}}
+    {{/isscalar}}
+</form -->
+
+<div data-region="view-selector" class="btn-group">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle icon-no-margin" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{{filterlabelstr}}">
+        {{#pix}} i/filter {{/pix}}
+        <span class="sr-only">
+            {{#filteroptions}}
+            {{#active}}<span data-active-item-text>{{/active}}{{value}}{{#active}}</span>{{/active}}
+            {{/filteroptions}}
+        </span>
+    </button>
+    <div role="menu" class="dropdown-menu dropdown-menu-right list-group hidden" data-show-active-item data-skip-active-class="true" >
+        {{#filteroptions}}
+        <a
+            class="dropdown-item {{#active}}active{{/active}} course-filter course-filter-{{uid}}"
+            href="#view_{{filtername}}"
+            data-toggle="tab"
+            data-filter-value="{{value}}"
+            data-widget="{{area}}"
+            data-uid="{{uid}}"
+            data-view="{{view}}"
+            data-filter="{{filtername}}"
+            aria-label="{{#str}} ariaviewfilteroption, local_my, {{optionlabelstr}} {{/str}}"
+        >
+            {{optionlabelstr}}
+        </a>
+        {{/filteroptions}}
+    </div>
+</div>
+<!-- /local-my/filter -->

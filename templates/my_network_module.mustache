@@ -1,0 +1,28 @@
+
+
+<!-- local_my/my_network_module -->
+<div class="block block-{{area}}">
+    <div class="header">
+        <div class="title">
+            <h2 class="headingblock">{{modulename}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+        <table width="100%">
+            {{#nodes}}
+            <tr>
+                <td width="20%">{{{icon}}}</td>
+                <td width="80%">{{{item}}}</td>
+            </tr>
+            {{/nodes}}
+        </table>
+
+        {{#footer}}
+        <div class="footer">
+            {{{footer}}}
+        </div>
+        {{/footer}}
+    </div>
+</div>
+<!-- /local_my/my_network_module -->

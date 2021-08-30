@@ -1,0 +1,41 @@
+
+
+
+<!-- latest_news_module -->
+<div class="block block_{{area}}">
+    <div class="header">
+        <div class="title">
+            <h2>{{{forumname}}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+        {{#isloggedin}}
+        <div class="subscribelink">
+            <a href="{{{subscribeurl}}}">{{subscribestr}}</a>
+        </div>
+        {{/isloggedin}}
+
+        {{{lastdiscussions}}}
+
+        {{#simple}}
+        <div class="content">
+            <table width="100%" class="newstable">
+                {{#discussions}}
+                <tr valign="top">
+                    <td width="80%">
+                        <a href="{{discussionurl}}">{{newstitle}}</a>
+                    </td>
+                    <td align="right" width="20%">
+                        ({{timemodified}})
+                    </td>
+                </tr>
+                {{/discussions}}
+            </table>
+
+            {{{forumlink}}}
+        </div>
+        {{/simple}}
+    </div>
+</div>
+<!-- /latest_news_module -->
