@@ -216,7 +216,14 @@ div.mycourseareas h4 {
     text-align: center;
     padding: 5px;
     clear: both;
-    width: 300px;
+}
+
+.local-my-fp-courseinfo {
+    width: 300px;    
+}
+
+.local-my-fp-categoryinfo {
+    width: 100%;
 }
 
 .local-my-fp-courseinfo > h3,
