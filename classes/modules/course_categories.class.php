@@ -69,11 +69,15 @@ class course_categories_module extends module {
         $template->totalofcategories = 0;
         if (!empty($this->categories)) {
             foreach ($this->categories as $catid) {
-                $category = \core_course_category::get($catid);
-                $cattpl = $this->export_course_category_for_template($category, $this->options);
-                $template->categories[] = $cattpl;
-                $template->hascategories = true;
-                $template->totalofcategories++;
+                try {
+                    $category = \core_course_category::get($catid);
+                    $cattpl = $this->export_course_category_for_template($category, $this->options);
+                    $template->categories[] = $cattpl;
+                    $template->hascategories = true;
+                    $template->totalofcategories++;
+                } catch (moodle_exception $ex) {
+                    assert(1);
+                }
             }
         }
 

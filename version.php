@@ -26,13 +26,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version  = 2019112500;   // The (date) version of this plugin.
-$plugin->requires = 2019111200;   // Requires this Moodle version.
+$plugin->requires = 2020060900;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '3.8.0 (Build 2019112500)';
+$plugin->release = '3.9.0 (Build 2019112500)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.8.0013';
+$plugin->codeincrement = '3.9.0013';
 $plugin->privacy = 'dualrelease';
 $plugin->profiles = [
     'classes/modules/course_areas.class.php',

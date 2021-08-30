@@ -6,7 +6,7 @@ function Sektor(selector, options) {
   this.element = document.querySelector(selector);
 
   if (this.element == null) {
-        return;
+      return;
   }
 
   var defaultOptions = {

@@ -28,6 +28,11 @@ require_once($CFG->dirroot.'/local/my/classes/modules/available_courses.class.ph
 
 class available_courses_grid_module extends available_courses_module {
 
+    public function __construct() {
+        parent::__construct();
+        $this->area = 'available_courses_grid';
+    }
+
     public function render($required = 'aslist') {
         return parent::render('asgrid');
     }
