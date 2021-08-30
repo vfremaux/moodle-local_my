@@ -960,7 +960,7 @@ abstract class module {
                 $coursetpl->caneditclass = 'can-edit';
             }
 
-            $enrolled = get_users_by_capability($context, 'local/my:isstudent', 'u.id');
+            $enrolled = get_enrolled_users($context, 'local/my:isstudent');
             if (!empty($enrolled)) {
                 $coursetpl->enrolled = count($enrolled);
             } else {

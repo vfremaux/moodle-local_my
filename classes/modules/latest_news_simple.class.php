@@ -49,7 +49,7 @@ class latest_news_simple_module extends module {
             $template->forumname = format_string($newsforum->name);
             $template->simple = true;
 
-            $newsdiscussions = $DB->get_records('forum_discussions', array('forum' => $newsforum->id), 'timemodified DESC');
+            $newsdiscussions = $DB->get_records('forum_discussions', array('forum' => $newsforum->id), 'timemodified DESC', '*', 0, $SITE->newsitems);
             foreach ($newsdiscussions as $news) {
                 $discussiontpl = new StdClass();
                 $discussiontpl->discussionurl = new moodle_url('/mod/forum/discuss.php', array('d' => $news->id));
