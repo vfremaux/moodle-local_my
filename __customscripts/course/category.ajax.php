@@ -40,7 +40,7 @@ $basecategoryid = optional_param('basecategoryid', false, PARAM_INT);
 
 if ($basecategoryid) {
     $courserenderer = $PAGE->get_renderer('local_my');
-    $courserenderer->set_basecategoryid($basecategoryid)
+    $courserenderer->set_basecategoryid($basecategoryid);
 } else {
     $courserenderer = $PAGE->get_renderer('core', 'course');
 }

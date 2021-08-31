@@ -17,37 +17,38 @@
     </div>
 
     {{#hassortorfilter}}
-    <div class="local-my-sortsandfilters">
-        {{#hasfilters}}
-        <div class="local-my-course-filters d-flex content-justify-start">
+    <div class="local-my-course-filters d-flex justify-content-between flex-wrap">
+        {{#showstates}}
+        <div class="filter-states">
+        </div>
+        {{/showstates}}
+
+        <div class="local-my-course-sortanddisplay d-flex justify-content-between">
+
+            {{#hasfilters}}
             {{#filters}}
             {{> local_my/filter}}
             {{/filters}}
+            {{/hasfilters}}
+
             {{#hastimeselector}}
             <div class="local-my-course-time">
                 {{> local_my/time}}
             </div>
             {{/hastimeselector}}
-        </div>
-        {{/hasfilters}}
-        {{^hasfilters}}
-        {{#hastimeselector}}
-        <div class="local-my-course-time">
-            {{> local_my/time}}
-        </div>
-        {{/hastimeselector}}
-        {{/hasfilters}}
-        <div class="local-my-course-sortanddisplay">
-        {{#hassort}}
-        <div class="local-my-course-sort" style="display: inline-block">
-            {{> local_my/sort}}
-        </div>
-        {{/hassort}}
-        {{#hasdisplay}}
-        <div class="local-my-course-display" style="display: inline-block">
-        {{> local_my/display}}
-        </div>
-        {{/hasdisplay}}
+
+            {{#hassort}}
+            <div class="local-my-course-sort" style="display: inline-block">
+                {{> local_my/sort}}
+            </div>
+            {{/hassort}}
+
+            {{#hasdisplay}}
+            <div class="local-my-course-display" style="display: inline-block">
+                {{> local_my/display}}
+            </div>
+            {{/hasdisplay}}
+
         </div>
     </div>
     {{/hassortorfilter}}

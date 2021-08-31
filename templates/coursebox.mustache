@@ -4,28 +4,37 @@
     Indirect call by my_course_module.mustache.
 }}
 <!-- local_my/coursebox -->
-<div class="local-my-promowrap">
-    <div class="local-my-fp-coursebox {{hiddenclass}} {{selfenrolclass}} {{guestenrolclass}} {{withopacityeffect}} {{withhaloeffect}}" {{{heightstyle}}}>
-        <div class="local-my-fp-coursethumb">
-            <div class="local-my-fp-courseinfo">
-                <h3>
-                    <a href="{{{courseurl}}}" title="{{fullname}}" data-toggle="tooltip" data-placement="bottom">
-                        <img aria-hidden="true" src="{{{imgurl}}}">
-                        <div class="coursetitle">{{trimtitle}}</div>
-                        <div class="course-overlay">
-                            <i class="fa fa-arrow-circle-right" aria-hidden="true"></i>
-                        </div>
-                     </a> {{{favoritectl}}}
-                </h3>
+<div>
+    <div class="local-my-promowrap">
+        <div class="local-my-fp-coursebox {{hiddenclass}} {{selfenrolclass}} {{guestenrolclass}} {{withopacityeffect}} {{withhaloeffect}}" {{{heightstyle}}}>
+            <div class="local-my-fp-coursethumb">
+                <div class="local-my-fp-courseinfo">
+                    <h3>
+                        <a href="{{{courseurl}}}" data-toggle="tooltip" data-placement="bottom">
+                            <img aria-hidden="true" src="{{{imgurl}}}">
+                            <div class="coursetitle">{{trimtitle}}</div>
+                            <div class="course-overlay">
+                                <i class="fa fa-arrow-circle-right" aria-hidden="true"></i>
+                            </div>
+                         </a> {{{favoritectl}}}
+                    </h3>
+                </div>
+                <div class="local-my-fp-summary">{{{summary}}}</div>
             </div>
-            <div class="local-my-fp-summary">{{{summary}}}</div>
+
+            {{#hasindicators}}
+            {{> local_my/indicators}}
+            {{/hasindicators}}
+
         </div>
-
-        {{#hasindicators}}
-        {{> local_my/indicators}}
-        {{/hasindicators}}
-
     </div>
-
+    {{#hasteachingrole}}
+    {{#hasdetails}}
+    <div id="details-indicators-{{id}}" class="local-my-details" style="display: none;z-index: 1000">
+        {{> local_my/missing_assign_submissions}}
+        {{> local_my/unattempted_quiz_users}}
+    </div>
+    {{/hasdetails}}
+    {{/hasteachingrole}}
 </div>
 <!-- /local_my/coursebox -->

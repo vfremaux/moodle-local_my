@@ -24,16 +24,23 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-require_once($CFG->dirroot.'/local/my/classes/modules/available_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/course_areas.class.php');
 
-class available_courses_grid_module extends available_courses_module {
+use \StdClass;
+use \moodle_url;
+
+class course_areas2_module extends course_areas_module {
+
+    public static $areakey = 'courseareas2';
+    public static $areaconfigkey = 'coursearea2_';
 
     public function __construct() {
         parent::__construct();
-        $this->area = 'available_courses_grid';
+        $this->area = 'course_areas2';
+        $this->modulename = get_string('courseareas', 'local_my');
+
+        self::$areakey = 'courseareas2';
+        self::$areaconfigkey = 'coursearea2_';
     }
 
-    public function render($required = 'aslist') {
-        return parent::render('asgrid');
-    }
 }

@@ -25,6 +25,9 @@
 require_once('../../config.php');
 require_once($CFG->dirroot.'/local/my/compatlib.php');
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 require_once($CFG->dirroot.'/local/my/classes/output/management.php');
 
 $categoryid = optional_param('categoryid', null, PARAM_INT);

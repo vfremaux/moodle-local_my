@@ -69,17 +69,10 @@ class my_teacher_courses_module extends my_courses_module {
         $this->process_metas();
         $this->process_courseareas();
 
-        debug_trace('Fix sorting');
         $this->fix_courses_attributes_for_sorting();
-        debug_trace('sorting');
         $this->sort_courses();
-
-        debug_trace('catching filters');
         $this->catch_filters();
-        debug_trace('apply filters');
         $this->apply_filters();
-        debug_trace('filters applied');
-        debug_trace($this->courses);
     }
 
     protected function get_buttons() {

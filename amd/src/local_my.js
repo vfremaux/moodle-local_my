@@ -16,8 +16,8 @@
 /**
  * Javascript controller for controlling the sections.
  *
- * @module     block_multicourse_navigation/collapse_control
- * @package    block_multicourse_navigation
+ * @module     local_my/local_my
+ * @package    local_my
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // jshint unused: false, undef:false
@@ -226,6 +226,7 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
             }
 
             /* eslint-disable */
+            log.debug("Sektor refresh on " + args['id']);
             var sektor = new Sektor(args['id'], {
               size: args['size'],
               stroke: 0,
@@ -346,7 +347,7 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
                 var activetime = $('.course-time-' + uid + '.active');
                 if (activetime) {
                     // Add time selector if exists.
-                    url += '&schedule=' + activedisplay.attr('data-time');
+                    url += '&schedule=' + activetime.attr('data-time');
                 }
             } else {
                 url += '&schedule=' + that.attr('data-time');
@@ -373,8 +374,9 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
             }
 
             $.get(url, function(data) {
-                $('#area-courses-' + uid).html(data);
-            }, 'html');
+                $('#area-courses-' + uid).html(data.html);
+                $('#block_' + widget + '-' + uid + ' .filter-states').html(data.filterstates);
+            }, 'json');
         }
     };
 

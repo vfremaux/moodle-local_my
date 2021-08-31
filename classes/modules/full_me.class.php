@@ -51,7 +51,7 @@ class full_me_module extends module {
         $template->userpicture = $OUTPUT->user_picture($USER, array('size' => 50));
         $template->username = $OUTPUT->heading(fullname($USER));
 
-        $template->inforows = []
+        $template->inforows = [];
         if (!isset($hiddenfields['firstaccess'])) {
             if ($USER->firstaccess) {
                 $datestring = userdate($USER->firstaccess)."&nbsp; (".format_time(time() - $USER->firstaccess).")";

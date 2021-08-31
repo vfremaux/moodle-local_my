@@ -21,19 +21,31 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_my\module;
+require_once($CFG->dirroot.'/local/my/classes/modules/course_categories.class.php');
 
 defined('MOODLE_INTERNAL') or die();
 
-require_once($CFG->dirroot.'/local/my/classes/modules/available_courses.class.php');
+use \StdClass;
+use \moodle_url;
+use \context_course;
 
-class available_courses_grid_module extends available_courses_module {
+class course_categories2_module extends course_categories_module {
 
     public function __construct() {
+        global $DB;
+
         parent::__construct();
-        $this->area = 'available_courses_grid';
+        $this->area = 'course_categories2';
+        $this->modulename = get_string('categories', 'local_my');
+
+        $this->options = array();
+        $this->options['withicons'] = false;
+
+        // Get categories to display.
+        $this->categories = explode(',', self::$config->categoryarea1);
     }
 
-    public function render($required = 'aslist') {
-        return parent::render('asgrid');
+    public function get_courses() {
+        assert(1);
     }
 }

@@ -25,17 +25,21 @@ define('AJAX_SCRIPT', true);
 require('../../../config.php');
 
 require_once($CFG->dirroot.'/local/my/lib.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
 use \local_my\module\module;
 
 $action = optional_param('what', '', PARAM_ALPHA);
 $courseid = optional_param('courseid', '', PARAM_INT);
 
+$config = get_config('local_my');
+
 require_login();
 $PAGE->set_context(context_system::instance());
 
-$PAGE->set_url(new moodle_url('/local/my/ajax/service.php', ['what' => $action,'courseid' => $courseid]));
+$PAGE->set_url(new moodle_url('/local/my/ajax/service.php', ['what' => $action, 'courseid' => $courseid]));
 
 if (!empty($action)) {
     if ($action == 'addtofavorites') {
@@ -65,8 +69,16 @@ if (!empty($action)) {
 
         $widget = required_param('widget', PARAM_TEXT);
         $uid = required_param('uid', PARAM_INT);
-        echo $renderer->render_ajax_widget($uid, $widget);
-        echo $renderer->render_js_code(true);
+        $html = $renderer->render_ajax_widget($uid, $widget);
+        $html .= $renderer->render_js_code(true);
+
+        $return = new StdClass;
+        $return->html = $html;
+        if (!empty($config->showfilterstates)) {
+            $return->filterstates = $renderer->render_filter_states($uid, $widget);
+        }
+
+        echo json_encode($return);
     }
 }
 

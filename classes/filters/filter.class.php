@@ -28,6 +28,10 @@ abstract class coursefilter {
         $this->options = $options;
     }
 
+    public function has_input_value() {
+        return optional_param($this->name, false, PARAM_TEXT);
+    }
+
     /**
      * The moment where the filter gets its curent value.
      */

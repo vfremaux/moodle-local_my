@@ -33,7 +33,7 @@ class courses_module extends module {
     public function __construct() {
         parent::__construct();
         $this->area = 'courses';
-        $this->modulename = get_string('mycourses', 'local_my');
+        $this->modulename = get_string('allcourses', 'local_my');
 
         // Default gauge settings.
         $this->options = [

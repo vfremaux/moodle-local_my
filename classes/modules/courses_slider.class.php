@@ -24,16 +24,29 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-require_once($CFG->dirroot.'/local/my/classes/modules/available_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/courses.class.php');
 
-class available_courses_grid_module extends available_courses_module {
+class courses_slider_module extends courses_module {
 
     public function __construct() {
+        global $PAGE;
+
         parent::__construct();
-        $this->area = 'available_courses_grid';
+        $this->area = 'courses_slider';
+        if (!self::$isslickrendered) {
+            $renderer = self::get_renderer();
+            $renderer->js_call_amd('local_my/slick', 'init');
+            $renderer->js_call_amd('local_my/slickinit', 'init');
+            $PAGE->requires->css('/local/my/css/slick.css');
+            self::$isslickrendered = true;
+        }
+
+        $this->options['gaugetype'] = 'sektor';
+        $this->options['gaugewidth'] = '20';
+        $this->options['gaugeheight'] = '20';
     }
 
-    public function render($required = 'aslist') {
-        return parent::render('asgrid');
+    public function render($required = 'asslider') {
+        return parent::render('asslider');
     }
 }

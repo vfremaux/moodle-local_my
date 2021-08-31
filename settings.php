@@ -39,9 +39,11 @@ $config = get_config('local_my');
 
 if (!empty($hasconfig) || $hassiteconfig) {
     // Needs this condition or there is error on login page.
-    $settings = new admin_settingpage('local_my', get_string('pluginname', 'local_my'));
+    $settings = new admin_settingpage('localsettingmy', get_string('pluginname', 'local_my'));
     $displaysettings = new admin_settingpage('local_my_fast', get_string('localmylayout', 'local_my'));
     $ADMIN->add('localplugins', $settings);
+
+    $config = get_config('local_my');
     if (!empty($config->enable)) {
         $ADMIN->add('appearance', $displaysettings);
     }
@@ -201,6 +203,8 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $fieldoptions = $DB->get_records_select_menu('user_info_field', $select, $inparams, 'shortname, name');
 
     if (!empty($fieldoptions)) {
+        $fieldoptions = ['' => get_string('unset', 'local_my')] + $fieldoptions;
+
         $key = 'local_my/profilefieldforcelistmode';
         $label = get_string('localprofilefieldforcelistmode', 'local_my');
         $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
@@ -236,11 +240,25 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $default = 1;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
+    $key = 'local_my/defaultcoursesortoption';
+    $label = get_string('localmydefaultcoursesortoption', 'local_my');
+    $desc = get_string('localmydefaultcoursesortoption_desc', 'local_my');
+    $default = 'byname';
+    $sortoptions = local_my_get_course_sort_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $sortoptions));
+
     $key = 'local_my/withtimeselector';
     $label = get_string('localmywithtimeselector', 'local_my');
     $desc = get_string('localmywithtimeselector_desc', 'local_my');
     $default = 1;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/defaultcoursetimeoption';
+    $label = get_string('localmydefaultcoursetimeoption', 'local_my');
+    $desc = get_string('localmydefaultcoursetimeoption_desc', 'local_my');
+    $default = 'all';
+    $timeoptions = local_my_get_course_time_options();
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $timeoptions));
 
     $key = 'local_my/withdisplay';
     $label = get_string('localmywithdisplay', 'local_my');
@@ -251,14 +269,15 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/defaultcoursedisplayoption';
     $label = get_string('localmydefaultcoursedisplayoption', 'local_my');
     $desc = get_string('localmydefaultcoursedisplayoption_desc', 'local_my');
-    $default = 0;
-    $displayoptions = [
-        'displayauto' => get_string('displayauto', 'local_my'),
-        'displaycards' => get_string('displaycards', 'local_my'),
-        'displaylist' => get_string('displaylist', 'local_my'),
-        'displaysummary' => get_string('displaysummary', 'local_my'),
-    ];
+    $default = 'displayauto';
+    $displayoptions = local_my_get_course_display_options();
     $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $displayoptions));
+
+    $key = 'local_my/showfilterstates';
+    $label = get_string('localmyshowfilterstates', 'local_my');
+    $desc = get_string('localmyshowfilterstates_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $key = 'local_my/lightfavorites';
     $label = get_string('locallightfavorites', 'local_my');
@@ -335,6 +354,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
     */
+
+    $key = 'local_my/adddetailindicators';
+    $label = get_string('localmyadddetailindicators', 'local_my');
+    $desc = get_string('localmyadddetailindicators_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $key = 'local_my/progressgaugetype';
     $label = get_string('localmyprogressgaugetype', 'local_my');

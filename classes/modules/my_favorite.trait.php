@@ -40,8 +40,13 @@ trait my_favorite {
         }
         $favoriteids = explode(',', $favorites);
         foreach ($favoriteids as $fc) {
-            $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
+            if (!empty($fc)) {
+                $this->courses[$fc] = $DB->get_record('course', ['id' => $fc]);
+            }
         }
+
+        // Renormalise the list in case of mistake.
+        $DB->set_field('user_preferences', 'value', implode(',', array_keys($this->courses)), $params);
 
         $this->process_excluded();
         $this->process_metas();

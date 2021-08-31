@@ -135,6 +135,10 @@ class available_courses_module extends my_courses_module {
                     }
                 }
 
+                if ($e->enrol == 'apply') {
+                    $pass++;
+                }
+
                 if (!$pass && $nopass) {
                     // If none is passing, but one at least retriction method fired, then discard.
                     continue;

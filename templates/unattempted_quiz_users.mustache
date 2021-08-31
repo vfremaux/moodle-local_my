@@ -3,10 +3,9 @@
 <!-- local_my/unattempted_quiz_users -->
 {{#hasquizuserspending}}
 <div class="sektor-unattempted-quiz-users indicator {{collapseclass}}">
-    {{{quizicon}}}<b>:</b>&nbsp;&nbsp; <div class="sektor-image" id="sektor-unattempted-quiz-users-{{id}}" title="{{#str}}uncompletequizusersratio, local_my{{/str}}"></div>
-    {{{completequizusersratio}}} %
+    {{{quizicon}}}<b>:</b>&nbsp;&nbsp; <div class="sektor-image" id="sektor-unattempted-quiz-users-{{id}}" title="{{#str}}uncompletequizusersratio, local_my{{/str}} {{uncompletequizusersratio}} %"></div>
 
-    &nbsp;&nbsp;&nbsp;<i class="fa fa-users" title="{{#str}}uncompletequizusers, local_my{{/str}}"> {{{uncompleteusers}}}</i>
+    &nbsp;&nbsp;&nbsp;<i class="fa fa-users" title="{{#str}}uncompletequizusers, local_my{{/str}}"> {{{uncompletequizusers}}} / {{quizuserstotal}}</i>
 </div>
 {{/hasquizuserspending}}
 <!-- /local_my/unattempted_quiz_users -->

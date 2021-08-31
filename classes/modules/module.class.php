@@ -23,8 +23,6 @@
 namespace local_my\module;
 
 require_once($CFG->dirroot.'/local/my/lib.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
 use \StdClass;
 use \moodle_url;
@@ -121,6 +119,11 @@ abstract class module {
      * A set of rendering options.
      */
     protected $options;
+
+    /**
+     * Some modules may have definitions for specific filters.
+     */
+    public $filters;
 
     public function __construct() {
         static $uidseed = 0;
@@ -358,6 +361,11 @@ abstract class module {
 
     public static function resolve_view() {
 
+        if (self::$isresolved) {
+            $result = array(self::$view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
+            return $result;
+        }
+
         $studentcap = 'local/my:isstudent';
         $teachercap = 'local/my:isteacher';
         $authorcap = 'local/my:isauthor';
@@ -405,7 +413,7 @@ abstract class module {
         self::$view = $view;
         self::$isresolved = true;
 
-        $result = array($view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
+        $result = array(self::$view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
         return $result;
     }
 
@@ -442,7 +450,11 @@ abstract class module {
             // If i am teacher and viewing the student tab, prefech teacher courses to exclude them.
             $mymanagedmodule = new my_managed_courses_module();
             $prefetchcourses = $mymanagedmodule->get_courses();
-            $prefetchkeys = array_keys($prefetchcourses);
+            if (!empty($prefetchcourses)) {
+                $prefetchkeys = array_keys($prefetchcourses);
+            } else {
+                $prefetchkeys = [];
+            }
             local_my_scalar_array_merge(self::$excludedcourses, $prefetchkeys);
         }
     }
@@ -518,7 +530,7 @@ abstract class module {
     }
 
     /**
-     * Given the ocurse list, and the current view, filter courses that are not
+     * Given the course list, and the current view, filter courses that are not
      * matching the panel capability.
      */
     public function process_role_filtering() {
@@ -614,7 +626,7 @@ abstract class module {
         }
     }
 
-    protected static function is_meta_for_user($courseid, $userid = 0) {
+    public static function is_meta_for_user($courseid, $userid = 0) {
         global $DB, $USER;
 
         if ($userid == 0) {
@@ -667,7 +679,8 @@ abstract class module {
 
         $coursecount = count($courses);
 
-        if ($coursecount > self::$config->maxuncategorizedlistsize) {
+        $isauto = !empty($this->options['display']) && $this->options['display'] == 'displayauto';
+        if (($coursecount > self::$config->maxuncategorizedlistsize) && $isauto) {
             $template->aslist = true;
             $template->resolved = 'aslist';
             $template->rule = 'bysize';
@@ -803,6 +816,10 @@ abstract class module {
             $courseid = $courseorid->id;
         } else {
             $courseid = $courseorid;
+        }
+
+        if (empty($courseid)) {
+            return;
         }
 
         $coursetpl = new StdClass;
@@ -943,7 +960,7 @@ abstract class module {
                 $coursetpl->caneditclass = 'can-edit';
             }
 
-            $enrolled = get_users_by_capability($context, 'local/my:isstudent', 'u.id');
+            $enrolled = get_enrolled_users($context, 'local/my:isstudent');
             if (!empty($enrolled)) {
                 $coursetpl->enrolled = count($enrolled);
             } else {
@@ -986,8 +1003,10 @@ abstract class module {
 
                     // Other signals. Defer to Pro Decorator.
                     if (local_my_supports_feature('widgets/indicators')) {
-                        include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
-                        pro_modules_additions::add_teacher_indicators($coursetpl, $course);
+                        if (!empty($config->adddetailindicators)) {
+                            include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
+                            pro_modules_additions::add_teacher_indicators($coursetpl, $course);
+                        }
                     }
                 }
             }
@@ -1015,8 +1034,10 @@ abstract class module {
 
                 // Other signals. Defer to Pro Decorator.
                 if (local_my_supports_feature('widgets/indicators')) {
-                    include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
-                    pro_modules_additions::add_student_indicators($coursetpl, $course);
+                    if (!empty($config->adddetailindicators)) {
+                        include_once($CFG->dirroot.'/local/my/pro/classes/moduleadds.class.php');
+                        pro_modules_additions::add_student_indicators($coursetpl, $course);
+                    }
                 }
             }
         }
@@ -1263,11 +1284,15 @@ abstract class module {
 
     protected function get_filter_templates($filter) {
 
+        $config = get_config('local_my');
+
         $defaultfilteroption = '*';
 
         $filtertpl = new StdClass;
         $filtertpl->filtername = $filter->name;
         $filtertpl->filterlabelstr = get_string($filter->name, 'local_my');
+        $filtertpl->currentvalue = $filter->currentvalue;
+        $filtertpl->showstates = !empty($config->showfilterstates);
 
         foreach ($filter->options as $option) {
             $opttpl = new StdClass;
@@ -1294,6 +1319,14 @@ abstract class module {
     }
 
     public function catch_filters() {
+        if (!empty($this->filters)) {
+            foreach ($this->filters as $filter) {
+                $filter->catchvalue();
+            }
+        }
+    }
+
+    public function get_filter_states() {
         if (!empty($this->filters)) {
             foreach ($this->filters as $filter) {
                 $filter->catchvalue();

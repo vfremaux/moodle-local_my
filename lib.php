@@ -33,11 +33,13 @@ require_once($CFG->dirroot.'/local/my/compatlib.php');
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
  */
-function local_my_supports_feature($feature = null) {
+function local_my_supports_feature($feature = null, $getsupported=null) {
     global $CFG;
     static $supports;
 
-    $config = get_config('local_courseindex');
+    if (!during_initial_install()) {
+        $config = get_config('local_courseindex');
+    }
 
     if (!isset($supports)) {
         $supports = [
@@ -46,6 +48,10 @@ function local_my_supports_feature($feature = null) {
             ],
             'community' => [],
         ];
+    }
+
+    if ($getsupported) {
+        return $supports;
     }
 
     // Check existance of the 'pro' dir in plugin.
@@ -671,8 +677,11 @@ function local_my_course_trim_words($str, $w = 10, $endchar = '...') {
  * @return bool false if file not found, does not return if found - justsend the file
  */
 function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+    global $CFG;
 
-    require_course_login($course);
+    if (!empty($CFG->forcelogin)) {
+        require_course_login($course);
+    }
 
     $fileareas = array('rendererimages');
     if (!in_array($filearea, $fileareas)) {
@@ -687,12 +696,11 @@ function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     $relativepath = implode('/', $args);
     $fullpath = "/$context->id/local_my/$filearea/$pageid/$relativepath";
     if ((!$file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
-        echo "Out not found";
-        return false;
+        send_file_not_found();
     }
 
     // Finally send the file.
-    send_stored_file($file, 0, 0, true); // Download MUST be forced - security!
+    send_stored_file($file, 0, 0, false); // Download MUST NOT be forced as files are published images in content!
 }
 
 function local_my_scalar_array_merge(&$arr1, &$arr2) {
@@ -907,4 +915,96 @@ function local_my_is_using_favorites() {
     }
 
     return $using;
+}
+
+/**
+ * Get all states of all filters for a particular user and a particular local_my widget
+ * @param int $uid the user id
+ * @param string $widget the widget name
+ */
+function local_my_get_filter_states($uid, $widget) {
+    global $SESSION, $USER, $CFG;
+
+    $config = get_config('local_my');
+
+    // Get widget instance
+    $classname = $widget.'_module';
+    $fqclassname = '\\local_my\\module\\'.$widget.'_module';
+    include_once($CFG->dirroot.'/local/my/classes/modules/'.$widget.'.class.php');
+    $instance = new $fqclassname();
+
+    // Catch from session
+
+    if (empty($SESSION->localmystates)) {
+        $SESSION->localmystates = [];
+    }
+
+    // Get user preferences for this widget or make a default state register and set it up in session.
+    $SESSION->localmystates[$widget.'-'.$uid] = new Stdclass;
+
+    if (!empty($instance->filters)) {
+        foreach ($instance->filters as $filter) {
+            $filtername = $filter->name;
+            $SESSION->localmystates[$widget.'-'.$uid]->$filtername = get_user_preferences($widget.'-'.$uid.'-'.$filtername, $filter->currentvalue);
+
+            if ($filter->has_input_value()) {
+                $filter->catchvalue();
+                set_user_preference($widget.'-'.$uid.'-'.$filtername, $filter->currentvalue);
+                $SESSION->localmystates[$widget.'-'.$uid]->$filtername = $filter->currentvalue;
+            }
+        }
+    }
+
+    $SESSION->localmystates[$widget.'-'.$uid]->time = get_user_preferences($widget.'-'.$uid.'-time', $config->defaultcoursetimeoption);
+    $SESSION->localmystates[$widget.'-'.$uid]->sort = get_user_preferences($widget.'-'.$uid.'-sort', $config->defaultcoursesortoption);
+    $SESSION->localmystates[$widget.'-'.$uid]->display = get_user_preferences($widget.'-'.$uid.'-display', $config->defaultcoursedisplayoption);
+
+    // Override with URL input.
+    if (!empty($sort = optional_param('sort', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->sort = $sort;
+        set_user_preference($widget.'-'.$uid.'-sort', $sort);
+    }
+
+    if (!empty($display = optional_param('display', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->display = $display;
+        set_user_preference($widget.'-'.$uid.'-display', $display);
+    }
+
+    if (!empty($schedule = optional_param('schedule', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->time = $schedule;
+        set_user_preference($widget.'-'.$uid.'-time', $schedule);
+    }
+
+    return $SESSION->localmystates[$widget.'-'.$uid];
+}
+
+function local_my_get_course_time_options() {
+    $timeoptions = [
+        'all' => get_string('all', 'local_my'),
+        'passed' => get_string('passed', 'local_my'),
+        'current' => get_string('current', 'local_my'),
+        'future' => get_string('future', 'local_my'),
+//          'hidden',
+    ];
+    return $timeoptions;
+}
+
+function local_my_get_course_sort_options() {
+    $sortoptions = [
+            'byname' => get_string('byname', 'local_my'),
+            'byenddate' => get_string('byenddate', 'local_my'),
+            'bycompletion' => get_string('bycompletion', 'local_my'),
+            'bylastaccess' => get_string('bylastaccess', 'local_my'),
+    ];
+    return $sortoptions;
+}
+
+function local_my_get_course_display_options() {
+    $displayoptions = [
+        'displayauto' => get_string('displayauto', 'local_my'),
+        'displaycards' => get_string('displaycards', 'local_my'),
+        'displaylist' => get_string('displaylist', 'local_my'),
+        'displaysummary' => get_string('displaysummary', 'local_my'),
+    ];
+    return $displayoptions;
 }

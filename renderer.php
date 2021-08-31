@@ -24,6 +24,9 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+// We are being called from within a function so all globals are NOT there.
+global $CFG;
+
 require_once($CFG->dirroot.'/local/my/lib.php');
 require_once($CFG->dirroot.'/course/renderer.php');
 
@@ -94,7 +97,17 @@ trait local_my_renderer_overrides {
 
         $progression = '';
 
-        $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
+        if (is_dir($CFG->dirroot.'/mod/learningtimecheck')) {
+            // Let assume mod/learningtimecheck/xlib.php is already included.
+            if (learningtimecheck_course_has_ltc_tracking($course->id)) {
+                $ratio = learningtimecheck_get_course_ltc_completion($course->id, $USER->id, $mandatory = true);
+            }
+        }
+
+        if (!isset($ratio)) {
+            // Last strategy when not LTC driven.
+            $ratio = round(\core_completion\progress::get_course_progress_percentage($courserec));
+        }
 
         if ($type == 'gauge') {
             $jqwrenderer = $PAGE->get_renderer('local_vflibs');
@@ -433,7 +446,7 @@ trait local_my_renderer_overrides {
 
     public function remove_favorite_icon($courseid, $faicon = 'fa-trash') {
         $deletestr = get_string('removefromfavorites', 'local_my');
-        $attrs = ['data-course' => $courseid, 'class' => 'icon remove-from-favorites-handle fa '.$faicon.' fa-fw', 'title' => $deletestr];
+        $attrs = ['data-course' => $courseid, 'class' => 'icon remove-from-favorites-handle icon-favorite fa '.$faicon.' fa-fw', 'title' => $deletestr];
         return html_writer::tag('i', '', $attrs);
     }
 
@@ -788,6 +801,26 @@ trait local_my_renderer_overrides {
         $str .= implode("\n", self::$jscode);
         if ($outcode) {
             $str .= '</script>';
+        }
+
+        return $str;
+    }
+
+    /**
+     * Renders an explicit expression of the filtering values of the course filter.
+     */
+    public function render_filter_states($uid, $widget) {
+
+        $config = get_config('local_my');
+        $states = local_my_get_filter_states($uid, $widget);
+
+        $str = get_string('youaredisplaying', 'local_my').': ';
+        foreach ($states as $statekey => $statevalue) {
+            if ($statevalue == '*') {
+                // For better string resolution.
+                $statevalue = 'all';
+            }
+            $str .= '<span class="filter-state filter-'.$statekey.'">'.get_string($statevalue, 'local_my').'</span> ';
         }
 
         return $str;
