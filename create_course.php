@@ -26,7 +26,8 @@
  * the categories i am owner of.
  */
 require('../../config.php');
-require_once($CFG->dirroot . '/my/lib.php');
+require_once($CFG->dirroot.'/my/lib.php');
+require_once($CFG->dirroot.'/local/my/lib.php');
 
 $context = context_system::instance();
 
@@ -51,7 +52,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('choosecategory', 'local_my'));
 
-$displaylist = \core_course_category::make_categories_list('moodle/course:create');
+$displaylist = local_my_get_catlist('moodle/course:create');
 
 $table = new html_table();
 $table->head = array(get_string('mycategories', 'local_my'));

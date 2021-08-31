@@ -1,0 +1,30 @@
+
+
+<!-- local-my/sort -->
+<div data-region="view-selector" class="btn-group">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle icon-no-margin" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {{#pix}} t/sort {{/pix}}
+        <span class="sr-only">
+        {{#sortoptions}}
+            {{#active}}<span data-active-item-text>{{/active}}{{optionlabelstr}}{{#active}}</span>{{/active}}
+        {{/sortoptions}}
+        </span>
+    </button>
+    <div role="menu" class="dropdown-menu dropdown-menu-right list-group hidden" data-show-active-item data-skip-active-class="true" >
+        {{#sortoptions}}
+        <a
+            class="dropdown-item {{#active}}active{{/active}} course-sort course-sort-{{uid}}"
+            href="#view_{{value}}"
+            data-toggle="tab"
+            data-widget="{{area}}"
+            data-uid="{{uid}}"
+            data-view="{{view}}"
+            data-sort="{{value}}"
+            aria-label="{{optionarialabelstr}}"
+        >
+            {{optionlabelstr}}
+        </a>
+        {{/sortoptions}}
+    </div>
+</div>
+<!-- /local-my/sort -->

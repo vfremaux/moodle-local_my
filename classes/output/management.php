@@ -32,6 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/course/classes/management_renderer.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
 
 class management_renderer extends \core_course_management_renderer {
 
@@ -53,16 +54,18 @@ class management_renderer extends \core_course_management_renderer {
             // $html .= $this->view_mode_selector(\core_course\management\helper::get_management_viewmodes(), $viewmode);
             if ($viewmode === 'courses') {
                 // CHANGE+ : Get either case.
-                $managecategories = \core_course_category::make_categories_list(array('moodle/category:manage'));
-                $coursecreatecategories = \core_course_category::make_categories_list(array('moodle/course:create'));
+                $managecategories = local_my_get_catlist('moodle/category:manage');
+                $coursecreatecategories = local_my_get_catlist('moodle/course:create');
                 $categories = $managecategories + $coursecreatecategories;
 
-                $authorcourses = local_get_my_authoring_courses('id,fullname,shortname,category',
-                                                                'local/my:isteacher', array_keys($categories));
+                $catids = array_keys($categories);
+                $module = new \local_my\module\my_authored_courses_module();
+                $module->get_courses();
+                $authorcourses = $module->export_courses();
                 // Foreach unchecked authored course, add category and all parents in catlist.
                 if ($authorcourses) {
                     foreach ($authorcourses as $cid => $course) {
-                        $catobj = \core_course_category::get($course->category);
+                        $catobj = local_get_category($course->category);
                         $authorcategories[$course->category]['name'] = $catobj->name;
                         $authorcategories[$course->category]['path'] = $catobj->path;
                         /*
@@ -70,7 +73,7 @@ class management_renderer extends \core_course_management_renderer {
                         if ($parents) {
                             foreach ($parents as $pcatid) {
                                 if (!array_key_exists($pcatid, $authorcategories)) {
-                                    $pcatobj = \core_course_category::get($pcatid);
+                                    $pcatobj = local_get_category($pcatid);
                                     $authorcategories[$pcatid]['name'] = $pcatobj->name;
                                     $authorcategories[$pcatid]['path'] = $pcatobj->path;
                                 }

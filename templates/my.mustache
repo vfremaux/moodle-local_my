@@ -1,0 +1,20 @@
+
+
+<!-- local_my/my -->
+<div id="mydashboard" class="box">
+    {{#hasleft}}
+    <div class="mydashboard-left">
+        {{{leftmodules}}}
+    </div>
+    <div class="mydashboard-right">
+        {{{rightmodules}}}
+    </div>
+    {{/hasleft}}
+
+    {{^hasleft}}
+    <div class="mydashboard-full">
+        {{{modules}}}
+    </div>
+    {{/hasleft}}
+</div>
+<!-- /local_my/my -->

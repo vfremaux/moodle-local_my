@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * An Ajax receiver when Collapse status of a category is changed.
+ *
  * @package     local_my
  * @copyright   2016 onwards Valery Fremaux <http://docs.activeprolearn.com/en>
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
@@ -23,7 +25,7 @@
 
 require('../../../config.php');
 
-$item = required_param('item', PARAM_ALPHA); // At start 'authoredcat'.
+$item = required_param('item', PARAM_TEXT); // At start 'authoredcat'.
 $catid = optional_param('catid', 0, PARAM_INT);
 $hide = optional_param('hide', false, PARAM_BOOL);
 $action = optional_param('what', '', PARAM_ALPHA);

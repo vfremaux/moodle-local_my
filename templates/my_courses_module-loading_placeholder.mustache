@@ -1,0 +1,116 @@
+{{!
+    ajax : used to switch between main query and ajax XHR "refill"
+}}
+<!-- local_my/my_courses_module-loading_placeholder -->
+<div class="block block_{{area}} {{extraclasses}}" id="block_{{area}}-{{uid}}" data-required="{{required}}" data-resolved="{{resolved}}" data-resolve-rule="{{rule}}">
+    <span class="reload-{{area}}-{{uid}} reload-areas" data-widget="{{area}}" data-uid="{{uid}}" data-view="{{view}}" data-sort="byname"></span>
+    {{#debuginfo}}
+    <pre>
+    {{debuginfo}}
+    </pre>
+    {{/debuginfo}}
+
+    <div class="header">
+        <div class="title">
+            <h2>{{modulename}}</h2>
+        </div>
+    </div>
+
+    {{#hassortorfilter}}
+    <div class="local-my-course-filters d-flex justify-content-between flex-wrap">
+        {{#showstates}}
+        <div class="filter-states">
+        </div>
+        {{/showstates}}
+
+        <div class="local-my-course-sortanddisplay d-flex justify-content-between">
+
+            {{#hasfilters}}
+            {{#filters}}
+            {{> local_my/filter}}
+            {{/filters}}
+            {{/hasfilters}}
+
+            {{#hastimeselector}}
+            <div class="local-my-course-time">
+                {{> local_my/time}}
+            </div>
+            {{/hastimeselector}}
+
+            {{#hassort}}
+            <div class="local-my-course-sort" style="display: inline-block">
+                {{> local_my/sort}}
+            </div>
+            {{/hassort}}
+
+            {{#hasdisplay}}
+            <div class="local-my-course-display" style="display: inline-block">
+                {{> local_my/display}}
+            </div>
+            {{/hasdisplay}}
+
+        </div>
+    </div>
+    {{/hassortorfilter}}
+
+    {{#buttons}}
+    <div class="area-buttons">
+        {{{buttons}}}
+    </div>
+    {{/buttons}}
+
+    <div id="area-courses-{{uid}}">
+        {{#aslist}}
+        <div class="content" id="content-{{uid}}">
+            <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
+                {{> local_my/courses_with_categories-loading_placeholder}}
+                {{> local_my/courses_with_categories-loading_placeholder}}
+                {{> local_my/courses_with_categories-loading_placeholder}}
+                {{> local_my/courses_with_categories-loading_placeholder}}
+            </ul>
+        </div>
+        {{/aslist}}
+
+        {{#asflatlist}}
+        <div class="content" id="content-{{uid}}">
+            <ul class="course-list" style=">
+                {{> local_my/courserow-loading_placeholder}}
+                {{> local_my/courserow-loading_placeholder}}
+                {{> local_my/courserow-loading_placeholder}}
+                {{> local_my/courserow-loading_placeholder}}
+            </ul>
+        </div>
+        {{/asflatlist}}
+
+        {{#asgrid}}
+        <div class="content course-grid" id="content-{{uid}}" style="min-height:350px">
+            {{> local_my/coursebox-loading_placeholder}}
+            {{> local_my/coursebox-loading_placeholder}}
+            {{> local_my/coursebox-loading_placeholder}}
+            {{> local_my/coursebox-loading_placeholder}}
+        </div>
+        {{/asgrid}}
+
+        {{#asslider}}
+        <div class="content courses-slider" id="content-{{uid}}">
+            <div class="container-fluid">
+                <div data-crow="{{totalofcourse}}">
+
+                    <div>
+                        <div class="row-fluid local-my-carousel">
+                            {{> local_my/coursebox-loading_placeholder}}
+                            {{> local_my/coursebox-loading_placeholder}}
+                            {{> local_my/coursebox-loading_placeholder}}
+                            {{> local_my/coursebox-loading_placeholder}}
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        {{/asslider}}
+
+    </div>
+</div>
+<!-- /local_my/my_courses_module-loading_placeholder -->
