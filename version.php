@@ -32,7 +32,7 @@ $plugin->release = '3.6.0 (Build 2019112500)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.6.0012';
+$plugin->codeincrement = '3.6.0013';
 $plugin->privacy = 'dualrelease';
 $plugin->profiles = [
     'classes/modules/course_areas.class.php',

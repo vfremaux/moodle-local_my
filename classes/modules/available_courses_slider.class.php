@@ -43,6 +43,7 @@ class available_courses_slider_module extends available_courses_module {
         $this->options['gaugetype'] = 'sektor';
         $this->options['gaugewidth'] = '20';
         $this->options['gaugeheight'] = '20';
+        $this->area = 'available_courses_slider';
     }
 
     public function render($required = 'asslider') {

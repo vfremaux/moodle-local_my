@@ -361,6 +361,11 @@ abstract class module {
 
     public static function resolve_view() {
 
+        if (self::$isresolved) {
+            $result = array(self::$view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
+            return $result;
+        }
+
         $studentcap = 'local/my:isstudent';
         $teachercap = 'local/my:isteacher';
         $authorcap = 'local/my:isauthor';
@@ -408,7 +413,7 @@ abstract class module {
         self::$view = $view;
         self::$isresolved = true;
 
-        $result = array($view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
+        $result = array(self::$view, self::$isstudent, self::$isteacher, self::$iscoursemanager, self::$isadmin);
         return $result;
     }
 
@@ -621,7 +626,7 @@ abstract class module {
         }
     }
 
-    protected static function is_meta_for_user($courseid, $userid = 0) {
+    public static function is_meta_for_user($courseid, $userid = 0) {
         global $DB, $USER;
 
         if ($userid == 0) {
@@ -675,7 +680,7 @@ abstract class module {
         $coursecount = count($courses);
 
         $isauto = !empty($this->options['display']) && $this->options['display'] == 'displayauto';
-        if ($coursecount > self::$config->maxuncategorizedlistsize && $isauto) {
+        if (($coursecount > self::$config->maxuncategorizedlistsize) && $isauto) {
             $template->aslist = true;
             $template->resolved = 'aslist';
             $template->rule = 'bysize';
@@ -955,7 +960,7 @@ abstract class module {
                 $coursetpl->caneditclass = 'can-edit';
             }
 
-            $enrolled = get_users_by_capability($context, 'local/my:isstudent', 'u.id');
+            $enrolled = get_enrolled_users($context, 'local/my:isstudent');
             if (!empty($enrolled)) {
                 $coursetpl->enrolled = count($enrolled);
             } else {
@@ -1287,7 +1292,7 @@ abstract class module {
         $filtertpl->filtername = $filter->name;
         $filtertpl->filterlabelstr = get_string($filter->name, 'local_my');
         $filtertpl->currentvalue = $filter->currentvalue;
-        $filtertpl->showstates = $config->showfilterstates;
+        $filtertpl->showstates = !empty($config->showfilterstates);
 
         foreach ($filter->options as $option) {
             $opttpl = new StdClass;

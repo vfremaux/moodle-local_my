@@ -33,7 +33,7 @@ require_once($CFG->dirroot.'/local/my/compatlib.php');
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
  */
-function local_my_supports_feature($feature = null) {
+function local_my_supports_feature($feature = null, $getsupported=null) {
     global $CFG;
     static $supports;
 
@@ -48,6 +48,10 @@ function local_my_supports_feature($feature = null) {
             ],
             'community' => [],
         ];
+    }
+
+    if ($getsupported) {
+        return $supports;
     }
 
     // Check existance of the 'pro' dir in plugin.
@@ -914,7 +918,9 @@ function local_my_is_using_favorites() {
 }
 
 /**
- * Get all states of all filters.
+ * Get all states of all filters for a particular user and a particular local_my widget
+ * @param int $uid the user id
+ * @param string $widget the widget name
  */
 function local_my_get_filter_states($uid, $widget) {
     global $SESSION, $USER, $CFG;
@@ -961,12 +967,12 @@ function local_my_get_filter_states($uid, $widget) {
 
     if (!empty($display = optional_param('display', false, PARAM_TEXT))) {
         $SESSION->localmystates[$widget.'-'.$uid]->display = $display;
-        set_user_preference($widget.'-'.$uid.'-display', $schedule);
+        set_user_preference($widget.'-'.$uid.'-display', $display);
     }
 
     if (!empty($schedule = optional_param('schedule', false, PARAM_TEXT))) {
         $SESSION->localmystates[$widget.'-'.$uid]->time = $schedule;
-        set_user_preference($widget.'-'.$uid.'-time', $display);
+        set_user_preference($widget.'-'.$uid.'-time', $schedule);
     }
 
     return $SESSION->localmystates[$widget.'-'.$uid];

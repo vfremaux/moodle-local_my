@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * An Ajax receiver when Collapse status of a category is changed.
+ *
  * @package     local_my
  * @copyright   2016 onwards Valery Fremaux <http://docs.activeprolearn.com/en>
  * @author      Valery Fremaux <valery.fremaux@gmail.com>

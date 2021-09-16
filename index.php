@@ -204,5 +204,6 @@ echo module::render_dashboard();
 
 // Ask for rendering js sektor code in main page.
 $PAGE->requires->js_amd_inline($renderer->render_js_code(false));
+
 echo $OUTPUT->footer();
 die;

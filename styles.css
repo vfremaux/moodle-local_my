@@ -18,15 +18,10 @@
     text-align: left;
 }
 
-/*
-#mydashboard .generaltable td {
-    border: none;
-    border-bottom-width: medium;
-    border-bottom-style: none;
-    border-bottom-color: currentcolor;
-    background-color: #fff;
+/* hides main title on dashboard, keep-it for accessibility */
+#page-my-index .page-header-headings h1 {
+    display: none;
 }
-*/
 
 #mydashboard li {
     list-style: none;
@@ -216,7 +211,14 @@ div.mycourseareas h4 {
     text-align: center;
     padding: 5px;
     clear: both;
-    width: 300px;
+}
+
+.local-my-fp-courseinfo {
+    width: 300px;    
+}
+
+.local-my-fp-categoryinfo {
+    width: 100%;
 }
 
 .local-my-fp-courseinfo > h3,
@@ -228,8 +230,8 @@ div.mycourseareas h4 {
 .local-my-fp-categoryinfo > h3 > a > img {
     margin: auto auto 10px auto;
     height: 150px !important;
-    width:100%;
-    /* object-fit: cover; */
+    width: 100%;
+    object-fit: cover;
 }
 
 .local-my-fp-coursebox,
@@ -764,41 +766,3 @@ li.local-my-course {
     font-style: italic;
     padding: 0 10px;
 }
-
-/*
-.filter-state {
-    background-color: #eee;
-    display: inline-block;
-    padding: 10px 20px 0 20px;
-    border-radius: 30px;
-    color: #666;
-    margin: 0 10px;
-}
-*/
-
-/* generic, applies as default */
-/*
-.filter-state::before {
-    content: "\f0b0 ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-sort::before {
-    content: "\f0dc ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-time::before {
-    content: "\f017 ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-
-.filter-display::before {
-    content: "\f00a ";
-    font-family: "fontAwesome";
-    margin-right: 10px;
-}
-*/

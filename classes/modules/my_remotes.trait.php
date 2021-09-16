@@ -24,16 +24,20 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-require_once($CFG->dirroot.'/local/my/classes/modules/available_courses.class.php');
+use \context_course;
 
-class available_courses_grid_module extends available_courses_module {
+/**
+ * common code to all "remote" wigdets
+ */
+trait my_remotes {
 
-    public function __construct() {
-        parent::__construct();
-        $this->area = 'available_courses_grid';
-    }
+    public function get_courses() {
+        global $USER, $DB, $CFG;
 
-    public function render($required = 'aslist') {
-        return parent::render('asgrid');
+        $myremotes = $DB->get_records('mnetservice_enrol_enrolments', ['userid' => $USER->id]);
+
+        foreach ($myremotes as $rc) {
+            $this->courses[$rc->hostid][$rc->remotecourseid] = $DB->get_record('mnetservice_enrol_courses', ['remoteid' => $rc->remotecourseid]);
+        }
     }
 }

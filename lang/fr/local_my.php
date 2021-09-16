@@ -208,7 +208,7 @@ $string['removefromfavorites'] = 'Supprimer des favoris';
 $string['rendererimages'] = 'Images du renderer';
 $string['restorecourse'] = 'Restaurer un cours';
 $string['seealllist'] = '... plus de cours';
-$string['seeallnews'] = 'Voir toutes les brèves...';
+$string['seeallnews'] = 'Voir toutes les infos';
 $string['selfenrol'] = "Auto incription";
 $string['sitestats'] = 'Statistiques de site';
 $string['standardcreation'] = 'Créer un nouveau cours';
@@ -231,6 +231,7 @@ $string['uncompleteassignusers'] = 'Etudiants avec des devoirs à remettre';
 $string['templateinitialisationadvice'] = 'Aucun modèle initial. L\'administrateur doit créer un premier modèle avant que d\'autres
 utilisateurs puissent créer les leurs.';
 $string['upper'] = 'Plus que {max} {name}';
+$string['unset'] = "-- Non défini --";
 $string['visualsettings'] = "Réglages graphiques";
 $string['youaredisplaying'] = 'Votre choix d\'affichage ';
 $string['all'] = 'Tous';
