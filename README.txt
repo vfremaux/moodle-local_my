@@ -65,3 +65,8 @@ Privatize some widgets and the detailed pedagogic output.
 =========================================
 
 Add LTC override to course progression indicators, if exists in course.
+
+2021100700 -- XX.0014
+=========================================
+
+Adds Pro section cache

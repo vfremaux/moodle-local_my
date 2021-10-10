@@ -8,6 +8,8 @@ and improvement effort.</p>
 <p>Please contact one of our distributors to get "Pro" version support.</p>
 <p><a href="http://www.mylearningfactory.com/index.php/documentation/Distributeurs?lang=en_utf8">MyLF Distributors</a></p>';
 
+$string['cachedef_pro'] = 'Stores data for pro section';
+
 require_once($CFG->dirroot.'/local/my/lib.php'); // to get xx_supports_feature();
 if ('pro' == local_my_supports_feature()) {
     include($CFG->dirroot.'/local/my/pro/lang/en/pro.php');
