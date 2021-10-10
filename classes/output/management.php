@@ -32,6 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/course/classes/management_renderer.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
 
 class management_renderer extends \core_course_management_renderer {
 
@@ -58,8 +59,9 @@ class management_renderer extends \core_course_management_renderer {
                 $categories = $managecategories + $coursecreatecategories;
 
                 $catids = array_keys($categories);
-                $authorcourses = local_get_my_authoring_courses($debuginfo, 'id,fullname,shortname,category',
-                                                                'local/my:isteacher', $catids);
+                $module = new \local_my\module\my_authored_courses_module();
+                $module->get_courses();
+                $authorcourses = $module->export_courses();
                 // Foreach unchecked authored course, add category and all parents in catlist.
                 if ($authorcourses) {
                     foreach ($authorcourses as $cid => $course) {

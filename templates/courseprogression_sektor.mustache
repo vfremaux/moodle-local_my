@@ -2,7 +2,12 @@
 
 
 <!-- local_my/courseprogression_sektor -->
-<div class="sektor-course-completion {{collapseclass}}">
-    <div class="sektor-image" id="sektor-progress-{{id}}" title="{{#str}}coursecompletion, completion{{/str}}"></div> {{{ratio}}} %
+<div class="sektor-course-completion indicator {{collapseclass}}">
+    <div class="sektor-image" id="sektor-progress-{{id}}" title="{{coursecompletionstr}}"></div>
+    {{ratio}} %
+
+    {{#hasteachingrole}}
+    &nbsp;&nbsp;&nbsp;<i class="fa fa-users {{completiondirclass}}" title="{{completionusersstr}}"> {{{completedusers}}}</i>
+    {{/hasteachingrole}}
 </div>
 <!-- /local_my/courseprogression_sektor -->

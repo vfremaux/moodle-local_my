@@ -1,12 +1,14 @@
-
-
+{{!
+    ajax : used to switch between main query and ajax XHR "refill"
+}}
+{{^ajax}}
 <!-- local_my/my_courses_module -->
-{{#debuginfo}}
-<pre>
-{{debuginfo}}
-</pre>
-{{/debuginfo}}
-<div class="block block_{{area}}" data-required="{{required}}" data-resolved="{{resolved}}" data-resolve-rule="{{rule}}">
+<div class="block block_{{area}} {{extraclasses}}" id="block_{{area}}-{{uid}}" data-required="{{required}}" data-resolved="{{resolved}}" data-resolve-rule="{{rule}}">
+    {{#debuginfo}}
+    <pre>
+    {{debuginfo}}
+    </pre>
+    {{/debuginfo}}
 
     <div class="header">
         <div class="title">
@@ -14,44 +16,102 @@
         </div>
     </div>
 
+    {{#hassortorfilter}}
+    <div class="local-my-sortsandfilters">
+        {{#hasfilters}}
+        <div class="local-my-course-filters">
+            {{#filters}}
+            {{> local_my/filter}}
+            {{/filters}}
+        </div>
+        {{/hasfilters}}
+
+        {{#hastimeselector}}
+        <div class="local-my-course-time">
+            {{> local_my/time}}
+        </div>
+        {{/hastimeselector}}
+
+        <div class="local-my-course-sortanddisplay">
+            {{#hassort}}
+            <div class="local-my-course-sort">
+                {{> local_my/sort}}
+            </div>
+            {{/hassort}}
+            {{#hasdisplay}}
+            <div class="local-my-course-display">
+            {{> local_my/display}}
+            </div>
+            {{/hasdisplay}}
+        </div>
+    </div>
+    {{/hassortorfilter}}
+
     {{#buttons}}
     <div class="area-buttons">
         {{{buttons}}}
     </div>
     {{/buttons}}
 
-    {{^hascourses}}
-    <div class="content">
-        {{{nocourses}}}
-    </div>
-    {{/hascourses}}
+    <div id="area-courses-{{uid}}">
+{{/ajax}}
+        {{^hascourses}}
+        <div class="content" id="content-{{uid}}">
+            {{{nocourses}}}
+        </div>
+        {{/hascourses}}
 
-    {{#hascourses}}
-    {{#aslist}}
-    <div class="content">
-        <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
-            {{> local_my/courses_with_categories}}
-        </ul>
-    </div>
-    {{/aslist}}
+        {{#hascourses}}
+        {{#aslist}}
+        <div class="content" id="content-{{uid}}">
+            <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
+                {{> local_my/courses_with_categories}}
+            </ul>
+        </div>
+        {{/aslist}}
 
-    {{#asflatlist}}
-    <div class="content">
-        <ul class="course-list">
+        {{#asflatlist}}
+        <div class="content" id="content-{{uid}}">
+            <ul class="course-list">
+                {{#courses}}
+                {{> local_my/courserow}}
+                {{/courses}}
+            </ul>
+        </div>
+        {{/asflatlist}}
+
+        {{#asgrid}}
+        <div class="content course-grid" id="content-{{uid}}">
             {{#courses}}
-            {{> local_my/courserow}}
+            {{> local_my/coursebox}}
             {{/courses}}
-        </ul>
-    </div>
-    {{/asflatlist}}
+        </div>
+        {{/asgrid}}
 
-    {{#asgrid}}
-    <div class="content course-grid">
-        {{#courses}}
-        {{> local_my/coursebox}}
-        {{/courses}}
+        {{#asslider}}
+        <div class="content courses-slider" id="content-{{uid}}">
+            <div class="container-fluid">
+                <div data-crow="{{totalofcourse}}">
+
+                    <div>
+                        <div class="row-fluid local-my-carousel">
+
+                            {{#courses}}
+                            {{> local_my/coursebox}}
+                            {{/courses}}
+
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        {{/asslider}}
+
+        {{/hascourses}}
+{{^ajax}}
     </div>
-    {{/asgrid}}
-    {{/hascourses}}
 </div>
 <!-- /local_my/my_courses_module -->
+{{/ajax}}

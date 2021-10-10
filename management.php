@@ -23,8 +23,11 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot.'/lib/coursecatlib.php');
+require_once($CFG->dirroot.'/local/my/compatlib.php');
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 require_once($CFG->dirroot.'/local/my/classes/output/management.php');
 
 $categoryid = optional_param('categoryid', null, PARAM_INT);
@@ -70,7 +73,7 @@ if ($courseid) {
 } else {
     $course = null;
     $courseid = null;
-    $category = coursecat::get_default();
+    $category = local_get_default_coursecat();
     $categoryid = $category->id;
     $context = context_coursecat::instance($category->id);
     $url->param('categoryid', $category->id);
@@ -109,7 +112,7 @@ $PAGE->set_heading($pageheading);
 // This is a system level page that operates on other contexts.
 require_login();
 
-if (!\coursecat::has_capability_on_any(array('moodle/category:manage', 'moodle/course:create'))) {
+if (!local_has_capability_on_any_coursecat(array('moodle/category:manage', 'moodle/course:create'))) {
     // The user isn't able to manage any categories. Lets redirect them to the relevant course/index.php page.
     $url = new moodle_url('/course/index.php');
     if ($categoryid) {
@@ -142,7 +145,7 @@ if ($category && !has_any_capability($capabilities, $systemcontext)) {
     navigation_node::override_active_url(new moodle_url('/course/management.php'));
 }
 if (!$issearching && $category !== null) {
-    $parents = \coursecat::get_many($category->get_parents());
+    $parents = local_get_many_categories($category->get_parents());
     $parents[] = $category;
     foreach ($parents as $parent) {
         $PAGE->navbar->add(
@@ -183,7 +186,7 @@ if ($action !== false && confirm_sesskey()) {
     switch ($action) {
         case 'resortcategories' :
             $sort = required_param('resort', PARAM_ALPHA);
-            $cattosort = \coursecat::get((int)optional_param('categoryid', 0, PARAM_INT));
+            $cattosort = local_get_category((int)optional_param('categoryid', 0, PARAM_INT));
             $redirectback = \core_course\management\helper::action_category_resort_subcategories($cattosort, $sort);
             break;
         case 'resortcourses' :
@@ -371,7 +374,7 @@ if ($action !== false && confirm_sesskey()) {
                     $categoryids = array(
                         required_param('currentcategoryid', PARAM_INT)
                     );
-                    $categories = \coursecat::get_many($categoryids);
+                    $categories = local_get_many_categories($categoryids);
                 } else if ($for === 'selectedcategories') {
                     // Bulk resort selected categories.
                     $categoryids = optional_param_array('bcat', false, PARAM_INT);
@@ -379,14 +382,14 @@ if ($action !== false && confirm_sesskey()) {
                     if ($categoryids === false) {
                         break;
                     }
-                    $categories = \coursecat::get_many($categoryids);
+                    $categories = local_get_many_categories($categoryids);
                 } else if ($for === 'allcategories') {
                     if ($sortcategoriesby && local_get_category(0)->can_resort_subcategories()) {
-                        \core_course\management\helper::action_category_resort_subcategories(coursecat::get(0), $sortcategoriesby);
+                        \core_course\management\helper::action_category_resort_subcategories(local_get_category(0), $sortcategoriesby);
                     }
                     $categorieslist = local_my_get_catlist('moodle/category:manage');
                     $categoryids = array_keys($categorieslist);
-                    $categories = \coursecat::get_many($categoryids);
+                    $categories = local_get_many_categories($categoryids);
                     unset($categorieslist);
                 } else {
                     break;
@@ -400,7 +403,7 @@ if ($action !== false && confirm_sesskey()) {
                         \core_course\management\helper::action_category_resort_courses($cat, $sortcoursesby, false);
                     }
                 }
-                \coursecat::resort_categories_cleanup($sortcoursesby !== false);
+                local_resort_categories_cleanup($sortcoursesby !== false);
                 if ($category === null && count($categoryids) === 1) {
                     // They're bulk sorting just a single category and they've not selected a category.
                     // Lets for convenience sake auto-select the category that has been resorted for them.

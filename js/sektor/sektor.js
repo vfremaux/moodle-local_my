@@ -5,6 +5,10 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 function Sektor(selector, options) {
   this.element = document.querySelector(selector);
 
+  if (this.element == null) {
+      return;
+  }
+
   var defaultOptions = {
     size: 100,
     stroke: 10,

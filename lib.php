@@ -28,17 +28,68 @@ require_once($CFG->dirroot.'/local/my/modules.php');
 require_once($CFG->dirroot.'/local/my/compatlib.php');
 
 /**
- * This function is not implemented in thos plugin, but is needed to mark
- * the vf documentation custom volume availability.
+ * This is part of the dual release distribution system.
+ * Tells wether a feature is supported or not. Gives back the
+ * implementation path where to fetch resources.
+ * @param string $feature a feature key to be tested.
  */
-function local_my_supports_feature() {
-    assert(1);
+function local_my_supports_feature($feature = null, $getsupported=null) {
+    global $CFG;
+    static $supports;
+
+    if (!during_initial_install()) {
+        $config = get_config('local_courseindex');
+    }
+
+    if (!isset($supports)) {
+        $supports = [
+            'pro' => [
+                'widgets' => ['extended', 'indicators'],
+            ],
+            'community' => [],
+        ];
+    }
+
+    if ($getsupported) {
+        return $supports;
+    }
+
+    // Check existance of the 'pro' dir in plugin.
+    if (is_dir(__DIR__.'/pro')) {
+        if ($feature == 'emulate/community') {
+            return 'pro';
+        }
+        if (empty($config->emulatecommunity)) {
+            $versionkey = 'pro';
+        } else {
+            $versionkey = 'community';
+        }
+    } else {
+        $versionkey = 'community';
+    }
+
+    if (empty($feature)) {
+        // Just return version.
+        return $versionkey;
+    }
+
+    list($feat, $subfeat) = explode('/', $feature);
+
+    if (!array_key_exists($feat, $supports[$versionkey])) {
+        return false;
+    }
+
+    if (!in_array($subfeat, $supports[$versionkey][$feat])) {
+        return false;
+    }
+
+    return $versionkey;
 }
 
 /**
  * This is a relocalized function in order to get local_my more compact.
  * checks if a user has a some named capability effective somewhere in a course.
- * @param string $capability;
+ * @param string $capability
  * @param bool $excludesystem
  * @param bool $excludesite
  * @param bool $doanything
@@ -372,6 +423,25 @@ function local_get_cat_branch_ids_rec($categoryid) {
     return $catids;
 }
 
+function local_get_cat_branch_rec($categoryid) {
+    global $DB;
+
+    $ids = local_get_cat_branch_ids_rec($categoryid);
+
+    $catlist = [];
+    foreach ($ids as $cid) {
+        $cat = $DB->get_record('course_categories', ['id' => $cid]);
+        $name = $cat->name;
+        while (!empty($cat->parent)) {
+            $cat = $DB->get_record('course_categories', ['id' => $cat->parent]);
+            $name = $cat->name.' / '.$name;
+        }
+        $catlist[$cid] = $name;
+    }
+
+    return $catlist;
+}
+
 function local_my_hide_home() {
 
     $config = get_config('local_my');
@@ -560,12 +630,12 @@ function local_my_course_trim_char($str, $n = 500, $endchar = '...') {
     }
 
     $str = preg_replace("/\s+/", ' ', str_replace(array("\r\n", "\r", "\n"), ' ', $str));
-    if (strlen($str) <= $n) {
+    if (mb_strlen($str) <= $n) {
         return $str;
     }
 
     $out = "";
-    $small = substr($str, 0, $n);
+    $small = mb_substr($str, 0, $n);
     $out = $small.$endchar;
     return $out;
 }
@@ -607,8 +677,11 @@ function local_my_course_trim_words($str, $w = 10, $endchar = '...') {
  * @return bool false if file not found, does not return if found - justsend the file
  */
 function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+    global $CFG;
 
-    require_course_login($course);
+    if (!empty($CFG->forcelogin)) {
+        require_course_login($course);
+    }
 
     $fileareas = array('rendererimages');
     if (!in_array($filearea, $fileareas)) {
@@ -623,12 +696,11 @@ function local_my_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     $relativepath = implode('/', $args);
     $fullpath = "/$context->id/local_my/$filearea/$pageid/$relativepath";
     if ((!$file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
-        echo "Out not found";
-        return false;
+        send_file_not_found();
     }
 
     // Finally send the file.
-    send_stored_file($file, 0, 0, true); // Download MUST be forced - security!
+    send_stored_file($file, 0, 0, false); // Download MUST NOT be forced as files are published images in content!
 }
 
 function local_my_scalar_array_merge(&$arr1, &$arr2) {
@@ -687,51 +759,6 @@ function local_my_is_guestenrolable_course($course) {
         return true;
     }
     return false;
-}
-
-function local_my_count_expected_assignments($courseid, $userid) {
-    global $DB;
-
-    $sql = "
-        SELECT
-            a.id,
-            cm.id,
-            CASE WHEN ass.id IS NULL THEN 0 ELSE 1 END AS submitted
-        FROM
-            {course_modules} cm,
-            {modules} m,
-            {assign} a
-        LEFT JOIN
-            {assign_submission} as
-        ON
-            as.assignment = a.id
-        WHERE
-            a.id = cm.instance AND
-            cm.module = m.id AND
-            m.name = ? AND
-            a.course = ? AND
-            cm.visible = 1 AND
-            cm.deletioninprogress = 0 AND
-            a.allowsubmissionfromdata < ? AND
-            ass.userid = ?
-        GROUP BY
-            cm.id
-    ";
-    // First precheck.
-    $params = ['assign', $courseid, time(), $userid];
-    if ($rawvisibleassigns = $DB->get_records_sql($sql)) {
-        $submitted = 0;
-        $total = 0;
-        foreach ($rawvisibleassigns as $va) {
-            // Check all availability constaints.
-            if (\core_availability\info_module\is_user_visible($va->cmid, $userid, false)) {
-                $submitted += $va->submitted;
-                $total++;
-            }
-        }
-    }
-
-    return [$submitted, $total];
 }
 
 function local_my_is_panel_empty($panelname) {
@@ -809,3 +836,175 @@ function local_my_get_image_url($imgname) {
     return $imgurl;
 }
 
+/**
+ * checks a course is favorite in user's preferences
+ * @param int $courseid
+ */
+function local_my_is_favorite($courseid) {
+    global $USER, $DB;
+
+    $favorites = $DB->get_record('user_preferences', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+    if (!$favorites) {
+        return false;
+    }
+    $arr = explode(',', $favorites);
+    return in_array($courseid, $arr);
+}
+
+/**
+ * Append a local my favorite course to user's preferences
+ * @param int $courseid
+ */
+function local_my_add_to_favorites($courseid) {
+    global $USER, $DB;
+
+    $favorites = $DB->get_record('user_preferences', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+    if (!$favorites) {
+        $favorites = new StdClass;
+        $favorites->userid = $USER->id;
+        $favorites->name = 'local_my_favorite_courses';
+        $favorites->value = $courseid;
+        $DB->insert_record('user_preferences', $favorites);
+        return;
+    }
+    $favoriteids = explode(',', $favorites->value);
+    if (!in_array($courseid, $favoriteids)) {
+        $favoriteids[] = $courseid;
+    }
+    $favorites->value = implode(',', $favoriteids);
+    $DB->update_record('user_preferences', $favorites);
+}
+
+/**
+ * Removes a local my favorite course from user's preferences
+ * @param int $courseid
+ */
+function local_my_remove_from_favorites($courseid) {
+    global $USER, $DB;
+
+    $favorites = $DB->get_field('user_preferences', 'value', ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+    if (empty($favorites)) {
+        return;
+    }
+    $favoritesids = explode(',', $favorites);
+    $favarray = array_combine($favoritesids, $favoritesids);
+    unset($favarray[$courseid]);
+    $favorites = implode(',', array_keys($favarray));
+    $DB->set_field('user_preferences', 'value', $favorites, ['userid' => $USER->id, 'name' => 'local_my_favorite_courses']);
+}
+
+/**
+ * Checks if some course favorite widgets is used in any panel.
+ * Result is cached in memory.
+ */
+function local_my_is_using_favorites() {
+    static $using = null;
+
+    if (is_null($using)) {
+
+        $config = get_config('local_my');
+
+        $panelnames = ['modules', 'teachermodules', 'coursemanagermodules', 'adminmodules'];
+
+        $using = false;
+        foreach ($panelnames as $panelname) {
+            if (preg_match('/\\bmy_favorite_/', $config->$panelname)) {
+                $using = true;
+            }
+        }
+    }
+
+    return $using;
+}
+
+/**
+ * Get all states of all filters for a particular user and a particular local_my widget
+ * @param int $uid the user id
+ * @param string $widget the widget name
+ */
+function local_my_get_filter_states($uid, $widget) {
+    global $SESSION, $USER, $CFG;
+
+    $config = get_config('local_my');
+
+    // Get widget instance
+    $classname = $widget.'_module';
+    $fqclassname = '\\local_my\\module\\'.$widget.'_module';
+    include_once($CFG->dirroot.'/local/my/classes/modules/'.$widget.'.class.php');
+    $instance = new $fqclassname();
+
+    // Catch from session
+
+    if (empty($SESSION->localmystates)) {
+        $SESSION->localmystates = [];
+    }
+
+    // Get user preferences for this widget or make a default state register and set it up in session.
+    $SESSION->localmystates[$widget.'-'.$uid] = new Stdclass;
+
+    if (!empty($instance->filters)) {
+        foreach ($instance->filters as $filter) {
+            $filtername = $filter->name;
+            $SESSION->localmystates[$widget.'-'.$uid]->$filtername = get_user_preferences($widget.'-'.$uid.'-'.$filtername, $filter->currentvalue);
+
+            if ($filter->has_input_value()) {
+                $filter->catchvalue();
+                set_user_preference($widget.'-'.$uid.'-'.$filtername, $filter->currentvalue);
+                $SESSION->localmystates[$widget.'-'.$uid]->$filtername = $filter->currentvalue;
+            }
+        }
+    }
+
+    $SESSION->localmystates[$widget.'-'.$uid]->time = get_user_preferences($widget.'-'.$uid.'-time', $config->defaultcoursetimeoption);
+    $SESSION->localmystates[$widget.'-'.$uid]->sort = get_user_preferences($widget.'-'.$uid.'-sort', $config->defaultcoursesortoption);
+    $SESSION->localmystates[$widget.'-'.$uid]->display = get_user_preferences($widget.'-'.$uid.'-display', $config->defaultcoursedisplayoption);
+
+    // Override with URL input.
+    if (!empty($sort = optional_param('sort', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->sort = $sort;
+        set_user_preference($widget.'-'.$uid.'-sort', $sort);
+    }
+
+    if (!empty($display = optional_param('display', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->display = $display;
+        set_user_preference($widget.'-'.$uid.'-display', $display);
+    }
+
+    if (!empty($schedule = optional_param('schedule', false, PARAM_TEXT))) {
+        $SESSION->localmystates[$widget.'-'.$uid]->time = $schedule;
+        set_user_preference($widget.'-'.$uid.'-time', $schedule);
+    }
+
+    return $SESSION->localmystates[$widget.'-'.$uid];
+}
+
+function local_my_get_course_time_options() {
+    $timeoptions = [
+        'all' => get_string('all', 'local_my'),
+        'passed' => get_string('passed', 'local_my'),
+        'current' => get_string('current', 'local_my'),
+        'future' => get_string('future', 'local_my'),
+//          'hidden',
+    ];
+    return $timeoptions;
+}
+
+function local_my_get_course_sort_options() {
+    $sortoptions = [
+            'byname' => get_string('byname', 'local_my'),
+            'byenddate' => get_string('byenddate', 'local_my'),
+            'bycompletion' => get_string('bycompletion', 'local_my'),
+            'bylastaccess' => get_string('bylastaccess', 'local_my'),
+    ];
+    return $sortoptions;
+}
+
+function local_my_get_course_display_options() {
+    $displayoptions = [
+        'displayauto' => get_string('displayauto', 'local_my'),
+        'displaycards' => get_string('displaycards', 'local_my'),
+        'displaylist' => get_string('displaylist', 'local_my'),
+        'displaysummary' => get_string('displaysummary', 'local_my'),
+    ];
+    return $displayoptions;
+}

@@ -22,7 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Compatibility functions
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die();
+}
+
+require_once($CFG->dirroot.'/lib/coursecatlib.php');
+
+// Compatibility functions.
 
 function local_my_get_catlist($capability = '') {
     if (empty($capability)) {
@@ -33,9 +39,25 @@ function local_my_get_catlist($capability = '') {
 }
 
 function local_get_category($catid) {
-    return \coursecat::get($course->category);
+    return \coursecat::get($catid);
 }
 
 function local_get_course_list($course) {
     return new \course_in_list($course);
+}
+
+function local_get_default_coursecat() {
+    return \coursecat::get_default();
+}
+
+function local_has_capability_on_any_coursecat($capabilities) {
+    return \coursecat::has_capability_on_any($capabilities);
+}
+
+function local_get_many_categories($categories) {
+    return \coursecat::get_many($categories);
+}
+
+function local_resort_categories_cleanup($sortcoursesby) {
+    return \coursecat::resort_categories_cleanup($sortcoursesby !== false);
 }

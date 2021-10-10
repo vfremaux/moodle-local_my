@@ -2,9 +2,10 @@
 
 
 <!-- local_my/quiz_to_perform -->
-{{#hasquizzes}}
-<div class="sektor-quizzes-to-perform {{collapseclass}}">
-    <div class="sektor-image" id="sektor-quizzes-{{id}}" title="{{#str}}quiztoperform, local_my{{/str}}"></div> {{{quizzes}}}
+{{#hasquizspending}}
+<div class="sektor-quizzes-to-perform indicator {{collapseclass}}">
+    {{{quizicon}}}<b>:</b>&nbsp;&nbsp; <div class="sektor-image" id="sektor-quizs-{{id}}" title="{{#str}}quiztoperform, local_my{{/str}}"></div>
+    {{{quizzes}}}
 </div>
-{{/hasquizzes}}
+{{/hasquizspending}}
 <!-- /local_my/quiz_to_perform -->

@@ -20,7 +20,7 @@
 
     <div id="local-my-coursearea-{{i}}" class="block coursearea">
 
-        <div class="headingblock header">
+        <div class="header">
             <div class="title">
                 <h2>{{catname}}</h2>
             </div>
@@ -28,7 +28,7 @@
 
         <div id="courselistarea{{i}}">
             {{#aslist}}
-            <div class="content">
+            <div class="content" data-resolved="aslist">
                 <ul class="course-list {{#isaccordion}}is-accordion{{/isaccordion}}">
                     {{> local_my/courses_with_categories}}
                 </ul>
@@ -36,7 +36,7 @@
             {{/aslist}}
 
             {{#asflatlist}}
-            <div class="content">
+            <div class="content" data-resolved="asflatlist">
                 <ul class="course-list">
                     {{#courses}}
                     {{> local_my/courserow}}

@@ -32,4 +32,19 @@ $plugin->release = '3.5.0 (Build 2019112500)';
 $plugin->maturity = MATURITY_STABLE;
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.5.0010';
+$plugin->codeincrement = '3.5.0013';
+$plugin->privacy = 'dualrelease';
+$plugin->profiles = [
+    'classes/modules/course_areas.class.php',
+    'classes/modules/course_areas_and_availables.class.php',
+    'classes/modules/course_areas2.class.php',
+    'classes/modules/my_templates.class.php',
+    'classes/modules/my_network.class.php',
+    'classes/modules/statictext.class.php',
+    'classes/modules/available_courses_slider.class.php',
+    'classes/modules/my_courses_slider.class.php',
+    'classes/modules/my_authored_courses_slider.class.php',
+    'classes/modules/my_managed_courses_slider.class.php',
+    'classes/modules/my_favorite_courses_slider.class.php',
+    'classes/modules/courses_slider.class.php',
+];

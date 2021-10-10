@@ -1,0 +1,30 @@
+
+
+<!-- local_my/time -->
+<div data-region="time-selector" class="btn-group">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle icon-no-margin" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {{#pix}} i/calendareventtime {{/pix}}
+        <span class="sr-only">
+        {{#timeoptions}}
+            {{#active}}<span data-active-item-text>{{/active}}{{optionlabelstr}}{{#active}}</span>{{/active}}
+        {{/timeoptions}}
+        </span>
+    </button>
+    <div role="menu" class="dropdown-menu dropdown-menu-right list-group hidden" data-show-active-item data-skip-active-class="true" >
+        {{#timeoptions}}
+        <a
+            class="dropdown-item {{#active}}active{{/active}} course-time course-time-{{uid}}"
+            href="#view_{{value}}"
+            data-toggle="tab"
+            data-widget="{{area}}"
+            data-uid="{{uid}}"
+            data-view="{{view}}"
+            data-time="{{value}}"
+            aria-label="{{optionarialabelstr}}"
+        >
+            {{optionlabelstr}}
+        </a>
+        {{/timeoptions}}
+    </div>
+</div>
+<!-- /local_my/time -->

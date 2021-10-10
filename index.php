@@ -34,12 +34,14 @@
 // This is a customscript include.
 defined('MOODLE_INTERNAL') || die();
 
-// Overrides the customisation if not enabled and return back to standard behaviour....
+// Overrides the customisation if not enabled and return back to standard behaviour
 
 require_once($CFG->dirroot.'/my/lib.php');
 require_once($CFG->dirroot.'/local/my/lib.php');
 require_once($CFG->dirroot.'/local/vflibs/jqplotlib.php');
-require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_authored_courses.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_managed_courses.class.php');
 
 use \local_my\module\module;
 
@@ -76,6 +78,7 @@ if (isguestuser()) {
 }
 
 $PAGE->requires->js('/local/my/js/sektor/sektor.js');
+$PAGE->requires->css('/local/my/css/slick.css');
 
 module::static_init();
 if (empty(module::get_config('enable'))) {
@@ -105,11 +108,7 @@ $PAGE->requires->jquery_plugin('jqwidgets-core', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-bargauge', 'local_vflibs');
 $PAGE->requires->jquery_plugin('jqwidgets-progressbar', 'local_vflibs');
 $PAGE->requires->js_call_amd('local_my/local_my', 'init');
-if (!empty($config->slick)) {
-    $PAGE->requires->js_call_amd('local_my/slick', 'init');
-    $PAGE->requires->js_call_amd('local_my/slickinit', 'init');
-}
-$PAGE->requires->css('/local/my/css/slick.css');
+
 $PAGE->requires->skip_link_to('localmymaincontent', get_string('tocontent', 'access'));
 
 if (get_home_page() != HOMEPAGE_MY) {
@@ -190,22 +189,21 @@ $renderer = module::get_renderer();
 $tabs = $renderer->tabs($view, $isstudent, $isteacher, $iscoursemanager, $isadmin);
 
 module::fetch_modules($view);
-debug_trace("Processing exclusions");
+// debug_trace("Processing exclusions");
 module::pre_process_exclusions($view);
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->box_start('my-content');
-debug_trace("Rendering my caption");
-echo module::render_my_caption();
-
 echo $tabs;
 
 // Render dahsboard.
-debug_trace("Rendering all dashboard");
+// debug_trace("Rendering all dashboard");
 echo module::render_dashboard();
 
 // The main overview in the middle of the page.
-echo $OUTPUT->box_end();
+
+// Ask for rendering js sektor code in main page.
+$PAGE->requires->js_amd_inline($renderer->render_js_code(false));
+
 echo $OUTPUT->footer();
 die;
