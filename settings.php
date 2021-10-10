@@ -181,7 +181,23 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/printcategories';
     $label = get_string('localmyprintcategories', 'local_my');
     $desc = get_string('localmyprintcategories_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
+    $printcatoptions = [
+        0 => get_string('no'),
+        1 => get_string('yes'),
+        2 => get_string('uppercat', 'local_my'),
+        99 => get_string('fullpath', 'local_my')
+    ];
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $printcatoptions, PARAM_BOOL));
+
+    $key = 'local_my/acceptfullpathrootcats';
+    $label = get_string('localmyacceptfullpathrootcats', 'local_my');
+    $desc = get_string('localmyacceptfullpathrootcats_desc', 'local_my');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
+
+    $key = 'local_my/categorypathstopcats';
+    $label = get_string('localmycategorypathstopcats', 'local_my');
+    $desc = get_string('localmycategorypathstopcats_desc', 'local_my');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
 
     $identifieroptions = ['' => get_string('none', 'local_my'),
                           'shortname' => get_string('shortname'),

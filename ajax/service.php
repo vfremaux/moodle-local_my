@@ -60,7 +60,7 @@ if (!empty($action)) {
         $view = required_param('view', PARAM_TEXT);
 
         module::static_init();
-        module::resolve_view();
+        $resolution = module::resolve_view();
         module::fetch_modules($view);
         module::pre_process_exclusions($view);
 

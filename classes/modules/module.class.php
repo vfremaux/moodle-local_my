@@ -679,7 +679,7 @@ abstract class module {
 
         $coursecount = count($courses);
 
-        $isauto = !empty($this->options['display']) && $this->options['display'] == 'displayauto';
+        $isauto = empty($this->options['display']) || $this->options['display'] == 'displayauto';
         if (($coursecount > self::$config->maxuncategorizedlistsize) && $isauto) {
             $template->aslist = true;
             $template->resolved = 'aslist';
@@ -689,6 +689,11 @@ abstract class module {
 
         $mode = 'asflatlist';
         $modetag = 'asflatlist-default';
+
+        if ($template->required == 'aslist') {
+            $mode = 'aslist';
+            $modetag = 'required';
+        }
 
         if ($template->required == 'asgrid') {
             $mode = 'asgrid';
@@ -1053,6 +1058,14 @@ abstract class module {
     public function export_courses_cats_for_template($template, $courses = null) {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
 
+        $config = get_config('local_my');
+
+        // Compute stop upper cats if required.
+        $stopcats = [];
+        if (!empty($config->categorypathstopcats)) {
+            $stopcats = preg_split('/[\s,]+/', $config->categorypathstopcats);
+        }
+
         if (is_null($courses)) {
             $courses = $this->courses;
         }
@@ -1111,13 +1124,25 @@ abstract class module {
                 } else if (!empty($this->options['withcats']) && ($this->options['withcats'] > 1)) {
                     $cats = array();
                     $cats[] = format_string($cat->category->name);
-                    if ($cat->category->parent) {
-                        $parent = $cat->category;
-                        for ($i = 1; $i < $this->options['withcats']; $i++) {
-                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
-                            $cats[] = format_string($parent->name);
-                        }
-                    }
+                    if (self::accept_fullpath($cat->category)) {
+	                    if ($cat->category->parent) {
+	                        $parent = $cat->category;
+	                        for ($i = 1; $i < $this->options['withcats']; $i++) {
+	                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
+	                            if ($parent) {
+	                                if (!empty($stopcats)) {
+	                                    if (in_array($parent->id, $stopcats)) {
+	                                        // Stop climbing up. continue before parent is added to path.
+	                                        continue;
+	                                    }
+	                                }
+	                                $cats[] = format_string($parent->name);
+	                            } else {
+	                                break;
+	                            }
+	                        }
+	                    }
+	                }
                     $cats = array_reverse($cats);
                     $cattpl->catname = implode(' / ', $cats);
                 }
@@ -1332,5 +1357,30 @@ abstract class module {
                 $filter->catchvalue();
             }
         }
+    }
+
+    /**
+     * Tells if the current category should display full path or not.
+     * One of the configured category root id should be somewhere in the category path.
+     * Defaults to "true everywhere" if not configured.
+     * @param object $category the course category record.
+     * @return bool true if accepts full path scan and display.
+     */
+    public static function accept_fullpath($category) {
+        $config = get_config('local_my');
+
+        $acceptrootcats = $config->acceptfullpathrootcats;
+
+        if (empty($acceptrootcats)) {
+            return true;
+        }
+
+        $acceptrootcatsarr = preg_split('/[\s,]+/', $acceptrootcats);
+        foreach ($acceptrootcatsarr as $acceptrootcatid) {
+            if (preg_match('#/'.$acceptrootcatid.'/#', $category->path)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

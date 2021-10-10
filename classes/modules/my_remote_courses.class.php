@@ -25,23 +25,26 @@ namespace local_my\module;
 defined('MOODLE_INTERNAL') or die();
 
 require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_remotes.trait.php');
 
 use StdClass;
 use context_course;
 use html_writer;
+use moodle_url;
 
-class my_courses_module extends module {
+class my_remote_courses_module extends module {
+    use my_remotes;
 
     public function __construct() {
         parent::__construct();
-        $this->area = 'my_courses';
-        $this->modulename = get_string('mycourses', 'local_my');
+        $this->area = 'my_remote_courses';
+        $this->modulename = get_string('myremotecourses', 'local_my');
 
         // Default gauge settings.
         $this->options = [
-            'gaugetype' => self::$config->progressgaugetype,
-            'gaugewidth' => self::$config->progressgaugewidth,
-            'gaugeheight' => self::$config->progressgaugeheight
+            'gaugetype' => 'noprogress',
+            'gaugewidth' => 0,
+            'gaugeheight' => 0
         ];
     }
 
@@ -80,17 +83,18 @@ class my_courses_module extends module {
             $template->shortdisplay = true;
         }
 
-        $template->showstates = get_config('local_my', 'showfilterstates');
-        $template->assignicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'assign'), 'mod_assign');
-        $template->quizicon = $OUTPUT->pix_icon('icon', get_string('pluginname', 'quiz'), 'mod_quiz');
-        $template->assigntosubmiticon = $OUTPUT->pix_icon('assignstosubmit', get_string('pendingassignstosubmit', 'local_my'), 'local_my');
-
         if (!$this->has_content($template)) {
+            // Do NOT bother users with empty remote course set.
+            return '';
+            /*
             $template->hascourses = false;
             $template->nocourses = $OUTPUT->notification(get_string('nocourses', 'local_my'));
             return $OUTPUT->render_from_template('local_my/my_courses_module', $template);
+            */
         }
 
+        $template->hassortorfilter = false;
+        /*
         if (!empty(self::$config->withsort)) {
             $template->hassortorfilter = true;
             $template->hassort = true;
@@ -116,52 +120,45 @@ class my_courses_module extends module {
                 $template->filters[] = $this->get_filter_templates($filter);
             }
         }
+        */
 
         $template->hascourses = true;
-        $template->required = $required; // prefered view type.
+        $template->required = 'aslist'; // prefered view type.
+        $template->aslist = true;
 
-        $this->resolve_viewtype($template);
+        // View type necessarily as list, with cats giving the remote host identity.
 
-        if ($template->resolved != 'aslist') {
+        $this->options['withcats'] = true;
+        $this->options['noprogress'] = true;
 
-            $this->options['withcats'] = false;
-            $this->options['noprogress'] = self::$config->progressgaugetype == 'noprogress';
-            if (!empty($template->resolved == 'asflatlist')) {
-                // With flat list and inline course rows we need to force sektor gauge.
-                $this->options['gaugetype'] = 'sektor';
-                $this->options['gaugewidth'] = '20';
-                $this->options['gaugeheight'] = '20';
-            } else {
-                $this->options['gaugetype'] = self::$config->progressgaugetype;
-                $this->options['gaugewidth'] = self::$config->progressgaugewidth;
-                $this->options['gaugeheight'] = self::$config->progressgaugeheight;
+        // Get a simple, one level list.
+        foreach ($this->courses as $hostid => $hostcourses) {
+            $cattpl = new StdClass;
+            $cattpl->catname = $DB->get_field('mnet_host', 'name', ['id' => $hostid]);
+            $cattpl->nolink = true;
+            $cattpl->courses = [];
+            foreach ($hostcourses as $c) {
+                $coursetpl = new StdClass;
+                $coursetpl->shortname = $c->shortname;
+                $coursetpl->fullname = format_string($c->fullname);
+                $coursetpl->summary = format_string($c->summary);
+                // We need renegociate the course url to reach the remote course.
+                $wantsurl = '/course/view.php?id='.$c->remoteid;
+                $coursetpl->courseurl = new moodle_url('/auth/mnet/jump.php', ['hostid' => $hostid, 'wantsurl' => $wantsurl]);
+
+                $cattpl->courses[] = $coursetpl;
             }
-
-            // Get a simple, one level list.
-            $template->courses = [];
-            foreach ($this->courses as $cid => $c) {
-                $coursetpl = $this->export_course_for_template($c);
-                $template->courses[] = $coursetpl;
-            }
-            $template->totalofcourses = count($template->courses);
-        } else {
-            // As categorized list.
-            $template->aslist = true;
-            $template->isaccordion = !empty(self::$config->courselistaccordion);
-            $this->options['gaugetype'] = 'sektor';
-            $this->options['gaugewidth'] = '20';
-            $this->options['gaugeheight'] = '20';
-            $this->options['withcats'] = self::$config->printcategories;
-            $this->options['isaccordion'] = $template->isaccordion;
-            $result = $this->export_courses_cats_for_template($template);
-            $template->categories = $result->categories;
-            $template->catidlist = $result->catidlist;
+            $template->categories[] = $cattpl;
         }
+        $template->totalofcourses = count($template->courses);
 
         // Process exclusion of what has been displayed.
+        // Not consistant. courses are remote courses and have NOT local reference.
+        /*
         if (empty($this->options['noexcludefromstream'])) {
             $this->exclude_post_display($this->area);
         }
+        */
 
         $template->debuginfo = self::get_debuginfo();
 
@@ -171,30 +168,6 @@ class my_courses_module extends module {
         } else {
             return $OUTPUT->render_from_template('local_my/my_courses_module-loading_placeholder', $template);
         }
-    }
-
-    public function get_courses() {
-        global $USER, $DB, $CFG;
-
-        $this->courses = enrol_get_my_courses('id, shortname, fullname');
-        foreach (array_keys($this->courses) as $cid) {
-            $context = context_course::instance($cid);
-            if (!has_capability('local/my:isstudent', $context, $USER->id, false)) {
-                // Exclude courses where i'm NOT student.
-                self::add_debuginfo("Course Exclude (course $cid not student inside)", $cid);
-                unset($this->courses[$cid]);
-            } else {
-                self::add_debuginfo("Course Add (course $cid as enrolled inside)", $cid);
-            }
-        }
-
-        $this->process_excluded();
-        $this->process_metas();
-        $this->process_courseareas();
-
-        $this->filter_courses_by_time();
-        $this->fix_courses_attributes_for_sorting();
-        $this->sort_courses();
     }
 
     protected function filter_courses_by_time() {
@@ -246,9 +219,12 @@ class my_courses_module extends module {
             $defaultsortoption = 'byname';
         }
 
-        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-sort', $defaultsortoption);
-
-        $options = local_my_get_course_sort_options();
+        $options = [
+            'byname',
+            'byenddate',
+            'bycompletion',
+            'bylastaccess',
+        ];
 
         if ($lightfavorites) {
             $options[] = 'byfavorites';
@@ -256,11 +232,11 @@ class my_courses_module extends module {
 
         $opttpls = [];
 
-        foreach ($options as $option => $optionslabel) {
+        foreach ($options as $option) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = $optionslabel;
-            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->optionlabelstr = get_string($option, 'local_my');
+            $opttpl->active = $defaultsortoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewselectoroption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
         }
@@ -270,22 +246,26 @@ class my_courses_module extends module {
 
     protected function get_course_time_option_templates() {
 
-        $defaulttimeoption = get_config('local_my', 'defaultcoursetimeoption');
-        if (empty($defaulttimeoption)) {
-            $defaulttimeoption = 'all';
+        $defaultsortoption = get_config('local_my', 'defaultcoursesortoption');
+        if (empty($defaultsortoption)) {
+            $defaultsortoption = 'all';
         }
 
-        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-time', $defaulttimeoption);
-
-        $options = local_my_get_course_time_options();
+        $options = [
+            'all',
+            'passed',
+            'current',
+            'future',
+//          'hidden',
+        ];
 
         $opttpls = [];
 
-        foreach ($options as $option => $optionlabel) {
+        foreach ($options as $option) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = $optionlabel;
-            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->optionlabelstr = get_string($option, 'local_my');
+            $opttpl->active = $defaultsortoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('ariaviewtimeoption', 'local_my', $opttpl->optionlabelstr);
             $opttpls[] = $opttpl;
         }
@@ -296,21 +276,24 @@ class my_courses_module extends module {
     protected function get_course_display_option_templates() {
 
         $defaultdisplayoption = get_config('local_my', 'defaultcoursedisplayoption');
-        if (empty($defaultdisplayoption)) {
+        if (empty($defaultsortoption)) {
             $defaultdisplayoption = 'displaycards';
         }
 
-        $realvalue = get_user_preferences($this->area.'-'.$this->uid.'-display', $defaultdisplayoption);
-
-        $options = local_my_get_course_display_options();
+        $options = [
+            'displayauto',
+            'displaycards',
+            'displaylist',
+            'displaysummary',
+        ];
 
         $opttpls = [];
 
-        foreach ($options as $option => $optionlabel) {
+        foreach ($options as $option) {
             $opttpl = new StdClass;
             $opttpl->value = $option;
-            $opttpl->optionlabelstr = $optionlabel;
-            $opttpl->active = $realvalue == $option; // At the moment, not bound to user preferences. Next step.
+            $opttpl->optionlabelstr = get_string($option, 'local_my');
+            $opttpl->active = $defaultdisplayoption == $option; // At the moment, not bound to user preferences. Next step.
             $opttpl->optionarialabelstr = get_string('to'.$option, 'local_my');
             $opttpls[] = $opttpl;
         }

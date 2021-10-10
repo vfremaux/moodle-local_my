@@ -70,7 +70,7 @@ class course_categories_module extends module {
         if (!empty($this->categories)) {
             foreach ($this->categories as $catid) {
                 try {
-                    $category = \core_course_category::get($catid);
+                    $category = local_get_category($catid);
                     $cattpl = $this->export_course_category_for_template($category, $this->options);
                     $template->categories[] = $cattpl;
                     $template->hascategories = true;
