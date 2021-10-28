@@ -3634,16 +3634,14 @@ class core_course_external extends external_api {
      * @return external_function_parameters
      */
     public static function get_enrolled_courses_by_timeline_classification_parameters() {
-        // PATCH+ : Ajax issue in alternative local_my.
         return new external_function_parameters(
             array(
-                'classification' => new external_value(PARAM_ALPHA, 'future, inprogress, or past', VALUE_DEFAULT, 'future'),
+                'classification' => new external_value(PARAM_ALPHA, 'future, inprogress, or past'),
                 'limit' => new external_value(PARAM_INT, 'Result set limit', VALUE_DEFAULT, 0),
                 'offset' => new external_value(PARAM_INT, 'Result set offset', VALUE_DEFAULT, 0),
                 'sort' => new external_value(PARAM_TEXT, 'Sort string', VALUE_DEFAULT, null)
             )
         );
-        // PATCH-.
     }
 
     /**
