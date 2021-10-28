@@ -1,0 +1,21 @@
+
+
+<!-- local_my/recent_courses_module -->
+<div class="block block_{{area}}">
+
+    <div class="header">
+        <div class="title">
+            <h2>{{#str}}{{modulename}}, local_my{{/str}}</h2>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="mycourselist" width="100%" class="courselist clearfix">
+            {{#courses}}
+            {{> local_my/coursebox}}
+            {{/courses}}
+        </div>
+    </div>
+
+</div>
+<!-- /local_my//recent_courses_module -->
