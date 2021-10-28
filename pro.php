@@ -16,41 +16,41 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['activationoption'] = 'Activation option';
-$string['emulatecommunity'] = '<a name="getsupportlicense"></a>Emulate the community version.';
-$string['emulatecommunity_desc'] = 'Switches the code to the community version. The result will be more compatible, but some features will not be available anymore.';
-$string['getlicensekey'] = 'Get support license key';
-$string['getlicensekey_desc'] = 'In some case, integrators (or administrators) can self-register the support license of the pro part of this plugin.
-<br><a href="{$a}">Goto register form</a>';
-$string['licensestatus'] = 'Pro license status';
-$string['licensekey'] = 'Pro license key';
-$string['licensekey_desc'] = 'Input here the product license key you got from your provider';
-$string['licenseprovider'] = 'Pro License provider';
-$string['licenseprovider_desc'] = 'Input here your provider key';
-$string['partnerkey'] = 'Distributor Partner Key';
-$string['provider'] = 'Support provider';
-$string['specificprosettings'] = 'Specific pro settings';
-$string['errorjson'] = 'Error : Json response was empty or not parsable.';
-$string['errorresponse'] = 'Error : Provider response is valid but remote error : {$a}';
-$string['errornokeygenerated'] = 'Error : No key generated';
-$string['erroremptydistributorkey'] = 'Distributor key is empty';
-$string['erroremptyprovider'] = 'Provider is empty';
-$string['errornodistributorkey'] = 'No distributor key provided';
-$string['errornooptions'] = 'Error : No activation options found.';
-$string['options'] = 'Activation options';
-$string['noproaccess'] = 'This is the "pro" zone. "Pro" zone is NOT activated.';
-$string['start'] = 'Distributor identification';
-$string['continue'] = 'Continue';
-$string['activate'] = 'Activate';
-$string['chooseoption'] = 'Choose an option...';
+$string['activationoption'] = 'Option d\'activation';
+$string['emulatecommunity'] = '<a name="getsupportlicense"></a>Emuler la version communautaire';
+$string['emulatecommunity_desc'] = 'Bascule le code sur la version communautaire. Le résultat est plus compatible avec d\'autres installations, 
+mais certaines fonctionnalités avancées ne seront plus disponibles.';
+$string['getlicensekey'] = 'Obtenir une clef de license support';
+$string['getlicensekey_desc'] = '<a name="getsupportlicense"></a>Dans certains cas, les intégrateurs (ou administrateurs) peuvent obtenir directement une clef de license support auprès
+d\'un fournisseur pour activer les parties "pro" du plugin.
+<br><a href="{$a}">Enregistrer le plugin</a>';
+$string['licensestatus'] = 'Etat de license pro';
+$string['licensekey'] = 'Clef de license pro';
+$string['licensekey_desc'] = 'Entrez ici la clef de produit que vous avez reçu de votre distributeur.';
+$string['licenseprovider'] = 'Fournisseur version Pro';
+$string['licenseprovider_desc'] = 'Entrez la clef de votre distributeur.';
+$string['provider'] = 'Fournisseur de support';
+$string['partnerkey'] = 'Clef distributeur partenaire';
+$string['specificprosettings'] = 'Réglages spécifiques version "pro"';
+$string['errorjson'] = 'Erreur : La réponse JSON est vide ou n\'est pas interprétable.';
+$string['errorresponse'] = 'Erreur : La réponse est valide mais en erreur : {$a}';
+$string['errornokeygenerated'] = 'Erreur : La clef n\'est pas générée ou n\'est pas conforme.';
+$string['errornooptions'] = 'Erreur : Aucune option d\'activation trouvée.';
+$string['erroremptydistributorkey'] = 'Clef du distributeur non fournie';
+$string['errornodistributorkey'] = 'Clef distributeru non fournie';
+$string['erroremptyprovider'] = 'Fournisseur non spécifié';
+$string['options'] = 'Options d\'activation';
+$string['start'] = 'Identification du distributeur';
+$string['continue'] = 'Continuer';
+$string['activate'] = 'Activer';
+$string['chooseoption'] = 'Choisir une option d\'activation...';
+$string['noproaccess'] = 'Ceci est une partie "pro" limitée du plugin qui n\'est pas activée.';
 
-$string['provider_help'] = 'Support provider ID. This ID identifies the support provider provinding level3 support and mid/long term continuity warranty.';
-$string['partnerkey_help'] = 'The partner key has been given to the technical staff responsible of the plugin\'s installation and activation.';
+$string['provider_help'] = 'Code du fournisseur du support. Ce code identifie le prestataire fournissant le support de niveau 3 et la garantie de continuité du plugin.';
+$string['partnerkey_help'] = 'La clef partenaire a été fournie à l\'acteur désigné pour installer le plugin.';
 
-$string['emptysupportlicensemessage'] = '<div class="licensing">-- Pro licensed version --<br/>This plugin is being used in "pro" version
-without support license key for demonstration. It will have limited features.</div>';
+$string['emulatecommunity_desc'] = 'Si elle est activée, cette option force le composant à fonctionner en
+version communautaire. Le fonctionnement sera plus compatible avec d\'autres installations, mais certaines
+fonctionnalités ne seront plus disponibles.';
 
-$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version.
-This will increase compatibility with other implementations but will loose features !';
-
-$string['activationoption_help'] = 'This plugin may have several activation options such as license duration, renew product, etc. Choose the best fit to your situation.';
+$string['activationoption_help'] = 'Ce plugin peut avoir plusieurs options d\'activation dans le catalogue du fournisseur. Choissisez celle qui contient le mieux à votre situation.';
