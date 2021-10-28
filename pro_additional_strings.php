@@ -1,16 +1,16 @@
 <?php
 
-$string['plugindist'] = 'Plugin distribution';
+$string['plugindist'] = 'Distribution du plugin';
 $string['plugindist_desc'] = '
-<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
-core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
-and improvement effort.</p>
-<p>Please contact one of our distributors to get "Pro" version support.</p>
-<p><a href="http://www.mylearningfactory.com/index.php/documentation/Distributeurs?lang=en_utf8">MyLF Distributors</a></p>';
+<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
+correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugin existe et est distribuée
+sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
+<p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
+<p><a href="http://www.mylearningfactory.com/index.php/documentation/Distributeurs?lang=fr_utf8">Distributeurs MyLF</a></p>';
 
-$string['cachedef_pro'] = 'Stores data for pro section';
+$string['cachedef_pro'] = 'Stocke des données temporaires de la zone "pro"';
 
 require_once($CFG->dirroot.'/local/my/lib.php'); // to get xx_supports_feature();
 if ('pro' == local_my_supports_feature()) {
-    include($CFG->dirroot.'/local/my/pro/lang/en/pro.php');
+    include($CFG->dirroot.'/local/my/pro/lang/fr/pro.php');
 }
