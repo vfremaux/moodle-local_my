@@ -1131,8 +1131,9 @@ abstract class module {
 	                            $parent = $DB->get_record('course_categories', array('id' => $parent->parent));
 	                            if ($parent) {
 	                                if (!empty($stopcats)) {
-	                                    if (in_array($parent->id, $stopcats)) {
+	                                    if (in_array($parent->id, $stopcats) || in_array($parent->idnumber, $stopcats)) {
 	                                        // Stop climbing up. continue before parent is added to path.
+	                                        // Accept idnumbers also to be more flexible.
 	                                        continue;
 	                                    }
 	                                }
@@ -1367,6 +1368,8 @@ abstract class module {
      * @return bool true if accepts full path scan and display.
      */
     public static function accept_fullpath($category) {
+        global $DB;
+
         $config = get_config('local_my');
 
         $acceptrootcats = $config->acceptfullpathrootcats;
@@ -1377,6 +1380,11 @@ abstract class module {
 
         $acceptrootcatsarr = preg_split('/[\s,]+/', $acceptrootcats);
         foreach ($acceptrootcatsarr as $acceptrootcatid) {
+            // If non numerical accoptrootcatid, convert it to id.
+            // This allows config to work with portable idnumbers rather than internal ids.
+            if (!is_numeric($acceptrootcatid)) {
+                $acceptrootcatid = $DB->get_field('course_categories', 'id', ['idnumber' => $acceptrootcatid]);
+            }
             if (preg_match('#/'.$acceptrootcatid.'/#', $category->path)) {
                 return true;
             }
