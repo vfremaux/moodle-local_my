@@ -32,6 +32,17 @@ $capabilities = array(
     ),
 
     /*
+     * Tells who has course student role
+     */
+    'local/my:isstudent' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+        )
+    ),
+
+    /*
      * Tells who has site wide management capabilities
      */
     'local/my:ismanager' => array(
@@ -74,6 +85,9 @@ $capabilities = array(
         )
     ),
 
+    /*
+     * Tells who can see special course attributes on dashboard
+     */
     'local/my:seecourseattributes' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,

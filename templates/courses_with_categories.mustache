@@ -5,25 +5,26 @@
 {{#hascategories}}
 {{^isaccordion}}
 <div class="course-category-ctls">
-    <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{collapseallstr}}</a> - 
-    <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}">{{expandallstr}}</a>
+    <a class="local-my-area-ctls" id="local-my-cats-collapseall-{{area}}">{{#str}}collapseall, local_my{{/str}}</a>
+    <a class="local-my-area-ctls" id="local-my-cats-expandall-{{area}}">{{#str}}expandall, local_my{{/str}}</a>
     <span id="local-my-areacategories-{{area}}" style="display:none">{{catidlist}}</span>
 </div>
 {{/isaccordion}}
 {{/hascategories}}
 
 {{#categories}}
-
-<div class="course-category {{catstyle}}">
-    <img src="{{{collapseiconurl}}}" id="local-my-cathandle-{{area}}-{{catid}}" class="local-my-cat-collapse local-my-cat-collapse-{{area}}"> <b>{{catname}}</b>
-</div>
-
-{{#courses}}
-<div class="local-my-course-{{area}} local-my-course cat-{{area}}-{{catid}} {{collapseclass}}">
-    <a class="{{cstyle}}" href="{{{courseurl}}}">{{fullname}}</a>
-    {{{editingicon}}}
-</div>
-{{/courses}}
-
+<li id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
+    {{^nolink}}
+    <h3><a href="#" class="local-my-catlink" aria-haspopup="true" aria-expanded="{{ariaexpanded}}">{{catname}}</a></h3>
+    {{/nolink}}
+    {{#nolink}}
+    <h3>{{catname}}</h3>
+    {{/nolink}}
+</li>
+<ul class="course-category-list">
+    {{#courses}}
+    {{> local_my/courserow}}
+    {{/courses}}
+</ul>
 {{/categories}}
-<!-- local_my/course_with_categories -->
+<!-- /local_my/course_with_categories -->

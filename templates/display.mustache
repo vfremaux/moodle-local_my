@@ -1,0 +1,29 @@
+
+<!-- local_my/display -->
+<div class="btn-group" data-region="display-selector">
+    <button id="displaydropdown" type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Afficher le menu déroulant">
+        <i class="icon fa fa-th fa-fw " aria-hidden="true"></i>
+        <span class="sr-only" data-active-item-text="">
+        {{#displayoptions}}
+            {{#active}}<span data-active-item-text>{{/active}}{{optionlabelstr}}{{#active}}</span>{{/active}}
+        {{/displayoptions}}
+        </span>
+    </button>
+    <ul class="dropdown-menu" data-show-active-item="" aria-labelledby="displaydropdown">
+        {{#displayoptions}}
+        <li>
+            <a class="dropdown-item {{#active}}active{{/active}} course-display course-display-{{uid}}" href="#"
+            href="#view_{{value}}"
+            data-toggle="tab"
+            data-widget="{{area}}"
+            data-uid="{{uid}}"
+            data-view="{{view}}"
+            data-display="{{value}}"
+            aria-label="{{optionarialabelstr}}">
+            {{optionlabelstr}}
+            </a>
+        </li>
+        {{/displayoptions}}
+    </ul>
+</div>
+<!-- /local_my/display -->

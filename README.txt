@@ -55,3 +55,18 @@ Add manager as being an author when assigned in some context
 
 Add more settings to control some elements visibility on widgets. Add
 capability to hide/show course attributes on grid/boxed views.
+
+XX.0011
+=========================================
+
+Privatize some widgets and the detailed pedagogic output.
+
+2021031000 - XX.0013
+=========================================
+
+Add LTC override to course progression indicators, if exists in course.
+
+2021100700 -- XX.0014
+=========================================
+
+Adds Pro section cache
