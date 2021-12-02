@@ -146,11 +146,12 @@ class my_courses_module extends module {
             $template->totalofcourses = count($template->courses);
         } else {
             // As categorized list.
+            $template->aslist = true;
             $template->isaccordion = !empty(self::$config->courselistaccordion);
             $this->options['gaugetype'] = 'sektor';
             $this->options['gaugewidth'] = '20';
             $this->options['gaugeheight'] = '20';
-            $this->options['withcats'] = true;
+            $this->options['withcats'] = self::$config->printcategories;
             $this->options['isaccordion'] = $template->isaccordion;
             $result = $this->export_courses_cats_for_template($template);
             $template->categories = $result->categories;

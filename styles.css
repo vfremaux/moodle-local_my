@@ -228,7 +228,7 @@ div.mycourseareas h4 {
 
 .local-my-fp-courseinfo > h3 > a > img,
 .local-my-fp-categoryinfo > h3 > a > img {
-    margin: auto auto 10px auto;
+    margin: auto auto 0 auto;
     height: 150px !important;
     width: 100%;
     object-fit: cover;
@@ -465,6 +465,10 @@ li.local-my-course {
 
 .category-grid .local-my-promowrap {
     min-height: 150px;
+}
+
+.category-grid > div {
+   flex-basis: 25%;
 }
 
 @media all and (min-width: 576px) and (max-width: 1280px) {
@@ -719,8 +723,7 @@ li.local-my-course {
     }
 
     .local-my-fp-coursebox {
-        max-height: 300px;
-        min-height: 250px;
+        height: 300px;
     }
 
     .local-my-promowrap {
