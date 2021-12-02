@@ -194,6 +194,8 @@ module::pre_process_exclusions($view);
 
 echo $OUTPUT->header();
 
+echo module::render_my_caption();
+
 echo $tabs;
 
 // Render dahsboard.

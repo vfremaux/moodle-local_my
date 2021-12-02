@@ -18,15 +18,10 @@
     text-align: left;
 }
 
-/*
-#mydashboard .generaltable td {
-    border: none;
-    border-bottom-width: medium;
-    border-bottom-style: none;
-    border-bottom-color: currentcolor;
-    background-color: #fff;
+/* hides main title on dashboard, keep-it for accessibility */
+#page-my-index .page-header-headings h1 {
+    display: none;
 }
-*/
 
 #mydashboard li {
     list-style: none;
@@ -728,9 +723,7 @@ li.local-my-course {
     }
 
     .local-my-fp-coursebox {
-        height: 250px;
-        max-height: 250px;
-        min-height: 250px;
+        height: 300px;
     }
 
     .local-my-promowrap {

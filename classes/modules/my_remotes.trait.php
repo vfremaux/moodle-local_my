@@ -20,13 +20,24 @@
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_my\module;
 
-$definitions = array(
-    'heatmap' => array(
-        'mode' => cache_store::MODE_SESSION
-    ),
-    'pro' => array(
-        'mode' => cache_store::MODE_APPLICATION
-    ),
-);
+defined('MOODLE_INTERNAL') or die();
+
+use \context_course;
+
+/**
+ * common code to all "remote" wigdets
+ */
+trait my_remotes {
+
+    public function get_courses() {
+        global $USER, $DB, $CFG;
+
+        $myremotes = $DB->get_records('mnetservice_enrol_enrolments', ['userid' => $USER->id]);
+
+        foreach ($myremotes as $rc) {
+            $this->courses[$rc->hostid][$rc->remotecourseid] = $DB->get_record('mnetservice_enrol_courses', ['remoteid' => $rc->remotecourseid]);
+        }
+    }
+}

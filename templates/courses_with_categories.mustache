@@ -14,7 +14,12 @@
 
 {{#categories}}
 <li id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
+    {{^nolink}}
     <h3><a href="#" class="local-my-catlink" aria-haspopup="true" aria-expanded="{{ariaexpanded}}">{{catname}}</a></h3>
+    {{/nolink}}
+    {{#nolink}}
+    <h3>{{catname}}</h3>
+    {{/nolink}}
 </li>
 <ul class="course-category-list">
     {{#courses}}
