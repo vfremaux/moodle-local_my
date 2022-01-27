@@ -170,6 +170,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
 
+    $key = 'local_my/coureareasprintflat';
+    $label = get_string('localmycoureareasprintflat', 'local_my');
+    $desc = get_string('localmycoureareasprintflat_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $key = 'local_my/enablerolecontrolincourseareas';
     $label = get_string('localmyenablerolecontrolincourseareas', 'local_my');
     $desc = get_string('localmyenablerolecontrolincourseareas_desc', 'local_my');
