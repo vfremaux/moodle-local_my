@@ -18,15 +18,10 @@
     text-align: left;
 }
 
-/*
-#mydashboard .generaltable td {
-    border: none;
-    border-bottom-width: medium;
-    border-bottom-style: none;
-    border-bottom-color: currentcolor;
-    background-color: #fff;
+/* hides main title on dashboard, keep-it for accessibility */
+#page-my-index .page-header-headings h1 {
+    display: none;
 }
-*/
 
 #mydashboard li {
     list-style: none;
@@ -279,6 +274,10 @@ div.mycourseareas h4 {
 }
 
 li.local-my-course {
+    margin-bottom: 10px;
+}
+
+li.local-my-course-single {
     margin-bottom: 10px;
 }
 
@@ -728,9 +727,7 @@ li.local-my-course {
     }
 
     .local-my-fp-coursebox {
-        height: 250px;
-        max-height: 250px;
-        min-height: 250px;
+        height: 300px;
     }
 
     .local-my-promowrap {
@@ -775,4 +772,12 @@ li.local-my-course {
 .filter-state {
     font-style: italic;
     padding: 0 10px;
+}
+
+#page-my-index .collapsed {
+    display: none;
+}
+
+a.local-my-area-ctls {
+    margin-right: 15px;
 }

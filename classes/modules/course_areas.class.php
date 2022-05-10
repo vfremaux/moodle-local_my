@@ -173,6 +173,9 @@ class course_areas_module extends module {
                 $courseareatpl = new StdClass();
                 $courseareatpl->required = $required;
                 $this->resolve_viewtype($courseareatpl, $areacourses);
+                if (!empty(self::$config->coureareasprintflat)) {
+                    $courseareatpl->forceflat = true;
+                }
 
                 if ($i != 0 && ($i % 3 == 0)) {
                     $courseareatpl->coljump = true;

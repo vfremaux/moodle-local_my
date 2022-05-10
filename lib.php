@@ -38,7 +38,7 @@ function local_my_supports_feature($feature = null, $getsupported=null) {
     static $supports;
 
     if (!during_initial_install()) {
-        $config = get_config('local_courseindex');
+        $config = get_config('local_my');
     }
 
     if (!isset($supports)) {

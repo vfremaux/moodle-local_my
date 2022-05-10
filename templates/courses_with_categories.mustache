@@ -1,6 +1,6 @@
 
 
-<!-- local_my/course_with_categories -->
+<!-- local_my/courses_with_categories -->
 
 {{#hascategories}}
 {{^isaccordion}}
@@ -14,12 +14,30 @@
 
 {{#categories}}
 <li id="local-my-cathandle-{{area}}-{{catid}}" class="course-category {{catstyle}} local-my-cat-collapse local-my-cat-collapse-{{area}}">
+    {{^nolink}}
     <h3><a href="#" class="local-my-catlink" aria-haspopup="true" aria-expanded="{{ariaexpanded}}">{{catname}}</a></h3>
+    {{/nolink}}
+    {{#nolink}}
+    <h3>{{catname}}</h3>
+    {{/nolink}}
 </li>
 <ul class="course-category-list">
+    {{^forceflat}}
     {{#courses}}
     {{> local_my/courserow}}
     {{/courses}}
+    {{/forceflat}}
+
+    {{#forceflat}}
+    {{#courses}}
+    <li class="local-my-course-{{area}} local-my-course-single cat-{{area}}-{{catid}} {{collapseclass}}">
+        <div class="{{caneditclass}}">
+            <a class="{{cstyle}}" href="{{{courseurl}}}" >{{fullname}} {{#caneditclass}}<i class="fa fa-pencil-square fa-fw" aria-label="{{#str}}caneditcourse, local_my{{/str}}"></i>{{/caneditclass}}</a>
+            {{> local_my/courseprogression_sektor}}
+        </div>
+    </li>
+    {{/courses}}
+    {{/forceflat}}
 </ul>
 {{/categories}}
-<!-- /local_my/course_with_categories -->
+<!-- /local_my/courses_with_categories -->

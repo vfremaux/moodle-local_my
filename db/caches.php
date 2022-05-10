@@ -25,5 +25,8 @@ defined('MOODLE_INTERNAL') || die();
 $definitions = array(
     'heatmap' => array(
         'mode' => cache_store::MODE_SESSION
-    )
+    ),
+    'pro' => array(
+        'mode' => cache_store::MODE_APPLICATION
+    ),
 );

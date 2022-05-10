@@ -20,48 +20,24 @@
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_my\filter;
+namespace local_my\module;
 
-require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+defined('MOODLE_INTERNAL') or die();
 
-use \local_my\module\module;
+use \context_course;
 
-abstract class coursefilter {
+/**
+ * common code to all "remote" wigdets
+ */
+trait my_remotes {
 
-    /**
-     * Name of the filter.
-     */
-    public $name;
+    public function get_courses() {
+        global $USER, $DB, $CFG;
 
-    /**
-     * options.
-     */
-    public $options;
+        $myremotes = $DB->get_records('mnetservice_enrol_enrolments', ['userid' => $USER->id]);
 
-    /**
-     * current filter value
-     */
-    public $currentvalue = '*';
-
-    public function __construct($name, $options) {
-        $this->name = $name;
-        $this->options = $options;
+        foreach ($myremotes as $rc) {
+            $this->courses[$rc->hostid][$rc->remotecourseid] = $DB->get_record('mnetservice_enrol_courses', ['remoteid' => $rc->remotecourseid]);
+        }
     }
-
-    public function has_input_value() {
-        return optional_param($this->name, false, PARAM_TEXT);
-    }
-
-    /**
-     * The moment where the filter gets its curent value.
-     */
-    public function catchvalue() {
-        $this->currentvalue = optional_param($this->name, '*', PARAM_TEXT);
-    }
-
-    /**
-     * The way the filter filters data.
-     */
-    abstract function apply(module $module);
-
 }

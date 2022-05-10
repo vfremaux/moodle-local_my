@@ -807,7 +807,7 @@ trait local_my_renderer_overrides {
     }
 
     /**
-     * Renders an explicit expression of the filtering values of the course filter.
+     * Renders an explicit printable expression of the filtering values of the course filter.
      */
     public function render_filter_states($uid, $widget) {
 
@@ -816,6 +816,9 @@ trait local_my_renderer_overrides {
 
         $str = get_string('youaredisplaying', 'local_my').': ';
         foreach ($states as $statekey => $statevalue) {
+            if ($statevalue == 'undefined') {
+                continue;
+            }
             if ($statevalue == '*') {
                 // For better string resolution.
                 $statevalue = 'all';

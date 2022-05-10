@@ -170,6 +170,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
 
+    $key = 'local_my/coureareasprintflat';
+    $label = get_string('localmycoureareasprintflat', 'local_my');
+    $desc = get_string('localmycoureareasprintflat_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $key = 'local_my/enablerolecontrolincourseareas';
     $label = get_string('localmyenablerolecontrolincourseareas', 'local_my');
     $desc = get_string('localmyenablerolecontrolincourseareas_desc', 'local_my');
@@ -181,7 +187,23 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/printcategories';
     $label = get_string('localmyprintcategories', 'local_my');
     $desc = get_string('localmyprintcategories_desc', 'local_my');
-    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $yesnooptions, PARAM_BOOL));
+    $printcatoptions = [
+        0 => get_string('no'),
+        1 => get_string('yes'),
+        2 => get_string('uppercat', 'local_my'),
+        99 => get_string('fullpath', 'local_my')
+    ];
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $printcatoptions, PARAM_BOOL));
+
+    $key = 'local_my/acceptfullpathrootcats';
+    $label = get_string('localmyacceptfullpathrootcats', 'local_my');
+    $desc = get_string('localmyacceptfullpathrootcats_desc', 'local_my');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
+
+    $key = 'local_my/categorypathstopcats';
+    $label = get_string('localmycategorypathstopcats', 'local_my');
+    $desc = get_string('localmycategorypathstopcats_desc', 'local_my');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT));
 
     $identifieroptions = ['' => get_string('none', 'local_my'),
                           'shortname' => get_string('shortname'),
@@ -394,4 +416,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $label = get_string('effecthalo', 'local_my');
     $desc = '';
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
+    if (local_my_supports_feature('emulate/community') == 'pro') {
+        include_once($CFG->dirroot.'/local/my/pro/prolib.php');
+        $promanager = local_my\pro_manager::instance();
+        $promanager->add_settings($ADMIN, $settings);
+    } else {
+        $label = get_string('plugindist', 'local_my');
+        $desc = get_string('plugindist_desc', 'local_my');
+        $settings->add(new admin_setting_heading('plugindisthdr', $label, $desc));
+    }
 }
