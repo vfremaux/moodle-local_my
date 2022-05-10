@@ -773,3 +773,11 @@ li.local-my-course-single {
     font-style: italic;
     padding: 0 10px;
 }
+
+#page-my-index .collapsed {
+    display: none;
+}
+
+a.local-my-area-ctls {
+    margin-right: 15px;
+}

@@ -416,4 +416,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $label = get_string('effecthalo', 'local_my');
     $desc = '';
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
+    if (local_my_supports_feature('emulate/community') == 'pro') {
+        include_once($CFG->dirroot.'/local/my/pro/prolib.php');
+        $promanager = local_my\pro_manager::instance();
+        $promanager->add_settings($ADMIN, $settings);
+    } else {
+        $label = get_string('plugindist', 'local_my');
+        $desc = get_string('plugindist_desc', 'local_my');
+        $settings->add(new admin_setting_heading('plugindisthdr', $label, $desc));
+    }
 }
