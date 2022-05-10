@@ -277,6 +277,10 @@ li.local-my-course {
     margin-bottom: 10px;
 }
 
+li.local-my-course-single {
+    margin-bottom: 10px;
+}
+
 /*
  * Component: Info Box
  * -------------------
@@ -768,4 +772,12 @@ li.local-my-course {
 .filter-state {
     font-style: italic;
     padding: 0 10px;
+}
+
+#page-my-index .collapsed {
+    display: none;
+}
+
+a.local-my-area-ctls {
+    margin-right: 15px;
 }

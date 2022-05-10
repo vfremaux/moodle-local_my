@@ -1,6 +1,6 @@
 
 
-<!-- local_my/course_with_categories -->
+<!-- local_my/courses_with_categories -->
 
 {{#hascategories}}
 {{^isaccordion}}
@@ -22,9 +22,22 @@
     {{/nolink}}
 </li>
 <ul class="course-category-list">
+    {{^forceflat}}
     {{#courses}}
     {{> local_my/courserow}}
     {{/courses}}
+    {{/forceflat}}
+
+    {{#forceflat}}
+    {{#courses}}
+    <li class="local-my-course-{{area}} local-my-course-single cat-{{area}}-{{catid}} {{collapseclass}}">
+        <div class="{{caneditclass}}">
+            <a class="{{cstyle}}" href="{{{courseurl}}}" >{{fullname}} {{#caneditclass}}<i class="fa fa-pencil-square fa-fw" aria-label="{{#str}}caneditcourse, local_my{{/str}}"></i>{{/caneditclass}}</a>
+            {{> local_my/courseprogression_sektor}}
+        </div>
+    </li>
+    {{/courses}}
+    {{/forceflat}}
 </ul>
 {{/categories}}
-<!-- /local_my/course_with_categories -->
+<!-- /local_my/courses_with_categories -->

@@ -200,7 +200,7 @@ class my_courses_module extends module {
     protected function filter_courses_by_time() {
         if (array_key_exists('schedule', $this->options)) {
 
-            if ($this->options['schedule'] == 'all') {
+            if (!in_array($this->options['schedule'], ['passed','current', 'future'])) {
                 return;
             }
 

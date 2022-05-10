@@ -1,6 +1,6 @@
 language: php
 
-sudo: false
+sudo: true
 
 addons:
   firefox: "47.0.1"
@@ -24,6 +24,7 @@ php:
 env:
   global:
     - MOODLE_BRANCH=MOODLE_39_STABLE
+    - PLUGINS_BRANCH=MOODLE_39_WORKING
   matrix:
     - DB=mariadb
     - DB=pgsql
