@@ -194,11 +194,14 @@ abstract class module {
      * Prefetches and caches the course list in a course area.
      * @param string $courseareaname the name of the course area
      * @param arrayref $allmycourses
+     * @param bool $ids if true, return only ids.
      */
     protected static function get_coursearea_courses($courseareaname, &$allmycourses, $ids = false) {
         global $DB;
 
         $checkroles = self::$config->enablerolecontrolincourseareas;
+
+        self::add_debuginfo("With checkroles $checkroles ");
 
         if (!array_key_exists($courseareaname, self::$courseareas)) {
 
@@ -211,12 +214,12 @@ abstract class module {
                     $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
                     foreach ($allmycourses as $c) {
                         if (in_array($c->category, $retainedcategories)) {
-
                             if (!empty($checkroles)) {
                                 // When check roles, we retain in courseareas only courses in which we have an appropriate role.
                                 // "One of" is enough.
                                 $context = context_course::instance($c->id);
                                 $caps = self::get_coursearea_required_capabilities($courseareaname);
+                                // self::add_debuginfo("Caps required : ".implode(',', $caps));
                                 $hasnot = true;
                                 if (!empty($caps)) {
                                     foreach ($caps as $cap) {
@@ -228,7 +231,11 @@ abstract class module {
                                         // If there is a role match, then add the course.
                                         $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
                                         self::$courseareas[$courseareaname][$c->id] = $c;
-                                        self::add_debuginfo("get courses for course area : add course ".$c->id." as found in retained branch and role matches panel $panel");
+                                        self::add_debuginfo("get courses for course area : add course ".$c->id." as found in retained branch and role matches cap $cap");
+                                        continue;
+                                    } else {
+                                        // Do NOT retain the course based on capability check.
+                                        self::add_debuginfo("get courses for course area : ignore course ".$c->id." as found in retained branch and role NOT matches any required cap ");
                                         continue;
                                     }
                                 }
@@ -259,25 +266,33 @@ abstract class module {
      * @return array an array of capabilities that match this course area locations.
      */
     protected static function get_coursearea_required_capabilities($courseareaname) {
+
+        if (strpos('_', $courseareaname) !== false) {
+            preg_match('/^[^_]+/', $courseareaname, $matches);
+            $courseareazone = $matches[0];
+        } else {
+            $courseareazone = 'coursearea';
+        }
+
         static $map = [
-            'courseareas' => 'course_areas',
-            'courseareas2' => 'course_areas2'
+            'coursearea' => 'course_areas',
+            'coursearea2' => 'course_areas2'
         ];
 
         $caps = [];
-        if (preg_match('/\\b'.$map[$courseareaname].'\\b/', $config->modules)) {
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->modules)) {
             $caps[] = 'local/my:isstudent';
         }
 
-        if (preg_match('/\\b'.$map[$courseareaname].'\\b/', $config->teachermodules)) {
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->teachermodules)) {
             $caps[] = 'local/my:isteacher';
         }
 
-        if (preg_match('/\\b'.$map[$courseareaname].'\\b/', $config->coursemanagermodules)) {
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->coursemanagermodules)) {
             $caps[] = 'local/my:iscoursemanager';
         }
 
-        if (preg_match('/\\b'.$map[$courseareaname].'\\b/', $config->adminmodules)) {
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->adminmodules)) {
             $caps[] = 'local/my:ismanager';
         }
 
@@ -555,6 +570,10 @@ abstract class module {
             }
         }
 
+        if (!empty(self::$courseareascourses)) {
+            self::add_debuginfo("course areas courses is NOT empty before prefetch. ".count(self::$courseareascourses));
+        }
+
         self::add_debuginfo("prefetch all courseareas");
         $prefetchareacourses = [];
         // Get the first coursearea zone exclusions.
@@ -572,6 +591,8 @@ abstract class module {
                             self::$courseareascourses[] = $cid;
                         }
                     }
+                } else {
+                    self::add_debuginfo("coursearea is empty in category ".self::$config->$courseareakey);
                 }
             }
         }
@@ -591,10 +612,13 @@ abstract class module {
                             self::$courseareascourses[] = $cid;
                         }
                     }
+                } else {
+                    self::add_debuginfo("coursearea2 is empty in category ".self::$config->$courseareakey);
                 }
             }
         }
-        self::add_debuginfo("Course area list : ". implode(',', self::$courseareascourses));
+
+       self::add_debuginfo("Course area list : ". implode(',', self::$courseareascourses));
     }
 
     /**

@@ -37,7 +37,7 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
             // Attach delegated togglestate handler to all handles in page.
             $('#mydashboard .block').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
-            $('#mydashboard .block').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
+            $('#mydashboard').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
             $('#mydashboard .block').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
             $('#mydashboard .block').on('click', '.detail-handle', [], this.toggle_detail);
             $('#mydashboard .block').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
