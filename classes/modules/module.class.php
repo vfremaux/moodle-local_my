@@ -466,7 +466,7 @@ abstract class module {
 
         if (is_null(self::$iscoursemanager) &&
                 !empty(self::$config->coursemanagermodules) &&
-                        preg_match('/\bmanaged|course_area/', self::$config->coursemanagermodules)) {
+                        preg_match('/\bmy_managed|\bmanaged|course_area/', self::$config->coursemanagermodules)) {
             self::$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap, true, true, false) &&
                     !local_my_is_panel_empty('coursemanagermodules');
         }
@@ -1290,6 +1290,7 @@ abstract class module {
             $spanclass = 'span12 col-xs-12';
             $template->modules = '';
             foreach (self::$modules as $m) {
+                debug_trace("Rendering $m->area ", TRACE_DEBUG);
                 $template->modules .= $m->render();
             }
         }

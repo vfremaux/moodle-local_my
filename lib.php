@@ -477,7 +477,7 @@ function local_get_user_capability_course($capability, $userid = null, $doanythi
                                           $orderby = '') {
     global $DB, $CFG;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_BOOL);
 
     // Convert fields list and ordering.
     $fieldlist = '';

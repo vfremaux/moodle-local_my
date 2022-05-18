@@ -89,7 +89,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
-    $defaultmodules = "my_caption\nme\ncourse_search\nmanaged_courses\n";
+    $defaultmodules = "my_caption\nme\ncourse_search\nmy_managed_courses\n";
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
         set_config('coursemanagermodules', $defaultmodules, 'local_my');

@@ -779,6 +779,7 @@ trait local_my_renderer_overrides {
 
         $classname = $widgetclass.'_module';
         $fqclassname = '\\local_my\\module\\'.$widgetclass.'_module';
+        debug_trace("Rendering ".$widgetclass." by ajax for user $uid ");
         include_once($CFG->dirroot.'/local/my/classes/modules/'.$widgetclass.'.class.php');
         $instance = new $fqclassname();
         $instance->set_uid($uid); // Ensures we keep the original uid.
