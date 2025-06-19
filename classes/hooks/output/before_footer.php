@@ -18,7 +18,7 @@ namespace local_my\hook\output;
 
 class before_footer {
 
-    public static function callback(\core\hook\output\before_footer $hook): void) {
+    public static function callback(\core\hook\output\before_footer $hook): void {
         global $PAGE, $USER;
 
         $config = get_config('local_my');
