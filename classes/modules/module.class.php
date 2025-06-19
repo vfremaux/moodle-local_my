@@ -194,9 +194,14 @@ abstract class module {
      * Prefetches and caches the course list in a course area.
      * @param string $courseareaname the name of the course area
      * @param arrayref $allmycourses
+     * @param bool $ids if true, return only ids.
      */
     protected static function get_coursearea_courses($courseareaname, &$allmycourses, $ids = false) {
         global $DB;
+
+        $checkroles = self::$config->enablerolecontrolincourseareas;
+
+        self::add_debuginfo("With checkroles $checkroles ");
 
         if (!array_key_exists($courseareaname, self::$courseareas)) {
 
@@ -209,11 +214,38 @@ abstract class module {
                     $retainedcategories = local_get_cat_branch_ids_rec($mastercategory->id);
                     foreach ($allmycourses as $c) {
                         if (in_array($c->category, $retainedcategories)) {
+                            if (!empty($checkroles)) {
+                                // When check roles, we retain in courseareas only courses in which we have an appropriate role.
+                                // "One of" is enough.
+                                $context = context_course::instance($c->id);
+                                $caps = self::get_coursearea_required_capabilities($courseareaname);
+                                // self::add_debuginfo("Caps required : ".implode(',', $caps));
+                                $hasnot = true;
+                                if (!empty($caps)) {
+                                    foreach ($caps as $cap) {
+                                        if (has_capability($cap, $context)) {
+                                            $hasnot = false;
+                                        }
+                                    }
+                                    if (!$hasnot) {
+                                        // If there is a role match, then add the course.
+                                        $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
+                                        self::$courseareas[$courseareaname][$c->id] = $c;
+                                        self::add_debuginfo("get courses for course area : add course ".$c->id." as found in retained branch and role matches cap $cap");
+                                        continue;
+                                    } else {
+                                        // Do NOT retain the course based on capability check.
+                                        self::add_debuginfo("get courses for course area : ignore course ".$c->id." as found in retained branch and role NOT matches any required cap ");
+                                        continue;
+                                    }
+                                }
+                            }
+
                             $c->summary = $DB->get_field('course', 'summary', array('id' => $c->id));
                             self::$courseareas[$courseareaname][$c->id] = $c;
-                            self::add_debuginfo("get courses for course area : add course ".$c->id);
+                            self::add_debuginfo("get courses for course area : add course ".$c->id." as found in retained branch");
                         } else {
-                            self::add_debuginfo("get courses for course area : reject course ".$c->id);
+                            self::add_debuginfo("get courses for course area : ignore course ".$c->id." as not in retained branch");
                         }
                     }
                 }
@@ -228,19 +260,70 @@ abstract class module {
         return self::$courseareas[$courseareaname];
     }
 
+    /**
+     * Given a coursearea name, tells wich caps cam be tested to check matching roles.
+     * @param string $courseareaname the course area name (as setting name).
+     * @return array an array of capabilities that match this course area locations.
+     */
+    protected static function get_coursearea_required_capabilities($courseareaname) {
 
+        if (strpos('_', $courseareaname) !== false) {
+            preg_match('/^[^_]+/', $courseareaname, $matches);
+            $courseareazone = $matches[0];
+        } else {
+            $courseareazone = 'coursearea';
+        }
+
+        static $map = [
+            'coursearea' => 'course_areas',
+            'coursearea2' => 'course_areas2'
+        ];
+
+        $caps = [];
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->modules)) {
+            $caps[] = 'local/my:isstudent';
+        }
+
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->teachermodules)) {
+            $caps[] = 'local/my:isteacher';
+        }
+
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->coursemanagermodules)) {
+            $caps[] = 'local/my:iscoursemanager';
+        }
+
+        if (preg_match('/\\b'.$map[$courseareazone].'\\b/', self::$config->adminmodules)) {
+            $caps[] = 'local/my:ismanager';
+        }
+
+        return $caps;
+    }
+
+    /**
+     * Get area GUI buttons.
+     */
     protected function get_buttons() {
         return '';
     }
 
+    /**
+     * Get the adequate renderer (pursuant is pro or standard)
+     * @return a renderer object.
+     */
     public static function get_renderer() {
         return self::$renderer;
     }
 
+    /**
+     * Get all courses for the current widget
+     */
     public function export_courses() {
         return $this->courses;
     }
 
+    /**
+     * Get the list of all modules
+     */
     public static function get_all_used_modules() {
 
         $modaskeys = [];
@@ -383,7 +466,7 @@ abstract class module {
 
         if (is_null(self::$iscoursemanager) &&
                 !empty(self::$config->coursemanagermodules) &&
-                        preg_match('/\bmanaged/', self::$config->coursemanagermodules)) {
+                        preg_match('/\bmy_managed|\bmanaged|course_area/', self::$config->coursemanagermodules)) {
             self::$iscoursemanager = local_my_has_capability_somewhere($coursemanagercap, true, true, false) &&
                     !local_my_is_panel_empty('coursemanagermodules');
         }
@@ -487,6 +570,10 @@ abstract class module {
             }
         }
 
+        if (!empty(self::$courseareascourses)) {
+            self::add_debuginfo("course areas courses is NOT empty before prefetch. ".count(self::$courseareascourses));
+        }
+
         self::add_debuginfo("prefetch all courseareas");
         $prefetchareacourses = [];
         // Get the first coursearea zone exclusions.
@@ -504,6 +591,8 @@ abstract class module {
                             self::$courseareascourses[] = $cid;
                         }
                     }
+                } else {
+                    self::add_debuginfo("coursearea is empty in category ".self::$config->$courseareakey);
                 }
             }
         }
@@ -523,10 +612,13 @@ abstract class module {
                             self::$courseareascourses[] = $cid;
                         }
                     }
+                } else {
+                    self::add_debuginfo("coursearea2 is empty in category ".self::$config->$courseareakey);
                 }
             }
         }
-        self::add_debuginfo("Course area list : ". implode(',', self::$courseareascourses));
+
+       self::add_debuginfo("Course area list : ". implode(',', self::$courseareascourses));
     }
 
     /**
@@ -576,7 +668,7 @@ abstract class module {
         if (!empty(self::$excludedcourses)) {
             foreach (self::$excludedcourses as $cid) {
                 if (!empty($cid)) {
-                    self::add_debuginfo("Course Remove (rejected $cid as excluded)", $cid);
+                    self::add_debuginfo("Course Remove (reject $cid as excluded by earlier action)", $cid);
                     unset($this->courses[$cid]);
                 }
             }
@@ -589,7 +681,7 @@ abstract class module {
         if (!empty(self::$courseareascourses)) {
             foreach (self::$courseareascourses as $cid) {
                 if (!empty($cid)) {
-                    self::add_debuginfo("Course Remove (rejected $cid as in coursearea)", $cid);
+                    self::add_debuginfo("Course Remove (reject $cid as being in a coursearea)", $cid);
                     unset($this->courses[$cid]);
                 }
             }
@@ -617,7 +709,7 @@ abstract class module {
         foreach ($this->courses as $id => $c) {
             if (!empty(self::$config->skipmymetas)) {
                 if (self::is_meta_for_user($c->id)) {
-                    self::add_debuginfo("Course Remove (reject meta $id as meta disabled)", $c->id);
+                    self::add_debuginfo("Course Remove (reject meta $id as meta hidden by config)", $c->id);
                     unset($this->courses[$id]);
                     continue;
                 }
@@ -742,6 +834,7 @@ abstract class module {
     public function export_course_category_for_template($category, $options) {
 
         $cattpl = new StdClass;
+        $config = get_config('local_my');
 
         $fs = get_file_storage();
 
@@ -762,13 +855,18 @@ abstract class module {
         }
 
         // Process category icons.
-
-        $files = $fs->get_area_files($context->id, 'coursecat', 'description', 0, 'id', false);
+		// Prefer most recent one !
+        $files = $fs->get_area_files($context->id, 'coursecat', 'description', 0, 'timecreated DESC', false);
         $file = null;
         if (!empty($files)) {
-            foreach ($files as $file) {
-                // Take fist image NOT TOO BIG (560px max). TOTO
-                assert(1);
+            foreach ($files as $f) {
+                if ($f->is_valid_image()) {
+                    $imageinfo = $f->get_imageinfo();
+                    if ($imageinfo['width'] <= $config->coursethumbnailsizethreshold) {
+                        $file = $f;
+                        break;
+                    }
+                }
             }
         }
 
@@ -886,10 +984,13 @@ abstract class module {
         $courseinlist = local_get_course_list($course);
         foreach ($courseinlist->get_course_overviewfiles() as $file) {
             if ($isimage = $file->is_valid_image()) {
-                $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
-                $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
-                $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
-                break;
+                $imageinfo = $file->get_imageinfo();
+                if ($imageinfo['width'] <= $config->coursethumbnailsizethreshold) {
+                    $path = '/'. $file->get_contextid(). '/'. $file->get_component().'/';
+                    $path .= $file->get_filearea().$file->get_filepath().$file->get_filename();
+                    $coursetpl->imgurl = ''.file_encode_url("$CFG->wwwroot/pluginfile.php", $path, !$isimage);
+                    break;
+                }
             }
         }
         if (empty($coursetpl->imgurl)) {
@@ -909,10 +1010,11 @@ abstract class module {
         if (has_capability('moodle/course:manageactivities', $context, $USER, false)) {
             $coursetpl->hasattributes = true;
             $coursetpl->editingclass = 'can-edit';
-            $coursetpl->editingattribute = $OUTPUT->pix_icon('editing', get_string('canedit', 'local_my'), 'local_my');
+            $coursetpl->canedit = true;
         } else {
             $coursetpl->editingclass = '';
             $coursetpl->editingattribute = '';
+            $coursetpl->canedit = false;
         }
         if (local_my_is_selfenrolable_course($course)) {
             $coursetpl->hasattributes = true;
@@ -933,15 +1035,22 @@ abstract class module {
         if ($course->startdate > time()) {
             $coursetpl->hasattributes = true;
             $coursetpl->futureclass = 'future';
-            $coursetpl->futureattribute = $OUTPUT->pix_icon('future', get_string('future', 'local_my'), 'local_my');
+            $coursetpl->isaccessible = true;
+            if (empty($config->allowfuturecoursesaccess)) {
+                if (!$coursetpl->hasteachingrole) {
+                    debug_trace("Future course {$coursetpl->shortname} and i'm student in there");
+                    // Locks course access for students.
+                    $coursetpl->isaccessible = false;
+                }
+            }
         } else {
             $coursetpl->futureclass = '';
-            $coursetpl->futureattribute = '';
+            $coursetpl->isaccessible = true;
         }
 
         if (!has_capability('local/my:seecourseattributes', $context)) {
             // Hide all attributes if requested by capability.
-            $coursetpl->hasattributes = false;
+            $coursetpl->hasattributes = $coursetpl->hasattributes || false;
         }
 
         if ($course instanceof stdClass) {
@@ -972,7 +1081,7 @@ abstract class module {
                 $coursetpl->enrolled = 0;
             }
 
-            if (empty($this->options['noprogress'])) {
+            if ($this->options['gaugetype'] != 'noprogress') {
                 $coursetpl->hasindicators = true;
                 $completion = new completion_info($course);
                 if ($completion->is_enabled(null)) {
@@ -1018,7 +1127,7 @@ abstract class module {
         } else if ($coursetpl->isstudent) {
 
             // Completion signal.
-            if (empty($this->options['noprogress'])) {
+            if ($this->options['gaugetype'] != 'noprogress') {
                 $coursetpl->hasindicators = true;
                 $completion = new completion_info($course);
                 if ($completion->is_enabled(null)) {
@@ -1054,6 +1163,8 @@ abstract class module {
 
     /**
      * export courses with first level category caption
+     * @param object $template data stub
+     * @param array $courses list of valid courses.
      */
     public function export_courses_cats_for_template($template, $courses = null) {
         global $CFG, $DB, $USER, $OUTPUT, $PAGE;
@@ -1078,13 +1189,19 @@ abstract class module {
         // Reorganise by cat.
         $catcourses = [];
         foreach ($courses as $c) {
+            if (!isset($c->category)) {
+                throw new coding_exception("Missing category in module {$this->area} ");
+            }
             if (!isset($catcourses[$c->category])) {
                 $catcourses[$c->category] = new StdClass;
                 $catcourses[$c->category]->category = $DB->get_record('course_categories', array('id' => $c->category));
             }
             $catcourses[$c->category]->courses[] = $c;
         }
-        $catcourses[$c->category]->totalofcourses = count($catcourses[$c->category]->courses);
+
+        foreach (array_keys($catcourses) as $catid) {
+            $catcourses[$catid]->totalofcourses = count($catcourses[$catid]->courses);
+        }
 
         $output = new Stdclass;
         $output->catidlist = implode(',', array_keys($catcourses));
@@ -1122,7 +1239,7 @@ abstract class module {
                 if (!empty($this->options['withcats']) && ($this->options['withcats'] == 1)) {
                     $cattpl->catname = format_string($cat->category->name);
                 } else if (!empty($this->options['withcats']) && ($this->options['withcats'] > 1)) {
-                    $cats = array();
+                    $cats = [];
                     $cats[] = format_string($cat->category->name);
                     if (self::accept_fullpath($cat->category)) {
 	                    if ($cat->category->parent) {
@@ -1164,7 +1281,12 @@ abstract class module {
 
     public static function render_my_caption() {
         if (array_key_exists('my_caption', self::$modules)) {
-            return self::$modules['my_caption']->render();
+            $rendered = self::$modules['my_caption']->render();
+            unset(self::$modules['my_caption']);
+            unset(self::$allmodules['my_caption']);
+            unset(self::$leftmodules['my_caption']);
+            unset(self::$rightmodules['my_caption']);
+            return $rendered;
         }
     }
 
@@ -1209,8 +1331,14 @@ abstract class module {
     }
 
     public static function get_config($key) {
+        global $CFG;
         if (!isset(self::$config->{$key})) {
-            throw new coding_exception("Key $key not found in local my config");
+            if ($CFG->debug == DEBUG_DEVELOPER) {
+                throw new coding_exception("Key $key not found in local my config");
+            } else {
+                // Try to be bit more transparent.
+                return '';
+            }
         }
         return self::$config->{$key};
     }

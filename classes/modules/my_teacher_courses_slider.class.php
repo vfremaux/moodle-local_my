@@ -41,7 +41,7 @@ class my_teacher_courses_slider_module extends my_teacher_courses_module {
             self::$isslickrendered = true;
         }
 
-        $this->options['gaugetype'] = 'sektor';
+        $this->options['gaugetype'] = ($this->options['gaugetype'] != 'noprogress') ? 'sektor' : 'noprogress';
         $this->options['gaugewidth'] = '20';
         $this->options['gaugeheight'] = '20';
     }

@@ -18,30 +18,29 @@
 
         <div id="cal-heatmap" style=";margin-top:10px;"></div>
 
-            <script type="text/javascript">
-            var monthnames = {{{monthnames}}};
-            var cal = new CalHeatMap();
-            var startdate = new Date({{startmilli}});
-            cal.init({
-                domain:"month",
-                subdomain:"day",
-                start:startdate,
-                data:"{{{dataurl}}}",
-                legendTitleFormat:{{{jsonlegendformat}}},
-                subDomainTitleFormat:{{{jsonsubdomainformat}}},
-                itemName:"{{itemname}}",
-                subDomainDateFormat:
-                function(date) {
-                    return date.toLocaleDateString();
-                },
-                domainLabelFormat: function(date) {
-                    return monthnames[date.getMonth()];
-                },
-                range:{{localmyheatmaprange}}
+        <script type="text/javascript">
+        var monthnames = {{{monthnames}}};
+        var cal = new CalHeatMap();
+        var startdate = new Date({{startmilli}});
+        cal.init({
+            domain:"month",
+            subdomain:"day",
+            start:startdate,
+            data:"{{{dataurl}}}",
+            legendTitleFormat:{{{jsonlegendformat}}},
+            subDomainTitleFormat:{{{jsonsubdomainformat}}},
+            itemName:"{{itemname}}",
+            subDomainDateFormat:
+            function(date) {
+                return date.toLocaleDateString();
+            },
+            domainLabelFormat: function(date) {
+                return monthnames[date.getMonth()];
+            },
+            range:{{localmyheatmaprange}}
 
-            });
-            </script>
-        </div>
-    <div>
+        });
+        </script>
+    </div>
 </div>
 <!-- /local_my/my_heatmap -->

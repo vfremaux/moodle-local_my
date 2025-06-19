@@ -71,6 +71,9 @@ $string['coursecompletionratio'] = 'Course completion ratio';
 $string['coursecreation'] = 'Course creation';
 $string['courselistssettings'] = 'Course list accessory settings';
 $string['coursesearch'] = 'Search courses';
+$string['coursethumbnailsizethreshold'] = 'Course thumbnail threshold';
+$string['coursethumbnailsizethreshold_desc'] = 'When seeking for a course descrription image for thumbnails, the first image under this size will be considered.
+Otherwise it might be selected for a course hader banner (when enabled).';
 $string['defaultleftcolumntext'] = '';
 $string['editing'] = 'You can edit this course';
 $string['effecthalo'] = "Halo effect";
@@ -101,6 +104,7 @@ $string['guestenrol'] = "Open to guests";
 $string['heatmapsettings'] = 'Heatmap Settings';
 $string['inner'] = "Between {down} and {up}";
 $string['ishidden'] = "Is hidden";
+$string['isfuturecourse'] = "This course is not yet available";
 $string['latestnews'] = 'Latest news';
 $string['lefteditioncolumn'] = 'Left edition column';
 $string['localcourseboxheight'] = 'Course box height';
@@ -116,6 +120,7 @@ $string['localmyenable'] = 'Enable customized my';
 $string['locallightfavorites'] = 'Enable light favorites';
 $string['locallightfavorites_desc'] = 'Uses the light favorite system in course lists and sorting by preference.';
 $string['categoryareasettings'] = 'Course categories areas settings';
+$string['mycategory'] = 'My category';
 $string['localmycategoryareas'] = 'Course category areas';
 $string['localmycategoryarea'] = 'Category area course categories';
 $string['localmyenablerolecontrolincourseareas'] = 'Enable role check in course areas';
@@ -152,7 +157,11 @@ $string['localmytrimlength2'] = 'Trim length 2';
 $string['localmytrimlength2_desc'] = 'Trim length units for descriptions or summaries texts (note that trim do remove all tags)';
 $string['localmytrimmode'] = 'Trim mode';
 $string['localmytrimmode_desc'] = 'The algorithm used to trim texts';
+$string['localmyallowfuturecoursesaccess'] = 'Allow access to future courses';
+$string['localmyallowfuturecoursesaccess_desc'] = 'If disabled, future courses wil not be accessible before start date (no link) even if an actual enrol is set. Teachers override.';
 $string['localmyuselefteditioncolumn'] = 'Use left editorial column';
+$string['localmycoureareasprintflat'] = 'Force print course areas as flat lists';
+$string['localmycoureareasprintflat_desc'] = 'Use a simple link per course as a pure list';
 $string['localprofilefieldforcegraphicmode'] = 'Profile field for forcing graphic mode';
 $string['localprofilefieldforcegraphicmode_desc'] = '';
 $string['localprofilefieldforcegraphicvalues'] = 'Profile values for forcing graphic mode';
@@ -172,8 +181,8 @@ $string['localmywithdisplay'] = 'Enable course list manual display control';
 $string['localmywithsort'] = 'Enable course list sorting';
 $string['localmywithtimeselector'] = 'Enable course list time selector';
 $string['localmywithdisplay_desc'] = '';
-$string['localmywithsort_desc'] = '';
-$string['localmywithtimeselector_desc'] = '';
+$string['localmywithsort_desc'] = 'Adds a filter with several sorting criteria';
+$string['localmywithtimeselector_desc'] = 'Adds a filter to discriminate passedn, active or future courses';
 $string['localmyaddcourseindexlink'] = 'Add tab linked to global course index';
 $string['localmyaddcourseindexlink_desc'] = '';
 $string['localmycategorypathstopcats'] = 'Up path stop categories';
@@ -214,7 +223,7 @@ $string['notcompiledyet'] = 'Stats were never compiled yet. you can wait the nex
 $string['notrim'] = '(None)';
 $string['numberoffiles'] = 'Number of files';
 $string['onlineusers'] = 'Online users (5 min.)';
-$string['opencourses'] = 'Oen courses';
+$string['opencourses'] = 'Open courses';
 $string['pendingassignstosubmit'] = 'Pending assigns to submit';
 $string['pluginname'] = 'Enhanced my';
 $string['progressbar'] = 'Bar';
@@ -284,14 +293,19 @@ if dual stack is enabled by adding the "left_edition_column" module in the list.
 <li>course_areas: special dedicated course areas</li>
 <li>course_areas2: special dedicated course areas (second instance)</li>
 <p>Other modules can be used:</p>
-<li>latestnews_full</li>
-<li>latestnews_headers</li>
+<li>latest_news</li>
+<li>latest_news_headers</li>
+<li>latest_news_simple</li>
 <li>my_network: user\'s accessible network</li>
 <li>fullme: complete identity block</li>
 <li>my_calendar</li>
 <li>recent_courses</li>
 <li>my_templates (needs local plugin course_templates)</li>
 <li>static<n></li>
+
+<p>Variantes _grid : les boites de cours peuvent être affichées en grilles avec vignettes.</p>
+<p>Variantes _slider : les boites de cours peuvent être affichées sous forme de sliders avec vignettes.</p>
+<p>@see : <a target="_blank" href="https://docs.activeprolearn.com/doku.php?id=local:my:modules#liste_des_widgets">Doc APL</a></p>
 ';
 
 $string['localmyteachermodules_desc'] = '

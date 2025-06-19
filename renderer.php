@@ -258,8 +258,8 @@ trait local_my_renderer_overrides {
     }
 
     /**
-     *
-     *
+     * Add buttons to the "my teacher courses" modules to access quickly
+     * to operational screens.
      *
      */
     public function course_creator_buttons($mycatlist) {
@@ -274,22 +274,34 @@ trait local_my_renderer_overrides {
 
             $catids = array_keys($mycatlist);
             $firstcatid = array_shift($catids);
-            $button0 = '';
-            $button1 = '';
-            $button2 = '';
-            $button3 = '';
+            $buttons = [];
 
             if ($cancreate) {
 
+                if (is_dir($CFG->dirroot.'/local/ent_installer')) {
+                    include_once($CFG->dirroot.'/local/ent_installer/locallib.php');
+                    $config = get_config('local_ent_installer');
+                    if (!empty($config->build_teacher_category)) {
+                        // Only in academic cases.
+                        $label = get_string('mycategory', 'local_my');
+                        $teachercatidnum = local_ent_installer_get_teacher_cat_idnumber($USER);
+                        if (!empty($teachercatidnum)) {
+                            $teachercat = $DB->get_record('course_categories', ['idnumber' => $teachercatidnum]);
+                            $params = ['categoryid' => $teachercat->id];
+                            $buttons[] = $OUTPUT->single_button(new moodle_url('/course/index.php', $params), $label);
+                        }
+                    }
+                }
+
                 $label = get_string('allcategories', 'local_my');
-                $button00 = $OUTPUT->single_button(new moodle_url('/course/index.php'), $label);
+                $buttons[] = $OUTPUT->single_button(new moodle_url('/course/index.php'), $label);
 
                 $params = array('view' => 'courses', 'categoryid' => $firstcatid);
                 $label = get_string('managemycourses', 'local_my');
-                $button0 = $OUTPUT->single_button(new moodle_url('/local/my/management.php', $params), $label);
+                $buttons[] = $OUTPUT->single_button(new moodle_url('/local/my/management.php', $params), $label);
 
                 $label = get_string('newcourse', 'local_my');
-                $button1 = $OUTPUT->single_button(new moodle_url('/local/my/create_course.php'), $label);
+                $buttons[] = $OUTPUT->single_button(new moodle_url('/local/my/create_course.php'), $label);
 
                 if (is_dir($CFG->dirroot.'/local/coursetemplates')) {
                     $config = get_config('local_coursetemplates');
@@ -297,7 +309,7 @@ trait local_my_renderer_overrides {
                         $params = array('category' => $config->templatecategory, 'visible' => 1);
                         if ($DB->count_records('course', $params)) {
                             $buttonurl = new moodle_url('/local/coursetemplates/index.php');
-                            $button2 = $OUTPUT->single_button($buttonurl, get_string('newcoursefromtemplate', 'local_my'));
+                            $buttons[] = $OUTPUT->single_button($buttonurl, get_string('newcoursefromtemplate', 'local_my'));
                         }
                     }
                 }
@@ -308,12 +320,12 @@ trait local_my_renderer_overrides {
                 if ($powercontext) {
                     $params = array('contextid' => $powercontext->id);
                     $buttonurl = new moodle_url('/backup/restorefile.php', $params);
-                    $button3 = $OUTPUT->single_button($buttonurl, get_string('restorecourse', 'local_my'));
+                    $buttons[] = $OUTPUT->single_button($buttonurl, get_string('restorecourse', 'local_my'));
                 }
             }
 
             $str .= $OUTPUT->box_start('right-button course-creation-buttons');
-            $str .= $button00.' '.$button0.' '.$button1.' '.$button2.' '.$button3;
+            $str .= implode(' ', $buttons);
             $str .= $OUTPUT->box_end();
         }
 
@@ -485,14 +497,14 @@ trait local_my_renderer_overrides {
             }
         } else {
             $title = $site->shortname;
-            if (core_course_category::count_all() > 1) {
+            if (!core_course_category::is_simple_site()) {
                 $title .= ": ". $coursecat->get_formatted_name();
             }
             $this->page->set_title($title);
 
             // Print the category selector
-            if (core_course_category::count_all() > 1) {
-                $output .= html_writer::start_tag('div', array('class' => 'categorypicker'));
+            if (!core_course_category::is_simple_site()) {
+                $output .= html_writer::start_tag('div', ['class' => 'categorypicker']);
                 $select = new single_select(new moodle_url('/local/my/categories.php', ['basecategoryid' => $category->basecategoryid]), 'categoryid',
                         local_get_cat_branch_rec($category->basecategoryid), $coursecat->id, null, 'switchcategory');
                 $select->set_label(get_string('categories').':');
@@ -527,20 +539,20 @@ trait local_my_renderer_overrides {
         $catdisplayoptions['limit'] = $perpage;
         if ($browse === 'courses' || !$coursecat->has_children()) {
             $coursedisplayoptions['offset'] = $page * $perpage;
-            $coursedisplayoptions['paginationurl'] = new moodle_url($baseurl, array('browse' => 'courses'));
+            $coursedisplayoptions['paginationurl'] = new moodle_url($baseurl, ['browse' => 'courses']);
             $catdisplayoptions['nodisplay'] = true;
-            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'categories'));
+            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, ['browse' => 'categories']);
             $catdisplayoptions['viewmoretext'] = new lang_string('viewallsubcategories');
         } else if ($browse === 'categories' || !$coursecat->has_courses()) {
             $coursedisplayoptions['nodisplay'] = true;
             $catdisplayoptions['offset'] = $page * $perpage;
-            $catdisplayoptions['paginationurl'] = new moodle_url($baseurl, array('browse' => 'categories'));
-            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'courses'));
+            $catdisplayoptions['paginationurl'] = new moodle_url($baseurl, ['browse' => 'categories']);
+            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, ['browse' => 'courses']);
             $coursedisplayoptions['viewmoretext'] = new lang_string('viewallcourses');
         } else {
             // we have a category that has both subcategories and courses, display pagination separately
-            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'courses', 'page' => 1));
-            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'categories', 'page' => 1));
+            $coursedisplayoptions['viewmoreurl'] = new moodle_url($baseurl, ['browse' => 'courses', 'page' => 1]);
+            $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, ['browse' => 'categories', 'page' => 1]);
         }
         $chelper->set_courses_display_options($coursedisplayoptions)->set_categories_display_options($catdisplayoptions);
         // Add course search form.
@@ -565,6 +577,7 @@ trait local_my_renderer_overrides {
      * @return string
      */
     protected function coursecat_category(coursecat_helper $chelper, $coursecat, $depth) {
+
         // open category tag
         $classes = array('category');
         if (empty($coursecat->visible)) {
@@ -581,6 +594,7 @@ trait local_my_renderer_overrides {
             }
         } else {
             // load category content
+            // => core course_renderer
             $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth);
             $classes[] = 'loaded';
             if (!empty($categorycontent)) {
@@ -630,7 +644,7 @@ trait local_my_renderer_overrides {
 
     /**
      * Renders the list of subcategories in a category
-     *
+     * @see called by core course renderer.
      * @param coursecat_helper $chelper various display options
      * @param core_course_category $coursecat
      * @param int $depth depth of the category in the current tree
@@ -688,6 +702,7 @@ trait local_my_renderer_overrides {
         }
 
         foreach ($subcategories as $subcategory) {
+            // => local my renderer (here)
             $content .= $this->coursecat_category($chelper, $subcategory, $depth + 1);
         }
 
@@ -807,7 +822,7 @@ trait local_my_renderer_overrides {
     }
 
     /**
-     * Renders an explicit expression of the filtering values of the course filter.
+     * Renders an explicit printable expression of the filtering values of the course filter.
      */
     public function render_filter_states($uid, $widget) {
 

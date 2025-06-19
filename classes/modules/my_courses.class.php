@@ -125,10 +125,9 @@ class my_courses_module extends module {
         if ($template->resolved != 'aslist') {
 
             $this->options['withcats'] = false;
-            $this->options['noprogress'] = self::$config->progressgaugetype == 'noprogress';
             if (!empty($template->resolved == 'asflatlist')) {
                 // With flat list and inline course rows we need to force sektor gauge.
-                $this->options['gaugetype'] = 'sektor';
+                $this->options['gaugetype'] = (self::$config->progressgaugetype != 'noprogress') ? 'sektor' : 'noprogress' ;
                 $this->options['gaugewidth'] = '20';
                 $this->options['gaugeheight'] = '20';
             } else {
@@ -148,7 +147,7 @@ class my_courses_module extends module {
             // As categorized list.
             $template->aslist = true;
             $template->isaccordion = !empty(self::$config->courselistaccordion);
-            $this->options['gaugetype'] = 'sektor';
+            $this->options['gaugetype'] = (self::$config->progressgaugetype != 'noprogress') ? 'sektor' : 'noprogress';
             $this->options['gaugewidth'] = '20';
             $this->options['gaugeheight'] = '20';
             $this->options['withcats'] = self::$config->printcategories;
@@ -176,7 +175,8 @@ class my_courses_module extends module {
     public function get_courses() {
         global $USER, $DB, $CFG;
 
-        $this->courses = enrol_get_my_courses('id, shortname, fullname');
+        $this->courses = enrol_get_my_courses('id, shortname, fullname', 'c.sortorder');
+
         foreach (array_keys($this->courses) as $cid) {
             $context = context_course::instance($cid);
             if (!has_capability('local/my:isstudent', $context, $USER->id, false)) {
@@ -200,7 +200,7 @@ class my_courses_module extends module {
     protected function filter_courses_by_time() {
         if (array_key_exists('schedule', $this->options)) {
 
-            if ($this->options['schedule'] == 'all') {
+            if (!in_array($this->options['schedule'], ['passed','current', 'future'])) {
                 return;
             }
 

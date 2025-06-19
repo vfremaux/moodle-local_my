@@ -24,38 +24,28 @@ namespace local_my\module;
 
 defined('MOODLE_INTERNAL') or die();
 
-use \StdClass;
-use \moodle_url;
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses_slider.class.php');
+require_once($CFG->dirroot.'/local/my/classes/modules/my_favorite.trait.php');
 
-class my_calendar_module extends module {
+class my_favorite_courses_slider_module extends my_courses_slider_module {
+    use my_favorite;
 
     public function __construct() {
-        parent::__construct();
-        $this->area = 'my_calendar';
-        $this->modulename = get_string('mycalendar', 'local_my');
-    }
-
-    public function render($required = '') {
-        global $PAGE, $OUTPUT;
-
-        $blockinstance = block_instance('calendar_month');
-        $blockinstance->page = $PAGE;
-        $content = $blockinstance->get_content();
-
-        if (empty($content->text) && empty($content->footer)) {
-            return '';
+        module::__construct();
+        $this->area = 'my_favorite_courses_slider';
+        $this->extraclasses = 'favorite-courses';
+        $this->modulename = get_string('myfavoritecourses', 'local_my');
+        if (!self::$isslickrendered) {
+            $renderer = self::get_renderer();
+            $renderer->js_call_amd('local_my/slick', 'init');
+            $renderer->js_call_amd('local_my/slickinit', 'init');
+            $PAGE->requires->css('/local/my/css/slick.css');
+            self::$isslickrendered = true;
         }
 
-        $template = new StdClass;
-        $template->content = $content->text;
-        $template->footer = $content->footer;
-        $template->blockname = 'calendar_month';
-        $template->blockid = 0;
-
-        return $OUTPUT->render_from_template('local_my/block_module', $template);
-    }
-
-    public function get_courses() {
-        /* get courses to diplay */
+        $this->options['withteachersignals'] = true;
+        $this->options['noprogress'] = false;
+        $this->options['isfavorite'] = true;
+        $this->options['noexcludefromstream'] = true;
     }
 }

@@ -36,7 +36,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// CHANGE+.
+// CHANGE+ : Diverts to local_my implementation of index.
 $result = require($CFG->dirroot.'/local/my/index.php');
 if ($result == -1) {
     return;

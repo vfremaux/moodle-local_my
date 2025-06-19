@@ -27,10 +27,16 @@
 require_once($CFG->dirroot. '/course/lib.php');
 
 // CHANGE+.
+// @see local/my
 $PAGE->requires->js_call_amd('local_my/slick', 'init');
 // CHANGE-.
 
 $categoryid = optional_param('categoryid', 0, PARAM_INT); // Category id
+// CHANGE+.
+// @see local/my
+// @see theme/klassplace
+$categoryidnumber = optional_param('categoryidnumber', false, PARAM_TEXT); // Category idnumber
+// /CHANGE-.
 $site = get_site();
 
 if ($CFG->forcelogin) {
@@ -44,6 +50,18 @@ if ($categoryid) {
     $PAGE->set_url(new moodle_url('/course/index.php', array('categoryid' => $categoryid)));
     $PAGE->set_pagetype('course-index-category');
     $heading = $category->get_formatted_name();
+// CHANGE+.
+// @see local/my
+// @see theme/klassplace
+// Also allow access by idnumber for a more portable access link.
+} else if ($categoryidnumber) {
+    $categoryid = $DB->get_field('course_categories', 'id', ['idnumber' => $categoryidnumber]);
+    $category = core_course_category::get($categoryid); // This will validate access.
+    $PAGE->set_category_by_id($categoryid);
+    $PAGE->set_url(new moodle_url('/course/index.php', array('categoryid' => $categoryid)));
+    $PAGE->set_pagetype('course-index-category');
+    $heading = $category->get_formatted_name();
+// /CHANGE-.
 } else if ($category = core_course_category::user_top()) {
     // Check if there is only one top-level category, if so use that.
     $categoryid = $category->id;
@@ -64,10 +82,14 @@ if ($categoryid) {
 }
 
 $PAGE->set_pagelayout('coursecategory');
+$PAGE->set_primary_active_tab('home');
+$PAGE->add_body_class('limitedwidth');
 $courserenderer = $PAGE->get_renderer('core', 'course');
 
 $PAGE->set_heading($heading);
 $content = $courserenderer->course_category($categoryid);
+
+$PAGE->set_secondary_active_tab('categorymain');
 
 echo $OUTPUT->header();
 echo $OUTPUT->skip_link_target();
@@ -79,3 +101,4 @@ $event = \core\event\course_category_viewed::create($eventparams);
 $event->trigger();
 
 echo $OUTPUT->footer();
+die;

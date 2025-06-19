@@ -38,13 +38,14 @@ function local_my_supports_feature($feature = null, $getsupported=null) {
     static $supports;
 
     if (!during_initial_install()) {
-        $config = get_config('local_courseindex');
+        $config = get_config('local_my');
     }
 
     if (!isset($supports)) {
         $supports = [
             'pro' => [
-                'widgets' => ['extended', 'indicators'],
+                'widgets' => ['extended', 'indicators', 'effects'],
+                'display' => ['profileoverrides'],
             ],
             'community' => [],
         ];
@@ -227,16 +228,6 @@ function local_has_myoverride_somewhere() {
     return false;
 }
 
-function local_my_before_footer() {
-    global $PAGE, $USER;
-
-    $config = get_config('local_my');
-
-    $systemcontext = context_system::instance();
-    if (!empty($config->force) && !has_capability('local/my:overridemy', $systemcontext, $USER, false)) {
-        $PAGE->requires->js_call_amd('local_my/local_my', 'hide_home_nav', [null]);
-    }
-}
 
 /**
  * Variants to get_my_courses
@@ -474,10 +465,16 @@ function local_my_hide_home() {
  * @return array|bool Array of courses, if none found false is returned.
  */
 function local_get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '',
-                                          $orderby = '') {
+                                          $orderby = '', $overridedirectroleassignments = false) {
     global $DB, $CFG;
 
-    $debug = optional_param('debug', false, PARAM_BOOL) && ($CFG->debug >= DEBUG_ALL);
+    $debug = optional_param('showresolve', false, PARAM_BOOL);
+
+    if ($overridedirectroleassignments) {
+        // Use standard core function in that case.
+        $courses = get_user_capability_course($capability, $userid, $doanything, $fieldsexceptid, 'sortorder');
+        return $courses;
+    }
 
     // Convert fields list and ordering.
     $fieldlist = '';
@@ -1008,3 +1005,38 @@ function local_my_get_course_display_options() {
     ];
     return $displayoptions;
 }
+
+/**
+ * Standard callback for moodle navigation
+ * WORK IN PROGRESS
+ *
+function local_my_extend_navigation(global_navigation $nav) {
+
+    if (has_capability('mod/magtest:manage', $settingsnav->get_page()->context)) {
+
+        $params = ['id' => $settingsnav->get_page()->cm->id, 'view' => 'preview'];
+        $reportlink = new moodle_url("/mod/magtest/view.php", $params);
+        $localmynode->add(get_string('preview', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+
+        $params = ['id' => $settingsnav->get_page()->cm->id, 'view' => 'categories'];
+        $reportlink = new moodle_url("/mod/magtest/view.php", $params);
+        $localmynode->add(get_string('categories', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+
+        $params = ['id' => $settingsnav->get_page()->cm->id, 'view' => 'questions'];
+        $reportlink = new moodle_url("/mod/magtest/view.php", $params);
+        $localmynode->add(get_string('questions', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+
+        $params = ['id' => $settingsnav->get_page()->cm->id];
+        $reportlink = new moodle_url("/mod/magtest/import/import_questions.php", $params);
+        $localmynode->add(get_string('import', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+
+        $params = ['id' => $settingsnav->get_page()->cm->id, 'vew' => 'results'];
+        $reportlink = new moodle_url("/mod/magtest/view.php", $params);
+        $node = $localmynode->add(get_string('results', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+
+        $params = ['id' => $settingsnav->get_page()->cm->id, 'vew' => 'stats'];
+        $reportlink = new moodle_url("/mod/magtest/view.php", $params);
+        $node = $localmynode->add(get_string('stat', 'magtest'), $reportlink, navigation_node::TYPE_SETTING);
+    }
+}
+*/

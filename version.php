@@ -18,21 +18,21 @@
  * Version details.
  *
  * @package     local_my
- * @category    local
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   2013 onwards Valery Fremaux (http://www.mylearningfactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2021102100;   // The (date) version of this plugin.
-$plugin->requires = 2020060900;   // Requires this Moodle version.
+$plugin->version  = 2025030601;   // The (date) version of this plugin.
+$plugin->requires = 2022112801;   // Requires this Moodle version.
 $plugin->component = 'local_my';
-$plugin->release = '3.9.0 (Build 2021102100)';
+$plugin->release = '4.5.0 (Build 2025030601)';
 $plugin->maturity = MATURITY_STABLE;
+$plugin->supported = [401, 405];
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.9.0014';
+$plugin->codeincrement = '4.5.0017';
 $plugin->privacy = 'dualrelease';
 $plugin->profiles = [
     'classes/modules/course_areas.class.php',

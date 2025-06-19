@@ -24,15 +24,8 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/local/my/lib.php');
 
-// Settings default init.
-if (is_dir($CFG->dirroot.'/local/adminsettings')) {
-    // Integration driven code.
-    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
-    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
-} else {
-    // Standard Moodle code.
-    $capability = 'moodle/site:config';
-    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
+if (!defined('MAX_CATEGORY_ZONE_INDEX')) {
+    define('MAX_CATEGORY_ZONE_INDEX', 2);
 }
 
 $config = get_config('local_my');
@@ -89,7 +82,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
     $displaysettings->add(new admin_setting_configtextarea($key, $label, $desc, $defaultmodules));
 
-    $defaultmodules = "my_caption\nme\ncourse_search\nmanaged_courses\n";
+    $defaultmodules = "my_caption\nme\ncourse_search\nmy_managed_courses\n";
     $defaultmodules .= "latestnews_simple\nmy_heatmap";
     if (!isset($config->teachermodules)) {
         set_config('coursemanagermodules', $defaultmodules, 'local_my');
@@ -170,6 +163,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
         $displaysettings->add(new admin_setting_configselect($key, $label, '', 0, $categoryoptions, PARAM_INT));
     }
 
+    $key = 'local_my/coureareasprintflat';
+    $label = get_string('localmycoureareasprintflat', 'local_my');
+    $desc = get_string('localmycoureareasprintflat_desc', 'local_my');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $key = 'local_my/enablerolecontrolincourseareas';
     $label = get_string('localmyenablerolecontrolincourseareas', 'local_my');
     $desc = get_string('localmyenablerolecontrolincourseareas_desc', 'local_my');
@@ -214,33 +213,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $desc = get_string('localmymaxavailablelistsize_desc', 'local_my');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 30, $availableoptions, PARAM_INT));
 
-    list($insql, $inparams) = $DB->get_in_or_equal(array('checkbox', 'text', 'menu'));
-    $select = 'datatype '.$insql;
-    $fieldoptions = $DB->get_records_select_menu('user_info_field', $select, $inparams, 'shortname, name');
-
-    if (!empty($fieldoptions)) {
-        $fieldoptions = ['' => get_string('unset', 'local_my')] + $fieldoptions;
-
-        $key = 'local_my/profilefieldforcelistmode';
-        $label = get_string('localprofilefieldforcelistmode', 'local_my');
-        $desc = get_string('localprofilefieldforcelistmode_desc', 'local_my');
-        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
-
-        $key = 'local_my/profilefieldforcelistvalues';
-        $label = get_string('localprofilefieldforcelistvalues', 'local_my');
-        $desc = get_string('localprofilefieldforcelistvalues_desc', 'local_my');
-        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
-
-        $key = 'local_my/profilefieldforcegraphicmode';
-        $label = get_string('localprofilefieldforcegraphicmode', 'local_my');
-        $desc = get_string('localprofilefieldforcegraphicmode_desc', 'local_my');
-        $settings->add(new admin_setting_configselect($key, $label, $desc, '', $fieldoptions, PARAM_TEXT));
-
-        $key = 'local_my/profilefieldforcegraphicvalues';
-        $label = get_string('localprofilefieldforcegraphicvalues', 'local_my');
-        $desc = get_string('localprofilefieldforcegraphicvalues_desc', 'local_my');
-        $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, ' size="80"'));
-    }
+	// Profile fields moved to pro zone.
 
     $uncategorizedoptions = array(0 => 0, 5 => 5, 10 => 10, 20 => 20, 50 => 50, 100 => 100);
     $key = 'local_my/maxuncategorizedlistsize';
@@ -266,6 +239,12 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/withtimeselector';
     $label = get_string('localmywithtimeselector', 'local_my');
     $desc = get_string('localmywithtimeselector_desc', 'local_my');
+    $default = 1;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
+    $key = 'local_my/allowfuturecoursesaccess';
+    $label = get_string('localmyallowfuturecoursesaccess', 'local_my');
+    $desc = get_string('localmyallowfuturecoursesaccess_desc', 'local_my');
     $default = 1;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
@@ -311,7 +290,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
 
     $settings->add(new admin_setting_heading('header42', get_string('categoryareasettings', 'local_my'), ''));
 
-    for ($i = 0; $i < 2; $i++) {
+    for ($i = 0; $i < MAX_CATEGORY_ZONE_INDEX; $i++) {
         $key = 'local_my/categoryarea'.$i;
         $label = get_string('localmycategoryarea', 'local_my').' A '.$i;
         $settings->add(new admin_setting_configtext($key, $label, '', PARAM_TEXT));
@@ -374,7 +353,7 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $key = 'local_my/adddetailindicators';
     $label = get_string('localmyadddetailindicators', 'local_my');
     $desc = get_string('localmyadddetailindicators_desc', 'local_my');
-    $default = 1;
+    $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $key = 'local_my/progressgaugetype';
@@ -401,6 +380,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $default = '100%';
     $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
 
+    // Size Threshold to differenciate course thumbs from course headerimages.
+    $name = 'local_my/coursethumbnailsizethreshold';
+    $title = get_string('coursethumbnailsizethreshold', 'local_my');
+    $description = get_string('coursethumbnailsizethreshold_desc', 'local_my');
+    $default = 576;
+    $setting = new admin_setting_configtext($name, $title, $description, $default);
+    $settings->add($setting);
+
     $key = 'local_my/effect_opacity';
     $label = get_string('effectopacity', 'local_my');
     $desc = '';
@@ -410,4 +397,14 @@ if (!empty($hasconfig) || $hassiteconfig) {
     $label = get_string('effecthalo', 'local_my');
     $desc = '';
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 0));
+
+    if (local_my_supports_feature('emulate/community') == 'pro') {
+        include_once($CFG->dirroot.'/local/my/pro/prolib.php');
+        $promanager = local_my\pro_manager::instance();
+        $promanager->add_settings($ADMIN, $settings);
+    } else {
+        $label = get_string('plugindist', 'local_my');
+        $desc = get_string('plugindist_desc', 'local_my');
+        $settings->add(new admin_setting_heading('plugindisthdr', $label, $desc));
+    }
 }

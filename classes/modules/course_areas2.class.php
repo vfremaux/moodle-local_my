@@ -20,48 +20,27 @@
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_my\filter;
+namespace local_my\module;
 
-require_once($CFG->dirroot.'/local/my/classes/modules/module.class.php');
+defined('MOODLE_INTERNAL') or die();
 
-use \local_my\module\module;
+require_once($CFG->dirroot.'/local/my/classes/modules/course_areas.class.php');
 
-abstract class coursefilter {
+use \StdClass;
+use \moodle_url;
 
-    /**
-     * Name of the filter.
-     */
-    public $name;
+class course_areas2_module extends course_areas_module {
 
-    /**
-     * options.
-     */
-    public $options;
+    public static $areakey = 'courseareas2';
+    public static $areaconfigkey = 'coursearea2_';
 
-    /**
-     * current filter value
-     */
-    public $currentvalue = '*';
+    public function __construct() {
+        parent::__construct();
+        $this->area = 'course_areas2';
+        $this->modulename = get_string('courseareas', 'local_my');
 
-    public function __construct($name, $options) {
-        $this->name = $name;
-        $this->options = $options;
+        self::$areakey = 'courseareas2';
+        self::$areaconfigkey = 'coursearea2_';
     }
-
-    public function has_input_value() {
-        return optional_param($this->name, false, PARAM_TEXT);
-    }
-
-    /**
-     * The moment where the filter gets its curent value.
-     */
-    public function catchvalue() {
-        $this->currentvalue = optional_param($this->name, '*', PARAM_TEXT);
-    }
-
-    /**
-     * The way the filter filters data.
-     */
-    abstract function apply(module $module);
 
 }

@@ -79,7 +79,7 @@ class courses_module extends module {
         if (!empty($template->asflatlist) || !empty($template->asgrid)) {
 
             if (!empty($template->asflatlist)) {
-                $this->options['gaugetype'] = 'sektor';
+                $this->options['gaugetype'] = (self::$config->progressgaugetype != 'noprogress') ? 'sektor' : 'noprogress';
                 $this->options['gaugewidth'] = '20';
                 $this->options['gaugeheight'] = '20';
             }
@@ -92,7 +92,7 @@ class courses_module extends module {
         } else {
             // as list.
             $template->isaccordion = !empty(self::$config->courselistaccordion);
-            $this->options['gaugetype'] = 'sektor';
+            $this->options['gaugetype'] = (self::$config->progressgaugetype != 'noprogress') ? 'sektor' : 'noprogress';
             $this->options['gaugewidth'] = '20';
             $this->options['gaugeheight'] = '20';
             $this->options['withcats'] = true;

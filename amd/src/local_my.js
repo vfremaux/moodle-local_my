@@ -36,18 +36,21 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
         init: function() {
 
             // Attach delegated togglestate handler to all handles in page.
-            $('#mydashboard .block').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
-            $('#mydashboard .block').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
-            $('#mydashboard .block').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
-            $('#mydashboard .block').on('click', '.detail-handle', [], this.toggle_detail);
-            $('#mydashboard .block').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
-            $('#mydashboard .block').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
+            $('#mydashboard').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
+            $('#page-course-search').on('click', '.local-my-cat-collapse', [], this.toggle_cat_state);
+            $('#mydashboard').on('change', '.local-my-modality-chooser', [], this.toggle_modality);
+            $('#mydashboard').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
+            $('#page-course-search').on('click', '.local-my-area-ctls', [], this.global_area_ctl);
+            $('#mydashboard').on('click', '.detail-handle', [], this.toggle_detail);
+            $('#page-course-search').on('click', '.detail-handle', [], this.toggle_detail);
+            $('#mydashboard').on('click', '.add-to-favorites-handle', [], this.add_to_favorites);
+            $('#mydashboard').on('click', '.remove-from-favorites-handle', [], this.remove_from_favorites);
 
-            $('#mydashboard .block').on('click', '.course-filter', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-sort', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-display', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.course-time', [], this.refresh_course_list);
-            $('#mydashboard .block').on('click', '.reload-areas', [], this.refresh_course_list);
+            $('#mydashboard').on('click', '.course-filter', [], this.refresh_course_list);
+            $('#mydashboard').on('click', '.course-sort', [], this.refresh_course_list);
+            $('#mydashboard').on('click', '.course-display', [], this.refresh_course_list);
+            $('#mydashboard').on('click', '.course-time', [], this.refresh_course_list);
+            $('#mydashboard').on('click', '.reload-areas', [], this.refresh_course_list);
 
             if ($('.is-accordion').length !== 0) {
                 // Is in accordion

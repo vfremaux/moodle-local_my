@@ -30,7 +30,7 @@ use moodle_url;
 class latest_news_simple_module extends module {
 
     public function __construct() {
-        $this->area = 'latest_news';
+        $this->area = 'latest_news_simple';
         $this->modulename = get_string('latestnews', 'local_my');
     }
 

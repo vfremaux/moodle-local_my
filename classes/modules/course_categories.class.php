@@ -55,6 +55,7 @@ class course_categories_module extends module {
 
         $template->$required = true;
         $template->area = $this->area;
+        $template->modulename = $this->modulename;
 
         $template->debuginfo = self::get_debuginfo();
 
@@ -69,6 +70,13 @@ class course_categories_module extends module {
         $template->totalofcategories = 0;
         if (!empty($this->categories)) {
             foreach ($this->categories as $catid) {
+                if (!$DB->record_exists('course_categories', ['id' => $catid])) {
+                    if ($CFG->debug == DEBUG_DEVELOPER) {
+                        throw new moodle_exception("Missing category id $catid");
+                    }
+                    // Silently ignore bad ids
+                    continue;
+                }
                 try {
                     $category = local_get_category($catid);
                     $cattpl = $this->export_course_category_for_template($category, $this->options);

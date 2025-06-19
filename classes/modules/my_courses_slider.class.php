@@ -22,23 +22,30 @@
  */
 namespace local_my\module;
 
-require_once($CFG->dirroot.'/local/my/classes/modules/latest_news.class.php');
-
 defined('MOODLE_INTERNAL') or die();
+require_once($CFG->dirroot.'/local/my/classes/modules/my_courses.class.php');
 
-class latest_news_headers_module extends latest_news_module {
+class my_courses_slider_module extends my_courses_module {
 
     public function __construct() {
-        $this->area = 'latest_news_headers';
-        $this->modulename = get_string('latestnews', 'local_my');
+        global $PAGE;
+
+        parent::__construct();
+        $this->area = 'my_courses_slider';
+        if (!self::$isslickrendered) {
+            $renderer = self::get_renderer();
+            $renderer->js_call_amd('local_my/slick', 'init');
+            $renderer->js_call_amd('local_my/slickinit', 'init');
+            $PAGE->requires->css('/local/my/css/slick.css');
+            self::$isslickrendered = true;
+        }
+
+        $this->options['gaugetype'] = (self::$config->progressgaugetype != 'noprogress') ? 'sektor' : 'noprogress';
+        $this->options['gaugewidth'] = '20';
+        $this->options['gaugeheight'] = '20';
     }
 
-    public function render($required = 'plain') {
-        return parent::render('header');
-    }
-
-    public function get_courses() {
-        // no course related.
-        assert(1);
+    public function render($required = 'asslider') {
+        return parent::render('asslider');
     }
 }

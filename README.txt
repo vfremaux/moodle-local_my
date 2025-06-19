@@ -70,3 +70,7 @@ Add LTC override to course progression indicators, if exists in course.
 =========================================
 
 Adds Pro section cache
+
+2023101000 -- XX.0016
+=========================================
+changes separator in static_profilefield keying. A double '__' separates field name from modalidty value.

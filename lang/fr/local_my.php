@@ -72,6 +72,9 @@ $string['coursecreation'] = 'Création de cours';
 $string['courselistssettings'] = 'Outils accessoires pour les listes de cours';
 $string['coursename'] = 'Nom du cours&nbsp;';
 $string['coursesearch'] = 'Rechercher des cours';
+$string['coursethumbnailsizethreshold'] = 'Seuil de sélection des images de cours';
+$string['coursethumbnailsizethreshold_desc'] = 'Si une image est requise pour les vignettes de cours, la première image inférieure à cette taille
+sera utilisée. Des images plus larges seront sélectionnées pour des bandeaux de cours, s\'ils sont activés.';
 $string['defaultleftcolumntext'] = '';
 $string['displayauto'] = 'Adaptatif';
 $string['displaycards'] = 'Cartes';
@@ -99,7 +102,8 @@ $string['fullpath'] = 'Chemin complet';
 $string['guestenrol'] = "Ouvert aux invités";
 $string['heatmapsettings'] = 'Réglages du HeatMap';
 $string['inner'] = 'Entre {down} et {up}';
-$string['ishidden'] = "Cours caché";
+$string['ishidden'] = 'Cours caché';
+$string['isfuturecourse'] = 'Ce cours n\'est pas encore ouvert';
 $string['latestnews'] = 'Dernières nouvelles';
 $string['lefteditioncolumn'] = 'Colonne éditoriale de gauche';
 $string['localcourseboxheight'] = 'Hauteur de boite de cours';
@@ -111,8 +115,9 @@ $string['localmycourseareas'] = 'Aires de cours specifiques';
 $string['locallightfavorites'] = 'Activer les favoris "légers"';
 $string['locallightfavorites_desc'] = 'Active le mode "léger" des favoris dans les listes de cours avec une option de tri.';
 $string['categoryareasettings'] = 'Réglage des zones de catégories de cours';
+$string['mycategory'] = 'Ma catégorie';
 $string['localmycategoryareas'] = 'Zone de catégorie de cours';
-$string['localmycategoryarea'] = 'Catégories dela zone';
+$string['localmycategoryarea'] = 'Catégories de la zone';
 $string['localmycourselistaccordion'] = 'Appliquer le comportement accordéon';
 $string['localmycourselistaccordion_desc'] = 'Appliquer ce comportement aux listes de cours';
 $string['localmycoursemanagermodules'] = 'Modules actifs pour les coordinateurs de cours';
@@ -144,6 +149,8 @@ $string['localmytrimlength2_desc'] = 'La longueur admise (en unités de césure)
 $string['localmytrimmode'] = 'Méthode de césure';
 $string['localmytrimmode_desc'] = 'L\'algorithme utilisé pour couper les textes';
 $string['localmyuselefteditioncolumn'] = 'Utiliser la colonne éditoriale de gauche';
+$string['localmycoureareasprintflat'] = 'Force les zones de cours en listes simples';
+$string['localmycoureareasprintflat_desc'] = 'Utilise une simple liste avec un lien de cours';
 $string['localprofilefieldforcegraphicmode'] = 'Champ de profil pour forcer le mode graphique';
 $string['localprofilefieldforcegraphicmode_desc'] = '';
 $string['localprofilefieldforcegraphicvalues'] = 'Valeurs de profil pour forcer le mode graphique';
@@ -161,9 +168,10 @@ $string['localmydefaultcoursesortoption'] = 'Option de tri par défaut pour les 
 $string['localmydefaultcoursesortoption_desc'] = '';
 $string['localmywithdisplay'] = 'Activer le contrôle manuel du mode d\'affichage';
 $string['localmywithsort'] = 'Activer le tri';
-$string['localmywithsort'] = 'Activer le filtre par date';
+$string['localmywithsort_desc'] = 'Active une liste de tri par divers critères';
+$string['localmywithtimeselector'] = 'Activer le filtre par date';
+$string['localmywithtimeselector_desc'] = 'Activer le filtre par date de fermeture (cours passés, actifs ou à venir)';
 $string['localmywithdisplay_desc'] = '';
-$string['localmywithsort_desc'] = '';
 $string['localmywithtimeselector_desc'] = '';
 $string['localmyaddcourseindexlink'] = 'Ajouter un onglet vers l\'index général des cours';
 $string['localmyaddcourseindexlink_desc'] = '';
@@ -173,6 +181,8 @@ $string['localmycategorypathstopcats'] = 'Catégories racines';
 $string['localmycategorypathstopcats_desc'] = 'Lorsque vous affichez les catégories en chemin complet, vous pouvez donner ici une liste d\'id de catégories au dessus (inclusivement) desquelles le chemin ne sera pas mentionné';
 $string['localmyacceptfullpathrootcats'] = 'Afficher les chemins complets sous les catégories';
 $string['localmyacceptfullpathrootcats_desc'] = 'Donne une liste de catégories racines sous lesquelles les chemins complets seront affichés. Les autres catégories n\'afficheront que la catégorie courante. Si non définie, alors toutes les catégories affichent le chemin complet si demandé.';
+$string['localmyallowfuturecoursesaccess'] = 'Autoriser l\'accès aux cours futurs';
+$string['localmyallowfuturecoursesaccess_desc'] = 'Si désactivé, les cours "futurs" ne seront pas accessibles (pas de lien), même si l\'utilisateur a une inscription active. Cela ne concerne que les étudiants.';
 $string['courseindex'] = 'Plan du site';
 $string['lower'] = 'Moins que {min} {name}';
 $string['uppercat'] = "Avec la surcatégorie";
@@ -199,6 +209,7 @@ $string['nocontent'] = 'Vous n\'avez aucun contenu ou service accessible sur ce 
 $string['nocourseareas'] = 'Pas de zones de cours spécifiques';
 $string['nocourses'] = 'Pas de cours.';
 $string['none'] = '(Aucun)';
+$string['noprogress'] = 'Pas de progression';
 $string['nostaticguitexts'] = 'vous utilisez le module de tableau de bord {$a} mais le plugin local_staticguitexts n\'est pas installé sur votre moodle. Installez le ou éliminez ces entrée dans la configuration des modules.';
 $string['notavailable'] = 'Non disponible';
 $string['notavailablemodule'] = 'Le module {$a} n\'est pas disponible. Il ne fait pas partie de la distribution utilisée sur ce site.';
@@ -209,6 +220,15 @@ $string['onlineusers'] = 'Utilisateurs en ligne (5 min.)';
 $string['opencourses'] = 'Cours ouverts';
 $string['pendingassignstosubmit'] = 'Reste à déposer (devoirs)';
 $string['pluginname'] = 'Mon moodle amélioré';
+$string['progressbar'] = 'Barre';
+$string['progressdonut'] = 'Donut';
+$string['progressgauge'] = 'Jauge';
+$string['localmyprogressgaugeheight'] = 'Hauteur de la base de progression';
+$string['localmyprogressgaugeheight_desc'] = '';
+$string['localmyprogressgaugetype'] = 'Type de barre de progression';
+$string['localmyprogressgaugetype_desc'] = '';
+$string['localmyprogressgaugewidth'] = 'Largeur de base de progression';
+$string['localmyprogressgaugewidth_desc'] = '';
 $string['quiztoperform'] = 'Reste à passer';
 $string['recentcourses'] = 'Cours récents ';
 $string['removefromfavorites'] = 'Supprimer des favoris';
@@ -273,14 +293,19 @@ si celle-ci est activée par la présence du module "left_edition_column".</p>
 <li>available_courses</li>
 <li>course_areas: aires de cours spécialisées</li>
 <li>course_areas: aires de cours spécialisées (deuxième instance)</li>
-<li>latestnews_full</li>
-<li>latestnews_headers</li>
+<li>latest_news</li>
+<li>latest_news_simple</li>
+<li>latest_news_headers</li>
 <li>my_network: voisinage réseau accessible pour l\'utilisateur</li>
 <li>fullme: bloc complet d\'identité</li>
 <li>my_calendar</li>
 <li>recent_courses</li>
 <li>my_templates (avec le plugin local course_templates)</li>
 <li>static<n></li>
+
+<p>Variantes _grid : les boites de cours peuvent être affichées en grilles avec vignettes.</p>
+<p>Variantes _slider : les boites de cours peuvent être affichées sous forme de sliders avec vignettes.</p>
+<p>@see : <a target="_blank" href="https://docs.activeprolearn.com/doku.php?id=local:my:modules#liste_des_widgets">Doc APL</a></p>
 ';
 
 $string['localmyteachermodules_desc'] = '

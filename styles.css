@@ -42,6 +42,11 @@
     text-align: right;
 }
 
+.local-my-fp-attributes .fa-clock-o::before {
+    color: #d9534f;
+    font-size: 150%;
+}
+
 #my-dashboard-left {
     border-right: 20px transparent solid;
 }
@@ -277,6 +282,10 @@ li.local-my-course {
     margin-bottom: 10px;
 }
 
+li.local-my-course-single {
+    margin-bottom: 10px;
+}
+
 /*
  * Component: Info Box
  * -------------------
@@ -465,10 +474,6 @@ li.local-my-course {
 
 .category-grid .local-my-promowrap {
     min-height: 150px;
-}
-
-.category-grid > div {
-   flex-basis: 25%;
 }
 
 @media all and (min-width: 576px) and (max-width: 1280px) {
@@ -768,4 +773,16 @@ li.local-my-course {
 .filter-state {
     font-style: italic;
     padding: 0 10px;
+}
+
+#page-my-index #mydashboard .collapsed {
+    display: none;
+}
+
+a.local-my-area-ctls {
+    margin-right: 15px;
+}
+
+.row-fluid-coursebox .customimage img {
+    max-width: 100%;
 }

@@ -22,23 +22,42 @@
  */
 namespace local_my\module;
 
-require_once($CFG->dirroot.'/local/my/classes/modules/latest_news.class.php');
-
 defined('MOODLE_INTERNAL') or die();
 
-class latest_news_headers_module extends latest_news_module {
+use \StdClass;
+use \moodle_url;
+
+class global_search_module extends module {
 
     public function __construct() {
-        $this->area = 'latest_news_headers';
-        $this->modulename = get_string('latestnews', 'local_my');
+        $this->area = 'global_search';
+        $this->modulename = get_string('globalsearch', 'local_my');
     }
 
-    public function render($required = 'plain') {
-        return parent::render('header');
+    public function render($required = '') {
+        global $PAGE, $OUTPUT, $CFG;
+
+        $renderer = $PAGE->get_renderer('course');
+
+        $template = new StdClass;
+
+        $search = optional_param('search', '', PARAM_TEXT);
+        if (is_dir($CFG->dirroot.'/local/search')) {
+            $config = get_config('local_search');
+            if (!empty($config->enable)) {
+                include($CFG->dirroot.'/local/search/xlib.php');
+                $template->coursesearchform = local_search_get_course_search_form($search);
+            }
+        } else {
+            $template->coursesearchform = $OUTPUT->notification('notinstalled', 'local_search');
+        }
+
+        $template->area = $this->area;
+
+        return $OUTPUT->render_from_template('local_my/course_search_module', $template);
     }
 
     public function get_courses() {
-        // no course related.
-        assert(1);
+        /* get courses to diplay */
     }
 }

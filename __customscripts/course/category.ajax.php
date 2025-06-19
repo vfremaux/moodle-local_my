@@ -35,7 +35,8 @@ if ($CFG->forcelogin) {
 
 $PAGE->set_context(context_system::instance());
 
-// Test if we have a basecategory :
+// CHANGE+.
+// Test if we have a basecategory and diverts to local_my renderer override.
 $basecategoryid = optional_param('basecategoryid', false, PARAM_INT);
 
 if ($basecategoryid) {
@@ -44,6 +45,7 @@ if ($basecategoryid) {
 } else {
     $courserenderer = $PAGE->get_renderer('core', 'course');
 }
+// CHANGE-.
 
 echo json_encode($courserenderer->coursecat_ajax());
 die;

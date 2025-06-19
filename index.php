@@ -77,6 +77,8 @@ if (isguestuser()) {
     $header = "$SITE->shortname: $strmymoodle";
 }
 
+$PAGE->add_body_class('limitedwidth'); // M4
+$PAGE->add_body_class('customscripted');
 $PAGE->requires->js('/local/my/js/sektor/sektor.js');
 $PAGE->requires->css('/local/my/css/slick.css');
 
@@ -153,8 +155,12 @@ if ($PAGE->user_allowed_editing()) {
         }
     }
 
-    // Add button for editing page.
+    // Add button for editing page (new 4.0)
     $params = array('edit' => !$edit);
+
+    $resetbutton = '';
+    $resetstring = get_string('resetpage', 'my');
+    $reseturl = new moodle_url("$CFG->wwwroot/my/index.php", array('edit' => 1, 'reset' => 1));
 
     if (!$currentpage->userid) {
         // Viewing a system page -- let the user customise it.
@@ -164,11 +170,15 @@ if ($PAGE->user_allowed_editing()) {
         $editstring = get_string('updatemymoodleon');
     } else {
         $editstring = get_string('updatemymoodleoff');
+        $resetbutton = $OUTPUT->single_button($reseturl, $resetstring);
     }
 
-    $url = new moodle_url('/my/index.php', $params);
-    $button = $OUTPUT->single_button($url, $editstring);
-    $PAGE->set_button($button);
+    $url = new moodle_url("$CFG->wwwroot/my/index.php", $params);
+    $button = '';
+    if (!$PAGE->theme->haseditswitch) {
+        $button = $OUTPUT->single_button($url, $editstring);
+    }
+    $PAGE->set_button($resetbutton . $button);
 
 } else {
     $USER->editing = $edit = 0;
@@ -194,6 +204,10 @@ module::pre_process_exclusions($view);
 
 echo $OUTPUT->header();
 
+if (core_userfeedback::should_display_reminder()) {
+    core_userfeedback::print_reminder_block();
+}
+
 echo module::render_my_caption();
 
 echo $tabs;
@@ -208,4 +222,10 @@ echo module::render_dashboard();
 $PAGE->requires->js_amd_inline($renderer->render_js_code(false));
 
 echo $OUTPUT->footer();
+
+// Trigger dashboard has been viewed event.
+$eventparams = array('context' => $context);
+$event = \core\event\dashboard_viewed::create($eventparams);
+$event->trigger();
+
 die;

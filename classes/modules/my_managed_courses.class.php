@@ -41,9 +41,10 @@ class my_managed_courses_module extends my_courses_module {
         global $USER, $DB;
 
         $capability = 'local/my:iscoursemanager';
-        $fields = 'id,shortname,fullname,visible';
-        if ($this->courses = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder')) {
-            foreach ($this->courses as $m) {
+        $fields = 'id,shortname,fullname,visible,category';
+        $this->courses = [];
+        if ($courses = local_get_user_capability_course($capability, $USER->id, false, '', 'cc.sortorder, c.sortorder', $overridedirectroleassignments = true)) {
+            foreach ($courses as $m) {
                 $this->courses[$m->id] = $DB->get_record('course', ['id' => $m->id], $fields);
                 self::add_debuginfo("Accept {$m->id} as managed", $m->id);
             }
